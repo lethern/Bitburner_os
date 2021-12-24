@@ -10,7 +10,7 @@ export class OS extends EventListener{
 	constructor(ns){
 		super();
 
-		this.initNSInternals();
+		this.initNSInternals(ns);
 
 		this.NSqueue = [];
 		/** @type {Debug} */

@@ -48,6 +48,7 @@ export const INJECTED_CSS = `
 	top: 0;
 	width: 100%;
 	z-index: 1200;
+	user-select: none;
 }
 
 .window-container--focused .window__toolbar {

@@ -165,7 +165,7 @@ export class FilesExplorer {
 		if (!command) {
 			command = 'cat'
 		}
-		
+		/*
 		if (await this.os.inputToTerminal(`${command} ${fileName}`)) {
 			if (command === 'cd') {
 				this.currentDirectory += fileName + '/' //`${this.currentDirectory}` + fileName
