@@ -67,7 +67,7 @@ export class FilesExplorer {
 		
 		this.readServerFiles().then( (files)=>{
 			this.files = files;
-			let currentFiles = this.narrowFilesToGivenDir(files, this.currentDir);
+			let currentFiles = this.narrowFilesToGivenDir(this.files, this.currentDir);
 			if(!currentFiles) currentFiles=[];
 			this.winRenderer.renderFiles(currentFiles, this.currentDir);
 		});
@@ -77,8 +77,6 @@ export class FilesExplorer {
 		let files = await this.os.getNS((ns)=>{
 			return ns.ls(this.currentServer);
 		});
-		
-		console.log("files ", files);
 		
 		let mainDirs = { files: [], dirs: {} };
 		for(let file of files){
@@ -94,9 +92,42 @@ export class FilesExplorer {
 			}
 			files.push(arr[arr.length-1]);
 		}
+		console.log("mainDirs ", mainDirs);
 		return mainDirs;
 	}
 
+	changeDirectory_oneUp(){
+		let currentDirectory = this.currentDir.replaceAll(/\/+$/g, '')
+		
+		currentDirectory = currentDirectory.substring(0, currentDirectory.lastIndexOf('/') + 1);
+		
+		console.log(`going up from ${this.currentDir} to ${currentDirectory}`)
+		this.changeCurrentDir(currentDirectory);
+	}
+	
+	changeDirectoryTo(dir){
+		let targetPath = this.currentDir + '/' + dir;
+		targetPath = targetPath.replaceAll(/^\/+/g, '')
+		console.log(`changeCurrentDir from ${this.currentDir} to ${targetPath}`);
+		
+		this.changeCurrentDir(targetPath);
+	}
+	
+	changeCurrentDir(dir){
+		if(this.currentDir == dir) return;
+		
+		this.currentDir = dir;
+
+		let currentFiles = this.narrowFilesToGivenDir(this.files, this.currentDir);
+		if(!currentFiles) currentFiles= { files: [], dirs: {} };
+		this.winRenderer.renderFiles(currentFiles, this.currentDir);
+		/*
+		if (await this.os.inputToTerminal(`cd ${this.currentDir}`)) {
+			this.render()
+		}
+		*/
+	}
+	
 	/*
 	renderMenu(menu_height){
 		let renderer = this.winRenderer;
@@ -113,10 +144,12 @@ export class FilesExplorer {
 	narrowFilesToGivenDir(files, currentDirName){
 		let arr = currentDirName.split('/');
 		let currDir = files;
+		console.log('narrow ', files, currentDirName, arr);
 		arr.forEach(part => {
 			if(!part) return;
-			currDir = currDir && currDir[part];
+			currDir = currDir && currDir.dirs[part];
 		});
+		console.log(`narrowFiles -> `, currDir);
 		return currDir;
 	}
 
@@ -186,8 +219,7 @@ class FilesExplorerRenderer extends EventListener {
 		
 		element.querySelector('.window__cta-close').addEventListener('click', () => this.terminalVisibility(false))
 		element.querySelector('.window__content').addEventListener('dblclick', async () => {
-			let currentDir = this.filesExplorer.currentDir
-			
+			this.filesExplorer.changeDirectory_oneUp();
 			// currentDir = currentDir.replaceAll(/\/+$/g, '')
 			// this.currentDirectory = currentDirectory ?
 			// 	currentDirectory.substring(0, currentDirectory.lastIndexOf('/') + 1) :
@@ -201,14 +233,14 @@ class FilesExplorerRenderer extends EventListener {
 	}
 	
 	renderFiles(currentFiles, currentDirName){
-		console.log('renderFiles');
+		console.log('renderFiles ', currentDirName, currentFiles);
 		// Update title
 		let windowDiv = this.explorerWindow;
 		windowDiv.querySelector('.window__title').textContent = `${this.filesExplorer.currentServer}: ${this.filesExplorer.currentDir}`
 
 		// Update file list
 		//windowDiv.querySelector('.file-list').innerHTML = Object.entries(files).map(([name, { isDirectory }]) => `
-		windowDiv.querySelector('.file-list').innerHTML = Object.keys(currentFiles).map((elem) => renderIcons(elem, true)).join('') +
+		windowDiv.querySelector('.file-list').innerHTML = Object.keys(currentFiles.dirs).map((elem) => renderIcons(elem, true)).join('') +
 			currentFiles.files.map((elem) => renderIcons(elem, false)).join('');
 		
 		function renderIcons(name, isDirectory){
@@ -230,35 +262,46 @@ class FilesExplorerRenderer extends EventListener {
 
 		// Add icon event listeners
 		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
-			button.addEventListener('dblclick', (event) => {
-				event.stopPropagation()
-				const isDirectory = button.dataset.fileType === 'directory'
-				const fileName = button.dataset.fileName
-
-				let command
-				if (isDirectory) {
-					command = 'cd'
-				} else {
-					command = Object.entries(fileHandlers).find(([, extensions]) => extensions.find((extension) => fileName.endsWith(extension)))?.[0]
-				}
-
-				if (!command) {
-					command = 'cat'
-				}
-
-				/*
-				if (await this.os.inputToTerminal(`${command} ${fileName}`)) {
-					if (command === 'cd') {
-						this.currentDirectory += fileName + '/' //`${this.currentDirectory}` + fileName
-						this.render()
-					} else if (command === 'nano') {
-						this.isVisible = false
-					}
-				}
-				*/
-			})
-		})
+			button.addEventListener('dblclick', this.fileListedOnClick.bind(this) )
+			});
+	}
+	
+	fileListedOnClick(event) {
+		let button = event.currentTarget;
+		console.log(`btn click ${button.dataset.fileType}  ${button.dataset.fileName}`, button);
 		
+		event.stopPropagation()
+		const isDirectory = button.dataset.fileType === 'directory'
+		const fileName = button.dataset.fileName
+
+
+		const fileHandlers = {
+			nano: ['.js', '.ns', '.script'],
+			run: ['.exe', '.cct'],
+		}
+		
+		let command
+		if (isDirectory) {
+			//command = 'cd'
+			this.filesExplorer.changeDirectoryTo(fileName);
+		} else {
+			command = Object.entries(fileHandlers).find(([, extensions]) => extensions.find((extension) => fileName.endsWith(extension)))?.[0]
+		}
+		
+		/*
+		if (!command) {
+			command = 'cat'
+		}
+		
+		if (await this.os.inputToTerminal(`${command} ${fileName}`)) {
+			if (command === 'cd') {
+				this.currentDirectory += fileName + '/' //`${this.currentDirectory}` + fileName
+				this.render()
+			} else if (command === 'nano') {
+				this.isVisible = false
+			}
+		}
+		*/
 	}
 	
 	createSVGElement(tag, attribs, parent, dont_attach){
@@ -273,15 +316,10 @@ class FilesExplorerRenderer extends EventListener {
 		}
 		return elem;
 	}
-	get windowWidth(){
-		return 1000;
-	}
-	get windowHeight(){
-		return 500;
-	}
+
 	init(){
 		//this.listenForTerminalHidden();
-		return;
+
 		/*
 		this.svg = this.createSVGElement('svg', {
 			width: this.windowWidth+'px',
@@ -366,7 +404,6 @@ class FilesExplorerRenderer extends EventListener {
 			}
 			*/
 			
-			console.log('terminalVisibility ', !!this.explorerWindow, this.terminal_visible);
 			if(this.explorerWindow){
 				if(this.terminal_visible){
 					this.explorerWindow.style.display = ''
@@ -382,6 +419,6 @@ class FilesExplorerRenderer extends EventListener {
 		if (this.explorerWindow) {
 			this.explorerWindow.remove()
 		}
-		this.svg = null; this.os = null; this.debug = null; this.doc = null;
+		Object.keys(this).forEach(key => this[key] = null);
 	}
 }
