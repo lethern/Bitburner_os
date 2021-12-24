@@ -181,6 +181,18 @@ export class FilesExplorer {
 }
 
 class FilesExplorerRenderer extends EventListener {
+	#left
+	#top
+	#elementWidth
+	#elementHeight
+	#windowWidth
+	#windowHeight
+	#grabStart = {}
+	#modalStart = {}
+	#boundBeginGrabbing = this.#beginGrabbing.bind(this)
+	#boundEndGrabbing = this.#endGrabbing.bind(this)
+	#boundMouseMove = this.#mouseMove.bind(this)
+
 	/** @param {OS} os */
 	constructor(os, filesExplorer){
 		super();
@@ -194,12 +206,52 @@ class FilesExplorerRenderer extends EventListener {
 
 		this.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
 		this.os.listen(OS_EVENT.INIT, this.init.bind(this));
+
+		this.#initialiseWindow()
 	}
 	
+	#initialiseWindow() {
+		this.container = this.createWindow(DOM_CONSTANTS.myCustomWindowId)
+		this.explorerWindow = this.container.querySelector('.window')
+		this.container.style.display = 'none';
+	}
 	
+	#initialiseWindowPosition() {
+		this.container.classList.add(DOM_CONSTANTS.hiddenClass)
+
+		setTimeout(() => {
+			this.#left = globalThis.innerWidth / 2 - this.explorerWindow.offsetWidth / 2
+			this.#top = globalThis.innerHeight / 2 - this.explorerWindow.offsetHeight / 2
+
+			this.#updateWindowPosition()
+
+			this.container.classList.remove(DOM_CONSTANTS.hiddenClass)
+		}, 50)
+	}
+
+	#updateWindowPosition() {
+		this.explorerWindow.style.transform = `translate(${this.#left}px, ${this.#top}px)`
+	}
+
+	/** @param {HTMLElement} element */
+	#addWindowEventListeners(element) {
+		element.querySelector('.window__cta-close').addEventListener('click', () => this.terminalVisibility(false))
+		element.querySelector('.window__content').addEventListener('dblclick', async () => {
+			this.filesExplorer.changeDirectory_oneUp();
+			// currentDir = currentDir.replaceAll(/\/+$/g, '')
+			// this.currentDirectory = currentDirectory ?
+			// 	currentDirectory.substring(0, currentDirectory.lastIndexOf('/') + 1) :
+			// 	'/'
+
+			// if (await this.os.inputToTerminal(`cd ${this.currentDirectory}`)) {
+			// 	this.render()
+			// }
+		})
+		element.querySelector('.window__toolbar').addEventListener('mousedown', this.#boundBeginGrabbing)
+	}
+
 	showWindow() {
 		console.log('show window');
-		this.explorerWindow = this.createWindow(DOM_CONSTANTS.myCustomWindowId)
 	}
 	
 	createWindow(id) {
@@ -240,25 +292,15 @@ class FilesExplorerRenderer extends EventListener {
 		</div>
 		`
 		
-		element.querySelector('.window__cta-close').addEventListener('click', () => this.terminalVisibility(false))
-		element.querySelector('.window__content').addEventListener('dblclick', async () => {
-			this.filesExplorer.changeDirectory_oneUp();
-			// currentDir = currentDir.replaceAll(/\/+$/g, '')
-			// this.currentDirectory = currentDirectory ?
-			// 	currentDirectory.substring(0, currentDirectory.lastIndexOf('/') + 1) :
-			// 	'/'
+		this.#addWindowEventListeners(element)
                
-			// if (await this.os.inputToTerminal(`cd ${this.currentDirectory}`)) {
-			// 	this.render()
-			// }
-			})
 		return element
 	}
 	
 	renderFiles(currentFiles, currentDirName){
 		console.log('renderFiles ', currentDirName, currentFiles);
 		// Update title
-		let windowDiv = this.explorerWindow;
+		let windowDiv = this.container;
 		windowDiv.querySelector('.window__title').textContent = `${this.filesExplorer.currentServer}: ${this.filesExplorer.currentDir}`
 
 		// Update file list
@@ -274,14 +316,6 @@ class FilesExplorerRenderer extends EventListener {
 				</button>
 			</li>`
 		}
-
-		const elementWindow = windowDiv.querySelector('.window')
-		const width = globalThis.innerWidth / 2 - elementWindow.offsetWidth / 2
-		const height = globalThis.innerHeight / 2 - elementWindow.offsetHeight / 2
-
-		elementWindow.style.transform = `translate(${width}px, ${height}px)`
-		this.explorerWindow.style.display = this.terminal_visible ? '' : 'none'
-		//this.explorerWindow.style.display = 'none';
 
 		// Add icon event listeners
 		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
@@ -335,10 +369,12 @@ class FilesExplorerRenderer extends EventListener {
 		*/
 		//this.terminalVisibility(true);
 	}
+
 	onAnimationFrame(){
 		//this.svg
 		//globalThis['window'].requestAnimationFrame(this.animationCallback);
 	}
+
 	/*
 	listenForTerminalHidden(){
 		if(this.observer) return;
@@ -389,6 +425,7 @@ class FilesExplorerRenderer extends EventListener {
 	terminalVisibilityToggle(visible){
 		this.terminalVisibility(!this.terminal_visible);
 	}
+
 	terminalVisibility(visible){
 		if(visible != this.terminal_visible){
 			this.terminal_visible = visible;
@@ -405,21 +442,82 @@ class FilesExplorerRenderer extends EventListener {
 			}
 			*/
 			
-			if(this.explorerWindow){
+			if (this.container) {
 				if(this.terminal_visible){
-					this.explorerWindow.style.display = ''
+					this.container.style.display = ''
+					this.#initialiseWindowPosition()
 				}else{
-					this.explorerWindow.style.display = 'none'
+					this.container.style.display = 'none'
 				}
 			}
 		}
 	}
+
 	on_exit(){
 		this.terminalVisibility(false);
 		if(this.observer) this.observer.disconnect();
-		if (this.explorerWindow) {
-			this.explorerWindow.remove()
+		if (this.container) {
+			this.container.remove()
 		}
 		Object.keys(this).forEach(key => this[key] = null);
+	}
+
+	#beginGrabbing({ x, y, button }) {
+		if (!button) {
+			const win = globalThis['window']
+			this.#grabStart = { x, y }
+			this.#elementWidth = this.explorerWindow.offsetWidth
+			this.#elementHeight = this.explorerWindow.offsetHeight
+			this.#modalStart = { x: this.#left, y: this.#top }
+			this.#windowWidth = win.innerWidth
+			this.#windowHeight = win.innerHeight
+
+			const body = this.doc.body
+			body.addEventListener('mousemove', this.#boundMouseMove)
+			body.addEventListener('mouseup', this.#boundEndGrabbing)
+			body.addEventListener('mouseleave', this.#boundEndGrabbing)
+}
+	}
+
+	#endGrabbing() {
+		const body = this.doc.body
+		body.removeEventListener('mousemove', this.#boundMouseMove)
+		body.removeEventListener('mouseup', this.#boundEndGrabbing)
+		body.removeEventListener('mouseleave', this.#boundEndGrabbing)
+	}
+
+	#mouseMove({ x, y }) {
+		let leftFinal = this.#modalStart.x + (x - this.#grabStart.x)
+		let topFinal = this.#modalStart.y + (y - this.#grabStart.y)
+
+		const leftIsBeforeScreen = leftFinal < 0
+		const leftIsAfterScreen = leftFinal + this.#elementWidth > this.#windowWidth
+		if (leftIsBeforeScreen || leftIsAfterScreen) {
+			if (leftIsBeforeScreen) {
+				leftFinal = 0
+			} else {
+				leftFinal = this.#windowWidth - this.#elementWidth
+			}
+
+			this.#modalStart.x = leftFinal
+			this.#grabStart.x = Math.max(Math.min(x, this.#windowWidth - 5), 5)
+		}
+
+		const topIsBeforeScreen = topFinal < 0
+		const topIsAfterScreen = topFinal + this.#elementHeight > this.#windowHeight
+		if (topIsBeforeScreen || topIsAfterScreen) {
+			if (topIsBeforeScreen) {
+				topFinal = 0
+			} else {
+				topFinal = this.#windowHeight - this.#elementHeight
+			}
+
+			this.#modalStart.y = topFinal
+			this.#grabStart.y = Math.max(Math.min(y, this.#windowHeight), 5)
+		}
+
+		this.#left = leftFinal
+		this.#top = topFinal
+		this.#updateWindowPosition()
 	}
 }
