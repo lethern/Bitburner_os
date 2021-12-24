@@ -1,4 +1,5 @@
 import { DOM_CONSTANTS } from '/os/constants.js'
+import { Utils } from '/os/utils.js'
 
 export class Terminal {
 	constructor(os){

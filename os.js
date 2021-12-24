@@ -3,6 +3,7 @@ import { Debug } from '/os/debug.js'
 import { EventListener, OS_EVENT } from '/os/event_listener.js'
 import { FilesExplorer } from '/os/files_explorer.js'
 import { GUI } from '/os/gui.js'
+import { Utils } from '/os/utils.js'
 
 export class OS extends EventListener{
 	constructor(ns){
