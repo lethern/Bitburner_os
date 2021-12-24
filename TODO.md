@@ -1,0 +1,16 @@
+- rmdir 
+-- confirm popup
+-- deletes files from dir
+- change server (files explorer)
+- connect to selected server (generates a terminal connect command and executes)
+- list of processes (per server, perhaps exp gain / money gain)
+- displaying servers list, network (graph), info (dashboard)
+ -- graphical representation of attacks (server -> server), colored based on threads
+- options (e.g hide on tab switch, always open etc)
+-matrix screensaver
+-custom scripts (clickable aliases?)
+-tutorial / guide (diz for me probably)
+-clickable links (docs etc)
+-maybe search for docs
+ 
+-something like "man command", but instead of terminal, you type the function and get documentation in-game
