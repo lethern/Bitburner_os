@@ -154,13 +154,14 @@ export class FilesExplorer {
 	*/
 
 	openFile(fileName){
-		//command = Object.entries(fileHandlers).find(([, extensions]) => extensions.find((extension) => fileName.endsWith(extension)))?.[0]
+		//
 		const fileHandlers = {
 			nano: ['.js', '.ns', '.script'],
 			run: ['.exe', '.cct'],
 		}
+
+		let command = Object.entries(fileHandlers).find(([, extensions]) => extensions.find((extension) => fileName.endsWith(extension)))?.[0]
 		
-		/*
 		if (!command) {
 			command = 'cat'
 		}
@@ -173,7 +174,7 @@ export class FilesExplorer {
 				this.isVisible = false
 			}
 		}
-		*/
+		//*/
 	}
 	on_exit(){
 	}
