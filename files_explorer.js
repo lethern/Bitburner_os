@@ -128,6 +128,18 @@ export class FilesExplorer {
 		*/
 	}
 	
+	narrowFilesToGivenDir(files, currentDirName){
+		let arr = currentDirName.split('/');
+		let currDir = files;
+		console.log('narrow ', files, currentDirName, arr);
+		arr.forEach(part => {
+			if(!part) return;
+			currDir = currDir && currDir.dirs[part];
+		});
+		console.log(`narrowFiles -> `, currDir);
+		return currDir;
+	}
+
 	/*
 	renderMenu(menu_height){
 		let renderer = this.winRenderer;
@@ -141,18 +153,28 @@ export class FilesExplorer {
 	}
 	*/
 
-	narrowFilesToGivenDir(files, currentDirName){
-		let arr = currentDirName.split('/');
-		let currDir = files;
-		console.log('narrow ', files, currentDirName, arr);
-		arr.forEach(part => {
-			if(!part) return;
-			currDir = currDir && currDir.dirs[part];
-		});
-		console.log(`narrowFiles -> `, currDir);
-		return currDir;
+	openFile(fileName){
+		//command = Object.entries(fileHandlers).find(([, extensions]) => extensions.find((extension) => fileName.endsWith(extension)))?.[0]
+		const fileHandlers = {
+			nano: ['.js', '.ns', '.script'],
+			run: ['.exe', '.cct'],
+		}
+		
+		/*
+		if (!command) {
+			command = 'cat'
+		}
+		
+		if (await this.os.inputToTerminal(`${command} ${fileName}`)) {
+			if (command === 'cd') {
+				this.currentDirectory += fileName + '/' //`${this.currentDirectory}` + fileName
+				this.render()
+			} else if (command === 'nano') {
+				this.isVisible = false
+			}
+		}
+		*/
 	}
-
 	on_exit(){
 	}
 }
@@ -275,33 +297,11 @@ class FilesExplorerRenderer extends EventListener {
 		const fileName = button.dataset.fileName
 
 
-		const fileHandlers = {
-			nano: ['.js', '.ns', '.script'],
-			run: ['.exe', '.cct'],
-		}
-		
-		let command
 		if (isDirectory) {
-			//command = 'cd'
 			this.filesExplorer.changeDirectoryTo(fileName);
 		} else {
-			command = Object.entries(fileHandlers).find(([, extensions]) => extensions.find((extension) => fileName.endsWith(extension)))?.[0]
+			this.filesExplorer.openFile(fileName);
 		}
-		
-		/*
-		if (!command) {
-			command = 'cat'
-		}
-		
-		if (await this.os.inputToTerminal(`${command} ${fileName}`)) {
-			if (command === 'cd') {
-				this.currentDirectory += fileName + '/' //`${this.currentDirectory}` + fileName
-				this.render()
-			} else if (command === 'nano') {
-				this.isVisible = false
-			}
-		}
-		*/
 	}
 	
 	createSVGElement(tag, attribs, parent, dont_attach){
