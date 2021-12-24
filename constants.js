@@ -1,12 +1,10 @@
-
-
 export const DOM_CONSTANTS = {
 	terminalInputId: 'terminal-input',
 	siblingBtnSelector: '.MuiList-root .MuiButtonBase-root',
 	terminalBtnSelector: '.MuiList-root .MuiList-root .MuiButtonBase-root',
 	siblingButtonLabel: 'Active Scripts',
 	fileExplorerBtnId: 'file-explorer-button',
-	
+	hiddenClass: 'block-but-hidden',
 	myCustomWindowId: 'custom-window',
 };
 
@@ -177,8 +175,13 @@ export const INJECTED_CSS = `
 	text-shadow: none;
 	word-wrap: anywhere;
 }
+
+.block-but-hidden {
+	display: block !important;
+	visibility: hidden !important;
+}
 `;
-	
+
 export const directorySvg = `
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
