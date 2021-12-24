@@ -1,0 +1,387 @@
+import { DOM_CONSTANTS, directorySvg, jsSvg, windowIcon } from '/os/constants.js'
+import { EventListener, OS_EVENT, FilesExplorerRenderer_EVENT } from '/os/event_listener.js'
+
+export class FilesExplorer {
+	/** @param {OS} os */
+	constructor(os){
+		this.os = os;
+		
+		this.winRenderer = new FilesExplorerRenderer(os, this);
+
+		this.currentServer = 'home';
+		
+		let _this = this;
+		this.os.getNS_noPromise(function (ns){
+			_this.setCurrentServer(ns.getHostname());
+		});
+		
+		this.currentDir = '';
+		this.isRendered = false;
+
+		this.os.listen(OS_EVENT.INIT, this.init.bind(this));
+		this.winRenderer.listen(FilesExplorerRenderer_EVENT.SHOW, this.onRenderVisible.bind(this));
+		this.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
+	}
+	
+	setCurrentServer(server){
+		let old = this.currentServer;
+		this.currentServer = 'home';
+		if(old != this.currentServer){
+			// re-render
+		}
+	}
+	
+	init(){
+		this.injectFileExplorerButton();
+		
+		/*
+		let renderer = this.winRenderer;
+		let width = renderer.windowWidth - 2;
+		let menu_height = 50;
+		this.menu_svg = renderer.createSVGElement('svg', { x: 1, y: 1, width: width+'px', height: menu_height+'px' }, renderer.svg);
+		this.renderMenu(menu_height);
+
+		let dirs_height = renderer.windowHeight - 2 - menu_height;
+		this.dirs_svg = renderer.createSVGElement('svg', { x: 1, y: 1+menu_height+1, width: width+'px', height: dirs_height+'px' }, renderer.svg);
+		*/
+	}
+	
+	injectFileExplorerButton(){
+		let fileExplorer_newPath = '<path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z">'
+		
+		this.os.gui.injectButton( { 
+			btnLabel:		'File Explorer', 
+			btnId:			DOM_CONSTANTS.fileExplorerBtnId,
+			callback:		() => this.winRenderer.terminalVisibilityToggle(),
+			btnIconPath:	fileExplorer_newPath,
+			btnIconViewBox: 'viewBox="0 2 18 17"',
+			} );
+	}
+	
+	onRenderVisible(){
+		// runs only one time
+		if(this.isRendered) return;
+		this.isRendered= true;
+		
+		this.winRenderer.showWindow();
+		
+		this.readServerFiles().then( (files)=>{
+			this.files = files;
+			let currentFiles = this.narrowFilesToGivenDir(files, this.currentDir);
+			if(!currentFiles) currentFiles=[];
+			this.winRenderer.renderFiles(currentFiles, this.currentDir);
+		});
+	}
+		
+	async readServerFiles(){
+		let files = await this.os.getNS((ns)=>{
+			return ns.ls(this.currentServer);
+		});
+		
+		console.log("files ", files);
+		
+		let mainDirs = { files: [], dirs: {} };
+		for(let file of files){
+			let arr = file.split('/');
+			let { files, dirs } = mainDirs;
+			for(let i=0; i<arr.length-1; ++i){
+				let part = arr[i];
+				if(!part) continue;
+				
+				if(!dirs[part]) dirs[part] = { files: [], dirs: {} };
+				files = dirs[part].files;
+				dirs = dirs[part].dirs;
+			}
+			files.push(arr[arr.length-1]);
+		}
+		return mainDirs;
+	}
+
+	/*
+	renderMenu(menu_height){
+		let renderer = this.winRenderer;
+		let parent = this.menu_svg;
+		this.path_bar = renderer.createSVGElement('text', { x: 1, y: 32+3, fill: 'black', 'alignment-baseline': "hanging" }, parent);
+		renderer.createSVGElement('rect', { x: 1, y: 33, width: 298, height: menu_height-2-33, fill: "transparent", stroke: "gray" }, parent)
+
+		this.server_bar = renderer.createSVGElement('text', { x: 300, y: 32+3, fill: 'black', 'alignment-baseline': "hanging" }, parent);
+		renderer.createSVGElement('rect', { x: 300, y: 33, width: 298, height: menu_height-2-33, fill: "transparent", stroke: "gray" }, parent)
+		this.server_bar.textContent = 'Connected: '+this.currentServer;
+	}
+	*/
+
+	narrowFilesToGivenDir(files, currentDirName){
+		let arr = currentDirName.split('/');
+		let currDir = files;
+		arr.forEach(part => {
+			if(!part) return;
+			currDir = currDir && currDir[part];
+		});
+		return currDir;
+	}
+
+	on_exit(){
+	}
+}
+
+class FilesExplorerRenderer extends EventListener {
+	/** @param {OS} os */
+	constructor(os, filesExplorer){
+		super();
+		this.os = os;
+		this.debug = os.debug;
+		this.filesExplorer = filesExplorer;
+		this.doc = globalThis['document'];
+
+		this.animationCallback = this.onAnimationFrame.bind(this);
+		this.terminal_visible = false;
+
+		this.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
+		this.os.listen(OS_EVENT.INIT, this.init.bind(this));
+	}
+	
+	
+	showWindow() {
+		console.log('show window');
+		this.explorerWindow = this.createWindow(DOM_CONSTANTS.myCustomWindowId)
+	}
+	
+	createWindow(id) {
+		const element = this.createBodyDiv();
+		element.id = DOM_CONSTANTS.myCustomWindowId
+		element.classList.add('window-container')
+		element.innerHTML = `
+			<div class="window">
+			<div class="window__toolbar">
+				<img src="${windowIcon}" alt="" class="window__icon">
+				<h1 class="window__title"></h1>
+				<div class="window__cta-group">
+					<button class="btn btn--small window__cta-minimise">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
+							<path d="m3 13h12v2h-12z" fill="#000" />
+						</svg>
+					</button>
+					<button class="btn btn--small window__cta-maximise">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
+							<path d="m3 3h12v2h-12z" fill="#000" />
+							<path d="m3 3h12v12h-12z" stroke="#000" fill='none' />
+						</svg>
+
+					</button>
+					<button class="btn btn--small window__cta-close">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
+							<g stroke="#000" stroke-width="1.5">
+								<line x1="3" y1="3" x2="15" y2="15" />
+								<line x2="3" y1="3" x1="15" y2="15" />
+							</g>
+						</svg>
+					</button>
+				</div>
+			</div>
+			<div class="window__content">
+				<ul class="file-list file-list--layout-icon-row" />
+			</div>
+		</div>
+		`
+		
+		element.querySelector('.window__cta-close').addEventListener('click', () => this.terminalVisibility(false))
+		element.querySelector('.window__content').addEventListener('dblclick', async () => {
+			let currentDir = this.filesExplorer.currentDir
+			
+			// currentDir = currentDir.replaceAll(/\/+$/g, '')
+			// this.currentDirectory = currentDirectory ?
+			// 	currentDirectory.substring(0, currentDirectory.lastIndexOf('/') + 1) :
+			// 	'/'
+               
+			// if (await this.os.inputToTerminal(`cd ${this.currentDirectory}`)) {
+			// 	this.render()
+			// }
+			})
+		return element
+	}
+	
+	renderFiles(currentFiles, currentDirName){
+		console.log('renderFiles');
+		// Update title
+		let windowDiv = this.explorerWindow;
+		windowDiv.querySelector('.window__title').textContent = `${this.filesExplorer.currentServer}: ${this.filesExplorer.currentDir}`
+
+		// Update file list
+		//windowDiv.querySelector('.file-list').innerHTML = Object.entries(files).map(([name, { isDirectory }]) => `
+		windowDiv.querySelector('.file-list').innerHTML = Object.keys(currentFiles).map((elem) => renderIcons(elem, true)).join('') +
+			currentFiles.files.map((elem) => renderIcons(elem, false)).join('');
+		
+		function renderIcons(name, isDirectory){
+			return `<li class="file-list__item">
+				<button class="file-list__button" data-file-name="${name}" data-file-type="${isDirectory ? 'directory' : 'file'}">
+					${isDirectory ? directorySvg : jsSvg}
+					<span class="file-list__label">${name}</span>
+				</button>
+			</li>`
+		}
+
+		const elementWindow = windowDiv.querySelector('.window')
+		const width = globalThis.innerWidth / 2 - elementWindow.offsetWidth / 2
+		const height = globalThis.innerHeight / 2 - elementWindow.offsetHeight / 2
+
+		elementWindow.style.transform = `translate(${width}px, ${height}px)`
+		this.explorerWindow.style.display = this.terminal_visible ? '' : 'none'
+		//this.explorerWindow.style.display = 'none';
+
+		// Add icon event listeners
+		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
+			button.addEventListener('dblclick', (event) => {
+				event.stopPropagation()
+				const isDirectory = button.dataset.fileType === 'directory'
+				const fileName = button.dataset.fileName
+
+				let command
+				if (isDirectory) {
+					command = 'cd'
+				} else {
+					command = Object.entries(fileHandlers).find(([, extensions]) => extensions.find((extension) => fileName.endsWith(extension)))?.[0]
+				}
+
+				if (!command) {
+					command = 'cat'
+				}
+
+				/*
+				if (await this.os.inputToTerminal(`${command} ${fileName}`)) {
+					if (command === 'cd') {
+						this.currentDirectory += fileName + '/' //`${this.currentDirectory}` + fileName
+						this.render()
+					} else if (command === 'nano') {
+						this.isVisible = false
+					}
+				}
+				*/
+			})
+		})
+		
+	}
+	
+	createSVGElement(tag, attribs, parent, dont_attach){
+		let elem = this.doc.createElementNS('http://www.w3.org/2000/svg', tag);
+		if(attribs){
+			for(let it in attribs){
+				elem.setAttributeNS(null, it, attribs[it]);
+			}
+		}
+		if(!dont_attach){
+			(parent || this.svg).appendChild(elem);
+		}
+		return elem;
+	}
+	get windowWidth(){
+		return 1000;
+	}
+	get windowHeight(){
+		return 500;
+	}
+	init(){
+		//this.listenForTerminalHidden();
+		return;
+		/*
+		this.svg = this.createSVGElement('svg', {
+			width: this.windowWidth+'px',
+			height: this.windowHeight+'px',
+		}, null, true);
+		this.svg.style.position= 'fixed';
+		this.svg.style['z-index']= '9999';
+		this.svg.style.top= '10%';
+		this.svg.style.left= '10%';
+		this.svg.style['background-color']= 'rgb(186, 186, 186)';
+		globalThis['window'].requestAnimationFrame(this.animationCallback);
+		*/
+		//this.terminalVisibility(true);
+	}
+	onAnimationFrame(){
+		//this.svg
+		//globalThis['window'].requestAnimationFrame(this.animationCallback);
+	}
+	/*
+	listenForTerminalHidden(){
+		if(this.observer) return;
+
+		const targetNode = this.doc.getElementById(DOM_CONSTANTS.terminalInputId);
+		if(!targetNode) return;
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver/observe
+		const callback = function(mutationsList, observer) {
+			let terminal_removed = false;
+			let terminal_added = false;
+			for(const mutation of mutationsList) {
+				if (mutation.type === 'childList') {
+					mutation.removedNodes.forEach(elem => {
+						if(elem.classList && elem.classList.contains('MuiBox-root'))
+							terminal_removed = true;
+					});
+					mutation.addedNodes.forEach(elem => {
+						if(elem.classList && elem.classList.contains('MuiBox-root')){
+							let res = !!elem.querySelector('#'+DOM_CONSTANTS.terminalInputId);
+							if(res)
+								terminal_added = true;
+						}
+					});
+				}
+			}
+			//if(terminal_removed){
+			//	this.terminalVisibility(false);
+			//}else if(terminal_added){
+			//	this.terminalVisibility(true);
+			//}
+		};
+
+		this.observer = new MutationObserver(callback.bind(this));
+		let target = targetNode.parentNode.parentNode.parentNode.parentNode;
+		this.observer.observe(target, { childList: true });
+		this.debug.print('added observer');
+	}
+	*/
+	
+	createBodyDiv(){
+		let div = this.doc.createElement('div');
+		this.doc.body.appendChild(div);
+		return div;
+	}
+	
+	/** @param {boolean} visible */
+	terminalVisibilityToggle(visible){
+		this.terminalVisibility(!this.terminal_visible);
+	}
+	terminalVisibility(visible){
+		if(visible != this.terminal_visible){
+			this.terminal_visible = visible;
+
+
+			if(this.terminal_visible) this.fire(FilesExplorerRenderer_EVENT.SHOW);
+			/*
+			if(this.terminal_visible){
+				if(this.svg) this.doc.body.appendChild(this.svg);
+				
+				//this.listenForTerminalHidden();
+			}else if(this.svg && this.svg.parentNode){
+				this.svg.parentNode.removeChild(this.svg);
+			}
+			*/
+			
+			console.log('terminalVisibility ', !!this.explorerWindow, this.terminal_visible);
+			if(this.explorerWindow){
+				if(this.terminal_visible){
+					this.explorerWindow.style.display = ''
+				}else{
+					this.explorerWindow.style.display = 'none'
+				}
+			}
+		}
+	}
+	on_exit(){
+		this.terminalVisibility(false);
+		if(this.observer) this.observer.disconnect();
+		if (this.explorerWindow) {
+			this.explorerWindow.remove()
+		}
+		this.svg = null; this.os = null; this.debug = null; this.doc = null;
+	}
+}
