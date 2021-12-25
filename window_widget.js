@@ -243,7 +243,7 @@ export class WindowWidget {
 }
 
 function stealFocusHandler() {
-	Array.from(globalThis['document'].querySelectorAll(`.windowWidget.${DOM_CONSTANTS.windowFocusedClass}`)).forEach((win) =>
+	Array.from(globalThis['document'].querySelectorAll(`.window.${DOM_CONSTANTS.windowFocusedClass}`)).forEach((win) =>
 		win.classList.remove(DOM_CONSTANTS.windowFocusedClass)
 	)
 }
