@@ -5,7 +5,7 @@ To install, simply make a new script and copy the following into it:
 
 ```js
 export async function main(ns) {
-	ns.kill('install.js')
+	ns.kill('install.js','home')
 	ns.rm('install.js')
 	await ns.sleep(500)
     await ns.wget('https://raw.githubusercontent.com/lethern/Bitburner_os/main/install.js','install.js')
