@@ -50,7 +50,8 @@ export class ServersManager {
 	}
 
 	async #fetchServerList() {
-		this.#serverList = new Set('home')
+		this.#serverList = new Set()
+		this.#serverList.add('home')
 
 		await this.os.getNS(ns => {
 			for (let server of this.#serverList) {
