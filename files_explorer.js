@@ -1,4 +1,4 @@
-import { DOM_CONSTANTS, directorySvg, jsSvg, windowIcon } from '/os/constants.js'
+import { DOM_CONSTANTS, icons, windowIcon } from '/os/constants.js'
 import { EventListener, OS_EVENT, FilesExplorerRenderer_EVENT } from '/os/event_listener.js'
 
 export class FilesExplorer {
@@ -137,6 +137,7 @@ export class FilesExplorer {
 			currDir = currDir && currDir.dirs[part];
 		});
 		console.log(`narrowFiles -> `, currDir);
+		console.log((currDir))
 		return currDir;
 	}
 
@@ -231,17 +232,6 @@ class FilesExplorerRenderer extends EventListener {
 	/** @param {HTMLElement} element */
 	#addWindowEventListeners(element) {
 		element.querySelector('.window__cta-close').addEventListener('click', () => this.terminalVisibility(false))
-		element.querySelector('.window__content').addEventListener('dblclick', async () => {
-			this.filesExplorer.changeDirectory_oneUp();
-			// currentDir = currentDir.replaceAll(/\/+$/g, '')
-			// this.currentDirectory = currentDirectory ?
-			// 	currentDirectory.substring(0, currentDirectory.lastIndexOf('/') + 1) :
-			// 	'/'
-
-			// if (await this.os.inputToTerminal(`cd ${this.currentDirectory}`)) {
-			// 	this.render()
-			// }
-		})
 		element.querySelector('.window__toolbar').addEventListener('mousedown', this.#boundBeginGrabbing)
 	}
 
@@ -299,38 +289,46 @@ class FilesExplorerRenderer extends EventListener {
 		windowDiv.querySelector('.window__title').textContent = `${this.filesExplorer.currentServer}: ${this.filesExplorer.currentDir}`
 
 		// Update file list
-		//windowDiv.querySelector('.file-list').innerHTML = Object.entries(files).map(([name, { isDirectory }]) => `
-		windowDiv.querySelector('.file-list').innerHTML = Object.keys(currentFiles.dirs).map((elem) => renderIcons(elem, true)).join('') +
-			currentFiles.files.map((elem) => renderIcons(elem, false)).join('');
+		const fileList = windowDiv.querySelector('.file-list')
+		fileList.innerHTML =
+			(currentDirName ? this.#renderIcon('..', 'upDirectory') : '') +
+			Object.keys(currentFiles.dirs).map((elem) => this.#renderIcon(elem, 'directory')).join('') +
+			currentFiles.files.map((elem) => this.#renderIcon(elem, 'file')).join('');
 		
-		function renderIcons(name, isDirectory){
-			return `<li class="file-list__item">
-				<button class="file-list__button" data-file-name="${name}" data-file-type="${isDirectory ? 'directory' : 'file'}">
-					${isDirectory ? directorySvg : jsSvg}
-					<span class="file-list__label">${name}</span>
-				</button>
-			</li>`
-		}
-
 		// Add icon event listeners
 		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
 			button.addEventListener('dblclick', this.fileListedOnClick.bind(this) )
 			});
 	}
 	
+	#renderIcon(name, type) {
+		return `
+			<li class="file-list__item">
+				<button class="file-list__button" data-file-name="${name}" data-file-type="${type}">
+					${icons[type]}
+					<span class="file-list__label">${name}</span>
+				</button>
+			</li>
+		`
+	}
+
 	fileListedOnClick(event) {
 		let button = event.currentTarget;
 		console.log(`btn click ${button.dataset.fileType}  ${button.dataset.fileName}`, button);
 		
 		event.stopPropagation()
-		const isDirectory = button.dataset.fileType === 'directory'
 		const fileName = button.dataset.fileName
 
-
-		if (isDirectory) {
-			this.filesExplorer.changeDirectoryTo(fileName);
-		} else {
-			this.filesExplorer.openFile(fileName);
+		switch (button.dataset.fileType) {
+			case 'upDirectory':
+				this.filesExplorer.changeDirectory_oneUp()
+				break
+			case 'directory':
+				this.filesExplorer.changeDirectoryTo(fileName)
+				break
+			case 'file':
+				this.filesExplorer.openFile(fileName)
+				break
 		}
 	}
 	
