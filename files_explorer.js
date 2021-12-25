@@ -7,7 +7,7 @@ export class FilesExplorer {
 		this.os = os;
 		this.winRenderer = new FilesExplorerRenderer(os, this);
 
-		this.currentServer; // current rendered server
+		this.currentServer = 'home'; // current rendered server
 		this.currentDir = '';
 		this.isRendered = false;
 
@@ -73,6 +73,7 @@ export class FilesExplorer {
 
 	async readServerFiles() {
 		let mainDirs = { files: [], dirs: {} };
+		if (!this.currentServer) return mainDirs;
 
 		let files = await this.os.getNS((ns) => {
 			return ns.ls(this.currentServer);
@@ -294,7 +295,7 @@ class FilesExplorerRenderer extends EventListener {
 		`
 
 		this.#addWindowEventListeners(element)
-		this.renderMenu(element);
+		//this.renderMenu(element);
 		return element
 	}
 
