@@ -1,6 +1,7 @@
 import { DOM_CONSTANTS, icons } from '/os/constants.js'
 import { EventListener, OS_EVENT, FilesExplorerRenderer_EVENT } from '/os/event_listener.js'
 import { WindowWidget } from '/os/window_widget.js'
+import { Debug } from '/os/debug.js'
 
 export class FilesExplorer {
 	/** @param {import('/os/os.js').OS} os */
@@ -218,6 +219,7 @@ class FilesExplorerRenderer extends EventListener {
 
 	onDebugMenuClick() {
 		this.os.debug.console.renderWindow()
+		this.os.debug.print("MENU OPEN", Debug.DEBUG_LEVEL);
 	}
 
 	windowVisibilityToggle() {
