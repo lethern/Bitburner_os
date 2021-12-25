@@ -7,6 +7,7 @@ export class FilesExplorer {
 		this.os = os;
 		this.winRenderer = new FilesExplorerRenderer(os, this);
 
+		this.currentServer; // current rendered server
 		this.currentDir = '';
 		this.isRendered = false;
 
@@ -51,7 +52,17 @@ export class FilesExplorer {
 		this.render()
 	}
 
+	setCurrentServer(server) {
+		this.currentDir = '';
+		this.currentServer = server;
+	}
+
 	render() {
+
+		if (this.currentServer != this.os.serversManager.connectedServer) {
+			this.setCurrentServer(this.os.serversManager.connectedServer);
+		}
+
 		this.readServerFiles().then((files) => {
 			this.files = files;
 			let currentFiles = this.narrowFilesToGivenDir(this.files, this.currentDir);
@@ -61,11 +72,12 @@ export class FilesExplorer {
 	}
 
 	async readServerFiles() {
+		let mainDirs = { files: [], dirs: {} };
+
 		let files = await this.os.getNS((ns) => {
-			return ns.ls(this.os.server);
+			return ns.ls(this.currentServer);
 		});
 
-		let mainDirs = { files: [], dirs: {} };
 		for (let file of files) {
 			let arr = file.split('/');
 			let { files, dirs } = mainDirs;
@@ -154,7 +166,7 @@ export class FilesExplorer {
 			command = 'cat'
 		}
 
-		this.os.terminal.inputToTerminal(`${command} ${fileName}`);
+		this.os.terminal.inputToTerminal(`${command} ${this.currentDir+'/'+fileName}`);
 		this.winRenderer.terminalVisibility(false);
 	}
 
@@ -175,7 +187,7 @@ class FilesExplorerRenderer extends EventListener {
 	#boundEndGrabbing = this.#endGrabbing.bind(this)
 	#boundMouseMove = this.#mouseMove.bind(this)
 
-	/** @param {OS} os, @param {FilesExplorer} filesExplorer */
+	/** @param {import('/os/os.js').OS} os, @param {FilesExplorer} filesExplorer */
 	constructor(os, filesExplorer) {
 		super();
 		this.os = os;
@@ -194,7 +206,7 @@ class FilesExplorerRenderer extends EventListener {
 
 	/** @return {String} */
 	get title() {
-		return `${this.os.server}: /${this.filesExplorer.currentDir}`
+		return `${this.filesExplorer.currentServer}: /${this.filesExplorer.currentDir}`
 	}
 
 	#initialiseWindow() {
@@ -240,9 +252,9 @@ class FilesExplorerRenderer extends EventListener {
 		console.log('show window');
 	}
 
-	createWindow() {
+	createWindow(id) {
 		const element = this.createBodyDiv();
-		element.id = DOM_CONSTANTS.myCustomWindowId
+		element.id = id
 		element.classList.add('window-container')
 		element.innerHTML = `
 			<div class="window">

@@ -21,8 +21,9 @@ export class EventListener{
 
 export const OS_EVENT = {};
 Object.defineProperties(OS_EVENT, {
-	INIT: { value: 'init'},
-    ON_EXIT: { value: 'on_exit'},
+	INIT: { value: 'init' },
+	LOOP_STEP: { value: 'loop_step' },
+    ON_EXIT: { value: 'on_exit' },
 });
 
 export const FilesExplorerRenderer_EVENT = {};

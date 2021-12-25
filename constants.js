@@ -1,4 +1,4 @@
-/** @type { { terminalInputId: string, siblingBtnSelector: string, terminalBtnSelector: string, siblingButtonLabel: string, fileExplorerBtnId: string, hiddenClass: string, myCustomWindowId: string} } */
+/** @type { { terminalInputId: string, siblingBtnSelector: string, terminalBtnSelector: string, siblingButtonLabel: string, fileExplorerBtnId: string, hiddenClass: string, myCustomWindowId: string, windowFocusedClass: string} } */
 export const DOM_CONSTANTS = {
 	terminalInputId: 'terminal-input',
 	siblingBtnSelector: '.MuiList-root .MuiButtonBase-root',

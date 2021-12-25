@@ -4,11 +4,9 @@ import { FilesExplorer } from '/os/files_explorer.js'
 import { GUI } from '/os/gui.js'
 import { Utils } from '/os/utils.js'
 import { Terminal } from '/os/terminal.js'
+import { ServersManager } from '/os/servers_manager'
 
 export class OS extends EventListener {
-	#server
-	#serverList
-	#serverWatchInterval = 0
 
 	constructor(ns) {
 		super();
@@ -18,19 +16,12 @@ export class OS extends EventListener {
 		this.NSqueue = [];
 		/** @type {Debug} */
 		this.debug = new Debug();
-		this.FilesExplorer = new FilesExplorer(this);
+		this.filesExplorer = new FilesExplorer(this);
 		this.gui = new GUI(this);
-		this.terminal = new Terminal(this);
+		this.terminal = new Terminal();
+		this.serversManager = new ServersManager(this);
 
 		this.doLoop = true;
-
-		this.#cacheServers(ns)
-		this.#server = this.#getCurrentServer(ns)
-	}
-
-	/** @return {String} */
-	get server() {
-		return this.#server
 	}
 
 	initNSInternals(ns) {
@@ -50,12 +41,7 @@ export class OS extends EventListener {
 			while (this.doLoop) {
 				_hasAccessToNS = true;
 
-				this.#serverWatchInterval += delay
-				if (this.#serverWatchInterval >= 1000) {
-					this.#serverWatchInterval = 0
-					this.#serverWatch(ns)
-				}
-
+				this.fire(OS_EVENT.LOOP_STEP);
 				await this.runNSQueue();
 
 				_hasAccessToNS = false;
@@ -95,37 +81,6 @@ export class OS extends EventListener {
 				else
 					def && def.resolve(res);
 			});
-		}
-	}
-
-	/**
-	 * @param {NS} ns
-	 * @return {String}
-	 */
-	#getCurrentServer(ns) {
-		for (const server of this.#serverList) {
-			if (ns.getServer(server).isConnectedTo) {
-				return server
-			}
-		}
-
-		return ns.getHostname()
-	}
-
-	#cacheServers(ns) {
-		this.#serverList = new Set([ns.getHostname()])
-
-		for (let server of this.#serverList) {
-			ns.scan(server).forEach((result) => this.#serverList.add(result))
-		}
-	}
-
-	#serverWatch(ns) {
-		const currentServer = this.#getCurrentServer(ns)
-
-		if (currentServer !== this.server) {
-			this.#server = currentServer
-			this.FilesExplorer.render()
 		}
 	}
 
