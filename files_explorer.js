@@ -18,17 +18,6 @@ export class FilesExplorer {
 
 	init() {
 		this.injectFileExplorerButton();
-
-		/*
-		let renderer = this.winRenderer;
-		let width = renderer.windowWidth - 2;
-		let menu_height = 50;
-		this.menu_svg = renderer.createSVGElement('svg', { x: 1, y: 1, width: width+'px', height: menu_height+'px' }, renderer.svg);
-		this.renderMenu(menu_height);
-
-		let dirs_height = renderer.windowHeight - 2 - menu_height;
-		this.dirs_svg = renderer.createSVGElement('svg', { x: 1, y: 1+menu_height+1, width: width+'px', height: dirs_height+'px' }, renderer.svg);
-		*/
 	}
 
 	injectFileExplorerButton() {
@@ -37,7 +26,7 @@ export class FilesExplorer {
 		this.os.gui.injectButton({
 			btnLabel: 'File Explorer',
 			btnId: DOM_CONSTANTS.fileExplorerBtnId,
-			callback: () => this.winRenderer.terminalVisibilityToggle(),
+			callback: () => this.winRenderer.windowVisibilityToggle(),
 			btnIconPath: fileExplorer_newPath,
 			btnIconViewBox: 'viewBox="0 2 18 17"',
 		});
@@ -95,7 +84,7 @@ export class FilesExplorer {
 	}
 
 	changeDirectory_oneUp() {
-		let currentDirectory = this.currentDir.replaceAll(/\/+$/g, '')
+		let currentDirectory = this.currentDir.replace(/\/+$/g, '')
 
 		currentDirectory = currentDirectory.substring(0, currentDirectory.lastIndexOf('/') + 1);
 
@@ -104,7 +93,7 @@ export class FilesExplorer {
 
 	changeDirectoryTo(dir) {
 		let targetPath = this.currentDir + '/' + dir;
-		targetPath = targetPath.replaceAll(/^\/+/g, '')
+		targetPath = targetPath.replace(/^\/+/g, '')
 
 		this.changeCurrentDir(targetPath);
 	}
@@ -117,11 +106,6 @@ export class FilesExplorer {
 		let currentFiles = this.narrowFilesToGivenDir(this.files, this.currentDir);
 		if (!currentFiles) currentFiles = { files: [], dirs: {} };
 		this.winRenderer.renderFiles(currentFiles, this.currentDir);
-		/*
-		if (await this.os.inputToTerminal(`cd ${this.currentDir}`)) {
-			this.render()
-		}
-		*/
 	}
 
 	narrowFilesToGivenDir(files, currentDirName) {
@@ -134,21 +118,7 @@ export class FilesExplorer {
 		return currDir;
 	}
 
-	/*
-	renderMenu(menu_height){
-		let renderer = this.winRenderer;
-		let parent = this.menu_svg;
-		this.path_bar = renderer.createSVGElement('text', { x: 1, y: 32+3, fill: 'black', 'alignment-baseline': "hanging" }, parent);
-		renderer.createSVGElement('rect', { x: 1, y: 33, width: 298, height: menu_height-2-33, fill: "transparent", stroke: "gray" }, parent)
-
-		this.server_bar = renderer.createSVGElement('text', { x: 300, y: 32+3, fill: 'black', 'alignment-baseline': "hanging" }, parent);
-		renderer.createSVGElement('rect', { x: 300, y: 33, width: 298, height: menu_height-2-33, fill: "transparent", stroke: "gray" }, parent)
-		this.server_bar.textContent = 'Connected: '+this.os.server;
-	}
-	*/
-
 	openFile(fileName) {
-		//
 		const fileHandlers = {
 			nano: ['.js', '.ns', '.script'],
 			run: ['.exe', '.cct'],
@@ -161,7 +131,7 @@ export class FilesExplorer {
 		}
 
 		this.os.terminal.inputToTerminal(`${command} ${this.currentDir+'/'+fileName}`);
-		this.winRenderer.terminalVisibility(false);
+		this.winRenderer.windowVisibility(false);
 	}
 
 	on_exit() {
@@ -169,33 +139,18 @@ export class FilesExplorer {
 }
 
 class FilesExplorerRenderer extends EventListener {
-	#left
-	#top
-	#elementWidth
-	#elementHeight
-	#windowWidth
-	#windowHeight
-	#grabStart = {}
-	#modalStart = {}
-	#boundBeginGrabbing = this.#beginGrabbing.bind(this)
-	#boundEndGrabbing = this.#endGrabbing.bind(this)
-	#boundMouseMove = this.#mouseMove.bind(this)
-
 	/** @param {import('/os/os.js').OS} os, @param {FilesExplorer} filesExplorer */
 	constructor(os, filesExplorer) {
 		super();
 		this.os = os;
 		this.debug = os.debug;
 		this.filesExplorer = filesExplorer;
-		this.doc = globalThis['document'];
 
-		this.animationCallback = this.onAnimationFrame.bind(this);
 		this.terminal_visible = false;
+		this.windowWidget = new WindowWidget(this, DOM_CONSTANTS.myCustomWindowId);
 
 		this.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
 		this.os.listen(OS_EVENT.INIT, this.init.bind(this));
-
-		this.#initialiseWindow()
 	}
 
 	/** @return {String} */
@@ -203,109 +158,15 @@ class FilesExplorerRenderer extends EventListener {
 		return `${this.filesExplorer.currentServer}: /${this.filesExplorer.currentDir}`
 	}
 
-	#initialiseWindow() {
-		this.container = this.createWindow(DOM_CONSTANTS.myCustomWindowId)
-		/** @type {HTMLElement} */
-		this.explorerWindow = this.container.querySelector('.window')
-		this.container.style.display = 'none';
-	}
-
-	#initialiseWindowPosition() {
-		this.container.classList.add(DOM_CONSTANTS.hiddenClass)
-
-		setTimeout(() => {
-			this.#left = globalThis.innerWidth / 2 - this.explorerWindow.offsetWidth / 2
-			this.#top = globalThis.innerHeight / 2 - this.explorerWindow.offsetHeight / 2
-
-			this.#updateWindowPosition()
-
-			this.container.classList.remove(DOM_CONSTANTS.hiddenClass)
-		}, 50)
-	}
-
-	#updateWindowPosition() {
-		this.explorerWindow.style.transform = `translate(${this.#left}px, ${this.#top}px)`
-	}
-
-	/** @param {HTMLElement} element */
-	#addWindowEventListeners(element) {
-		element.querySelector('.window__cta-close').addEventListener('click', () => this.terminalVisibility(false))
-		element.querySelector('.window__toolbar').addEventListener('mousedown', this.#boundBeginGrabbing)
-		element.querySelector('.window').addEventListener('click', (e) => {
-			e.stopPropagation()
-			this.explorerWindow.classList.add(DOM_CONSTANTS.windowFocusedClass)
-		})
-
-		if (!globalThis.hasBoundWindowFocusListener) {
-			globalThis.hasBoundWindowFocusListener = true
-			this.doc.body.addEventListener('click', stealFocusHandler)
-		}
-	}
-
-	//showWindow() {
-	//}
-
-	createWindow(id) {
-		const element = this.createBodyDiv();
-		element.id = id
-		element.classList.add('window-container')
-		element.innerHTML = `
-			<div class="window">
-			<div class="window__toolbar">
-				<img src="${windowIcon}" alt="" class="window__icon">
-				<h1 class="window__title"></h1>
-				<div class="window__cta-group">
-					<button class="btn btn--small window__cta-minimise">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
-							<path d="m3 13h12v2h-12z" fill="#000" />
-						</svg>
-					</button>
-					<button class="btn btn--small window__cta-maximise">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
-							<path d="m3 3h12v2h-12z" fill="#000" />
-							<path d="m3 3h12v12h-12z" stroke="#000" fill='none' />
-						</svg>
-
-					</button>
-					<button class="btn btn--small window__cta-close">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
-							<g stroke="#000" stroke-width="1.5">
-								<line x1="3" y1="3" x2="15" y2="15" />
-								<line x2="3" y1="3" x1="15" y2="15" />
-							</g>
-						</svg>
-					</button>
-				</div>
-			</div>
-			<div class="window__menu">
-			</div>
-			<div class="window__content">
-				<ul class="file-list file-list--layout-icon-row" />
-			</div>
-		</div>
-		`
-
-		this.#addWindowEventListeners(element)
-		//this.renderMenu(element);
-		return element
-	}
-
-	renderMenu(element) {
-		let menuDiv = element.querySelector('.window__menu')
-
-		// TMP
-		let menuItem = this.doc.createElement('span');
-		menuItem.textContent = 'Debug'
-		menuDiv.appendChild(menuItem)
-	}
-
+	
 	renderFiles(currentFiles, currentDirName) {
-		// Update title
-		let windowDiv = this.container;
-		windowDiv.querySelector('.window__title').textContent = this.title
+		this.windowWidget.setTitle(this.title)
+
+		let windowDiv = this.windowWidget.getContainer()
 
 		// Update file list
 		const fileList = windowDiv.querySelector('.file-list')
+
 		fileList.innerHTML =
 			(currentDirName ? this.#renderIcon('..', 'upDirectory') : '') +
 			Object.keys(currentFiles.dirs).map((elem) => this.#renderIcon(elem, 'directory')).join('') +
@@ -347,81 +208,122 @@ class FilesExplorerRenderer extends EventListener {
 		}
 	}
 
-	createSVGElement(tag, attribs, parent, dont_attach) {
-		let elem = this.doc.createElementNS('http://www.w3.org/2000/svg', tag);
-		if (attribs) {
-			for (let it in attribs) {
-				elem.setAttributeNS(null, it, attribs[it]);
-			}
-		}
-		if (!dont_attach) {
-			(parent || this.svg).appendChild(elem);
-		}
-		return elem;
+	init() {
+		this.windowWidget.init();
+		this.windowWidget.setContentHTML('<ul class="file-list file-list--layout-icon-row" />');
+		//this.listenForTerminalHidden();
+	}
+
+	windowVisibilityToggle() {
+		this.windowVisibility(!this.terminal_visible);
+	}
+
+	/** @param {boolean} visible */
+	windowVisibility(visible) {
+		this.windowWidget.windowVisibility(visible);
+		if (visible) this.fire(FilesExplorerRenderer_EVENT.SHOW);
+	}
+
+	on_exit() {
+		this.windowWidget.dispose();
+		Object.keys(this).forEach(key => this[key] = null);
+	}
+}
+
+function stealFocusHandler() {
+	Array.from(globalThis['document'].querySelectorAll(`.windowWidget.${DOM_CONSTANTS.windowFocusedClass}`)).forEach((win) =>
+		win.classList.remove(DOM_CONSTANTS.windowFocusedClass)
+	)
+}
+
+
+class WindowWidget {
+	#left
+	#top
+	#elementWidth
+	#elementHeight
+	#windowWidth
+	#windowHeight
+	#grabStart = {}
+	#modalStart = {}
+	#boundBeginGrabbing = this.#beginGrabbing.bind(this)
+	#boundEndGrabbing = this.#endGrabbing.bind(this)
+	#boundMouseMove = this.#mouseMove.bind(this)
+
+	constructor(parent, id) {
+		this.parent = parent;
+		this.windowId = id;
+		this.doc = globalThis['document'];
 	}
 
 	init() {
-		//this.listenForTerminalHidden();
-
-		/*
-		this.svg = this.createSVGElement('svg', {
-			width: this.windowWidth+'px',
-			height: this.windowHeight+'px',
-		}, null, true);
-		this.svg.style.position= 'fixed';
-		this.svg.style['z-index']= '9999';
-		this.svg.style.top= '10%';
-		this.svg.style.left= '10%';
-		this.svg.style['background-color']= 'rgb(186, 186, 186)';
-		globalThis['window'].requestAnimationFrame(this.animationCallback);
-		*/
-		//this.terminalVisibility(true);
+		this.#initialiseWindow(this.windowId)
 	}
 
-	onAnimationFrame() {
-		//this.svg
-		//globalThis['window'].requestAnimationFrame(this.animationCallback);
-	}
+	windowVisibility(visible) {
+		if (visible != this.isVisible) {
+			this.isVisible = visible;
 
-	/*
-	listenForTerminalHidden(){
-		if(this.observer) return;
+			if (!this.container) return;
 
-		const targetNode = this.doc.getElementById(DOM_CONSTANTS.terminalInputId);
-		if(!targetNode) return;
-
-		// https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver/observe
-		const callback = function(mutationsList, observer) {
-			let terminal_removed = false;
-			let terminal_added = false;
-			for(const mutation of mutationsList) {
-				if (mutation.type === 'childList') {
-					mutation.removedNodes.forEach(elem => {
-						if(elem.classList && elem.classList.contains('MuiBox-root'))
-							terminal_removed = true;
-					});
-					mutation.addedNodes.forEach(elem => {
-						if(elem.classList && elem.classList.contains('MuiBox-root')){
-							let res = !!elem.querySelector('#'+DOM_CONSTANTS.terminalInputId);
-							if(res)
-								terminal_added = true;
-						}
-					});
-				}
+			if (this.isVisible) {
+				this.container.style.display = ''
+				this.#initialiseWindowPosition()
+			} else {
+				this.container.style.display = 'none'
 			}
-			//if(terminal_removed){
-			//	this.terminalVisibility(false);
-			//}else if(terminal_added){
-			//	this.terminalVisibility(true);
-			//}
-		};
-
-		this.observer = new MutationObserver(callback.bind(this));
-		let target = targetNode.parentNode.parentNode.parentNode.parentNode;
-		this.observer.observe(target, { childList: true });
-		this.debug.print('added observer');
+		}
 	}
-	*/
+
+	dispose() {
+		if (!this.container) return;
+		this.container.remove()
+	}
+
+	createWindow(id) {
+		const element = this.createBodyDiv();
+		element.id = id
+		element.classList.add('window-container')
+		element.style.display = 'none';
+		element.innerHTML = `
+			<div class="window">
+			<div class="window__toolbar">
+				<img src="${windowIcon}" alt="" class="window__icon">
+				<h1 class="window__title"></h1>
+				<div class="window__cta-group">
+					<button class="btn btn--small window__cta-minimise">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
+							<path d="m3 13h12v2h-12z" fill="#000" />
+						</svg>
+					</button>
+					<button class="btn btn--small window__cta-maximise">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
+							<path d="m3 3h12v2h-12z" fill="#000" />
+							<path d="m3 3h12v12h-12z" stroke="#000" fill='none' />
+						</svg>
+
+					</button>
+					<button class="btn btn--small window__cta-close">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
+							<g stroke="#000" stroke-width="1.5">
+								<line x1="3" y1="3" x2="15" y2="15" />
+								<line x2="3" y1="3" x1="15" y2="15" />
+							</g>
+						</svg>
+					</button>
+				</div>
+			</div>
+			<div class="window__menu">
+			</div>
+			<div class="window__content">
+			</div>
+		</div>
+		`
+
+		this.#addWindowEventListeners(element)
+		this.renderMenu(element);
+		return element
+	}
 
 	createBodyDiv() {
 		let div = this.doc.createElement('div');
@@ -429,45 +331,70 @@ class FilesExplorerRenderer extends EventListener {
 		return div;
 	}
 
-	terminalVisibilityToggle() {
-		this.terminalVisibility(!this.terminal_visible);
+	renderMenu(element) {
+//		let menuDiv = element.querySelector('.window__menu')
+//
+//		for (let item of this.menuItems) {
+//
+//		}
+//		// TMP
+//		let menuItem = this.doc.createElement('span');
+//		menuItem.textContent = 'Debug'
+//		menuDiv.appendChild(menuItem)
 	}
 
-	/** @param {boolean} visible */
-	terminalVisibility(visible) {
-		if (visible != this.terminal_visible) {
-			this.terminal_visible = visible;
-
-
-			if (this.terminal_visible) this.fire(FilesExplorerRenderer_EVENT.SHOW);
-			/*
-			if(this.terminal_visible){
-				if(this.svg) this.doc.body.appendChild(this.svg);
-
-				//this.listenForTerminalHidden();
-			}else if(this.svg && this.svg.parentNode){
-				this.svg.parentNode.removeChild(this.svg);
-			}
-			*/
-
-			if (this.container) {
-				if (this.terminal_visible) {
-					this.container.style.display = ''
-					this.#initialiseWindowPosition()
-				} else {
-					this.container.style.display = 'none'
-				}
-			}
-		}
+	setTitle(title) {
+		this.container.querySelector('.window__title').textContent = title
 	}
 
-	on_exit() {
-		this.terminalVisibility(false);
-		if (this.observer) this.observer.disconnect();
-		if (this.container) {
-			this.container.remove()
+	setContentHTML(html) {
+		this.container.querySelector('.window__content').innerHTML = html
+	}
+
+	getContainer() {
+		return this.container
+	}
+
+	#initialiseWindow(id) {
+		this.container = this.createWindow(id)
+		/** @type {HTMLElement} */
+		this.explorerWindow = this.container.querySelector('.window')
+		//this.container.style.display = 'none';
+	}
+
+	#initialiseWindowPosition() {
+		this.container.classList.add(DOM_CONSTANTS.hiddenClass)
+
+		setTimeout(() => {
+			this.#left = globalThis.innerWidth / 2 - this.explorerWindow.offsetWidth / 2
+			this.#top = globalThis.innerHeight / 2 - this.explorerWindow.offsetHeight / 2
+
+			this.#updateWindowPosition()
+
+			this.container.classList.remove(DOM_CONSTANTS.hiddenClass)
+		}, 50)
+	}
+
+	#updateWindowPosition() {
+		this.explorerWindow.style.transform = `translate(${this.#left}px, ${this.#top}px)`
+	}
+
+	/** @param {HTMLElement} element */
+	#addWindowEventListeners(element) {
+		element.querySelector('.window__cta-close').addEventListener('click', () => {
+			if(this.parent.windowVisibility)
+				this.parent.windowVisibility(false)
+		})
+		element.querySelector('.window__toolbar').addEventListener('mousedown', this.#boundBeginGrabbing)
+		element.querySelector('.window').addEventListener('click', (e) => {
+			e.stopPropagation()
+			this.explorerWindow.classList.add(DOM_CONSTANTS.windowFocusedClass)
+		})
+
+		if (!globalThis.hasBoundWindowFocusListener) {
+			globalThis.hasBoundWindowFocusListener = true
+			this.doc.body.addEventListener('click', stealFocusHandler)
 		}
-		Object.keys(this).forEach(key => this[key] = null);
 	}
 
 	#beginGrabbing({ x, y, button }) {
@@ -528,10 +455,4 @@ class FilesExplorerRenderer extends EventListener {
 		this.#top = topFinal
 		this.#updateWindowPosition()
 	}
-}
-
-function stealFocusHandler() {
-	Array.from(globalThis['document'].querySelectorAll(`.window.${DOM_CONSTANTS.windowFocusedClass}`)).forEach((win) =>
-		win.classList.remove(DOM_CONSTANTS.windowFocusedClass)
-	)
 }

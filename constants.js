@@ -91,7 +91,21 @@ export const INJECTED_CSS = `
 }
 
 .window__menu{
-
+	width: 100%;
+	background: rgb(212, 208, 200);
+	color: #333;
+	padding-left: 5px;
+	padding-bottom: 2px;
+}
+.window__menu span{
+	padding: 0 1px;
+	margin-right: 12px;
+	font-size: 15px;
+	border: 1px inset transparent;
+	cursor: pointer;
+}
+.window__menu span:hover{
+	border: 1px inset #bdbdbd;
 }
 
 .window__title {
