@@ -12,15 +12,12 @@ export class Debug{
 	}
 	
 	print(...args){
-		console.log(...args);
-
 		let severity = 'info';
 		let last = args[args.length - 1];
 		if (this.debugLevels.includes(last)) {
 			severity = last;
 			args.shift();
 		}
-
 		this.console.write(severity, args);
 	}
 
@@ -88,10 +85,11 @@ class DebugConsoleRender {
 
 		let text = this.severityToString(log.severity) + ' ' + log.text;
 		let elem = this.doc.createElement('div');
+		elem.textContent = text
 		let css = this.severityToCss(log.severity);
-		if(css) elem.classList.add(css);
-
-		this.windowWidget.getContainer().appendChild(elem);
+		if(css){ elem.classList.add(css);}
+		console.log(text)
+		this.windowWidget.getContentDiv().appendChild(elem);
 	}
 
 	severityToCss(severity) {
@@ -113,6 +111,7 @@ class DebugConsoleRender {
 		//this.windowDiv = this.doc.createElement('div');
 		//this.windowDiv.innerHTML = ``;
 		this.rendered = true;
+		this.visible = true;
 		this.logs.forEach(log => this.renderLog(log));
 	}
 
