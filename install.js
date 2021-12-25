@@ -2,7 +2,7 @@
 const baseUrl = 'https://raw.githubusercontent.com/lethern/bitrunner_os/main/'
 const filesToDownload = [
 	'constants.js','debug.js', 'event_listener.js', 'files_explorer.js', 'gui.js', 
-	'main.js', 'os.js','terminal.js', 'utils.js'
+	'main.js', 'os.js','terminal.js', 'utils.js', 'server_manager'
 ]
 
 export async function main(ns) {
