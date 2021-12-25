@@ -133,7 +133,9 @@ export class WindowWidget {
 	setContentHTML(html) {
 		this.container.querySelector('.window__content').innerHTML = html
 	}
-
+    getContentDiv() {
+        return this.container.querySelector('.window__content')
+    }
 	getContainer() {
 		return this.container
 	}
