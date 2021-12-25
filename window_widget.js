@@ -14,7 +14,6 @@ export class WindowWidget {
 	#boundMouseMove = this.#mouseMove.bind(this)
 
 	/**
-	 * 
 	 * @param { {windowVisibility: Function} } parent @param {string} id
 	 * @param {any} [id]
 	 */
@@ -22,7 +21,6 @@ export class WindowWidget {
 		this.parent = parent;
 		this.windowId = id;
 		this.doc = globalThis['document'];
-		this.menuDiv;
 		this.menuItems = [];
 	}
 
@@ -173,6 +171,7 @@ export class WindowWidget {
 		element.querySelector('.window__toolbar').addEventListener('mousedown', this.#boundBeginGrabbing)
 		element.querySelector('.window').addEventListener('click', (e) => {
 			e.stopPropagation()
+			stealFocusHandler()
 			this.explorerWindow.classList.add(DOM_CONSTANTS.windowFocusedClass)
 		})
 
