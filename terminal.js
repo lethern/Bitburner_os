@@ -8,7 +8,7 @@ export class Terminal {
 	async inputToTerminal(command) {
 		const doc = globalThis['document']
 		let terminal = doc.getElementById(DOM_CONSTANTS.terminalInput)
-		
+
 		const executeTerminalCommand = () => {
 			terminal = terminal || doc.getElementById(DOM_CONSTANTS.terminalInput)
 
