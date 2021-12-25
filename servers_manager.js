@@ -45,6 +45,7 @@ export class ServersManager {
 			}
 		})
 
+		if (!connectedServer) connectedServer = 'home'
 		this.#server = connectedServer
 		return connectedServer
 	}
