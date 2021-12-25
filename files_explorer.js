@@ -48,7 +48,7 @@ export class FilesExplorer {
 		if (this.isRendered) return;
 		this.isRendered = true;
 
-		this.winRenderer.showWindow();
+		//this.winRenderer.showWindow();
 		this.render()
 	}
 
@@ -58,7 +58,6 @@ export class FilesExplorer {
 	}
 
 	render() {
-
 		if (this.currentServer != this.os.serversManager.connectedServer) {
 			this.setCurrentServer(this.os.serversManager.connectedServer);
 		}
@@ -92,7 +91,6 @@ export class FilesExplorer {
 			}
 			files.push(arr[arr.length - 1]);
 		}
-		console.log("mainDirs ", mainDirs);
 		return mainDirs;
 	}
 
@@ -101,14 +99,12 @@ export class FilesExplorer {
 
 		currentDirectory = currentDirectory.substring(0, currentDirectory.lastIndexOf('/') + 1);
 
-		console.log(`going up from ${this.currentDir} to ${currentDirectory}`)
 		this.changeCurrentDir(currentDirectory);
 	}
 
 	changeDirectoryTo(dir) {
 		let targetPath = this.currentDir + '/' + dir;
 		targetPath = targetPath.replaceAll(/^\/+/g, '')
-		console.log(`changeCurrentDir from ${this.currentDir} to ${targetPath}`);
 
 		this.changeCurrentDir(targetPath);
 	}
@@ -131,13 +127,10 @@ export class FilesExplorer {
 	narrowFilesToGivenDir(files, currentDirName) {
 		let arr = currentDirName.split('/');
 		let currDir = files;
-		console.log('narrow ', files, currentDirName, arr);
 		arr.forEach(part => {
 			if (!part) return;
 			currDir = currDir && currDir.dirs[part];
 		});
-		console.log(`narrowFiles -> `, currDir);
-		console.log((currDir))
 		return currDir;
 	}
 
@@ -212,7 +205,6 @@ class FilesExplorerRenderer extends EventListener {
 
 	#initialiseWindow() {
 		this.container = this.createWindow(DOM_CONSTANTS.myCustomWindowId)
-		console.log('main window', this.container)
 		/** @type {HTMLElement} */
 		this.explorerWindow = this.container.querySelector('.window')
 		this.container.style.display = 'none';
@@ -250,9 +242,8 @@ class FilesExplorerRenderer extends EventListener {
 		}
 	}
 
-	showWindow() {
-		console.log('show window');
-	}
+	//showWindow() {
+	//}
 
 	createWindow(id) {
 		const element = this.createBodyDiv();
@@ -309,7 +300,6 @@ class FilesExplorerRenderer extends EventListener {
 	}
 
 	renderFiles(currentFiles, currentDirName) {
-		console.log('renderFiles ', currentDirName, currentFiles);
 		// Update title
 		let windowDiv = this.container;
 		windowDiv.querySelector('.window__title').textContent = this.title
@@ -340,7 +330,6 @@ class FilesExplorerRenderer extends EventListener {
 
 	fileListedOnClick(event) {
 		let button = event.currentTarget;
-		console.log(`btn click ${button.dataset.fileType}  ${button.dataset.fileName}`, button);
 
 		event.stopPropagation()
 		const fileName = button.dataset.fileName

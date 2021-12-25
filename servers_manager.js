@@ -46,20 +46,8 @@ export class ServersManager {
 		})
 
 		if (!connectedServer) connectedServer = 'home'
-		this.#server = connectedServer
 		return connectedServer
 	}
-
-	//async #fetchServerList() {
-	//	this.#serverList = new Set()
-	//	.add('home')
-	//
-	//	await this.os.getNS(ns => {
-	//		for (let server of this.#serverList) {
-	//			ns.scan(server.name).forEach((result) => this.#serverList.add(result))
-	//		}
-	//	});
-	//}
 
 	async #serverWatch() {
 		const currentServer = await this.#getCurrentConnectedServer()
