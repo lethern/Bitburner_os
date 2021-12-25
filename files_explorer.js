@@ -130,8 +130,8 @@ export class FilesExplorer {
 		if (!command) {
 			command = 'cat'
 		}
-
-		this.os.terminal.inputToTerminal(`${command} ${this.currentDir+'/'+fileName}`);
+		let dir = this.currentDir ? this.currentDir + '/' : ''
+		this.os.terminal.inputToTerminal(`${command} ${dir+fileName}`);
 		this.winRenderer.windowVisibility(false);
 	}
 

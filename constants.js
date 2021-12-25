@@ -49,7 +49,7 @@ export const INJECTED_CSS = `
 	position: fixed;
 	top: 0;
 	width: 100%;
-	z-index: 1200;
+	z-index: 9999;
 }
 
 .window--focused .window__toolbar {
