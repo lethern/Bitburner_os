@@ -211,7 +211,12 @@ class FilesExplorerRenderer extends EventListener {
 	init() {
 		this.windowWidget.init();
 		this.windowWidget.setContentHTML('<ul class="file-list file-list--layout-icon-row" />');
+		this.windowWidget.addMenuItem({label: 'Debug', callback: this.onDebugMenuClick.bind(this)})
 		//this.listenForTerminalHidden();
+	}
+
+	onDebugMenuClick() {
+		
 	}
 
 	windowVisibilityToggle() {
@@ -254,6 +259,8 @@ class WindowWidget {
 		this.parent = parent;
 		this.windowId = id;
 		this.doc = globalThis['document'];
+		this.menuDiv;
+		this.menuItems = [];
 	}
 
 	init() {
@@ -331,16 +338,31 @@ class WindowWidget {
 		return div;
 	}
 
-	renderMenu(element) {
-//		let menuDiv = element.querySelector('.window__menu')
-//
-//		for (let item of this.menuItems) {
-//
-//		}
-//		// TMP
-//		let menuItem = this.doc.createElement('span');
-//		menuItem.textContent = 'Debug'
-//		menuDiv.appendChild(menuItem)
+	renderMenu(parent) {
+		this.menuDiv = parent.querySelector('.window__menu')
+
+		for (let item of this.menuItems) {
+			this.renderMenuItem(item);
+		}
+	}
+
+	/** @param { {label: string, callback: Function} } params */
+	addMenuItem(params) {
+		this.menuItems.push({ ...params, div: null });
+
+		if (!this.menuDiv) return;
+
+		let item = this.menuItems[this.menuItems.length - 1];
+		this.renderMenuItem(item);
+	}
+
+	renderMenuItem(menuItem) {
+		let { label, callback } = menuItem;
+		let div = this.doc.createElement('span');
+		menuItem.div = div;
+		div.textContent = label
+		div.addEventListener('click', callback);
+		this.menuDiv.appendChild(div)
 	}
 
 	setTitle(title) {
