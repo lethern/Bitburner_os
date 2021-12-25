@@ -24,6 +24,7 @@ export class OS extends EventListener {
 		this.doLoop = true;
 	}
 
+	/** @param {NS} ns */
 	initNSInternals(ns) {
 		let _hasAccessToNS = false;
 
@@ -82,6 +83,10 @@ export class OS extends EventListener {
 					def && def.resolve(res);
 			});
 		}
+	}
+
+	closeAndExit() {
+		this.getNS_noPromise(ns => ns.exit());
 	}
 
 	on_exit() {

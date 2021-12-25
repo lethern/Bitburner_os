@@ -230,6 +230,10 @@ class FilesExplorerRenderer extends EventListener {
 		if (visible) this.fire(FilesExplorerRenderer_EVENT.SHOW);
 	}
 
+	onWindowClose() {
+		this.os.closeAndExit();
+	}
+
 	on_exit() {
 		this.windowWidget.dispose();
 		Object.keys(this).forEach(key => this[key] = null);

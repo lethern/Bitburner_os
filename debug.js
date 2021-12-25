@@ -125,4 +125,8 @@ class DebugConsoleRender {
 	windowVisibility(visible) {
 		// called by windowWidget, but no need to do anything
 	}
+
+	onWindowClose() {
+		// called by windowWidget, but no need to do anything
+	}
 }

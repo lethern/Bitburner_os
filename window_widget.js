@@ -14,7 +14,7 @@ export class WindowWidget {
 	#boundMouseMove = this.#mouseMove.bind(this)
 
 	/**
-	 * @param { {windowVisibility: Function} } parent @param {string} id
+	 * @param { {windowVisibility: Function, onWindowClose: Function} } parent @param {string} id
 	 * @param {any} [id]
 	 */
 	constructor(parent, id) {
@@ -164,9 +164,13 @@ export class WindowWidget {
 
 	/** @param {HTMLElement} element */
 	#addWindowEventListeners(element) {
-		element.querySelector('.window__cta-close').addEventListener('click', () => {
+		element.querySelector('.window__cta-minimise').addEventListener('click', () => {
 			if (this.parent.windowVisibility)
 				this.parent.windowVisibility(false)
+		})
+		element.querySelector('.window__cta-close').addEventListener('click', () => {
+			if (this.parent.onWindowClose)
+				this.parent.onWindowClose()
 		})
 		element.querySelector('.window__toolbar').addEventListener('mousedown', this.#boundBeginGrabbing)
 		element.querySelector('.window').addEventListener('click', (e) => {
