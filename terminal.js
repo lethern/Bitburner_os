@@ -2,13 +2,12 @@ import { DOM_CONSTANTS } from '/os/constants.js'
 import { Utils } from '/os/utils.js'
 
 export class Terminal {
-	constructor(os){
-		this.os = os;
+	constructor() {
 		this.doc = globalThis['document'];
 	}
 	async inputToTerminal(command) {
 		let terminal = this.doc.getElementById(DOM_CONSTANTS.terminalInputId)
-		
+
 		if (!terminal) {
 			console.log('no terminal');
 			const terminalButton = this.doc.querySelector(DOM_CONSTANTS.terminalBtnSelector)
@@ -16,16 +15,16 @@ export class Terminal {
 			if (terminalButton) {
 				console.log('terminalButton');
 				terminalButton.click()
-				return Utils.sleep(300).then(this.executeTerminalCommand.bind(this, terminal, command));
+				return Utils.sleep(300).then(Terminal.executeTerminalCommand.bind(this, terminal, command));
 			}
 		}
 
-		return this.executeTerminalCommand(terminal, command);
+		return Terminal.executeTerminalCommand(terminal, command);
 	}
 
 	/** @param {HTMLElement} terminal  @param {string} command */
-	executeTerminalCommand(terminal, command) {
-		terminal = terminal || this.doc.getElementById(DOM_CONSTANTS.terminalInputId)
+	static executeTerminalCommand(terminal, command) {
+		terminal = terminal || globalThis['document'].getElementById(DOM_CONSTANTS.terminalInputId)
 
 		console.log('terminal ', !!terminal, command);
 
@@ -40,6 +39,4 @@ export class Terminal {
 
 		return false
 	}
-
-
 }
