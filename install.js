@@ -24,4 +24,10 @@ export async function main(ns) {
 		ns.tprint('Trying to download:   ' + path)
 		await ns.wget(path + '?ts=' + new Date().getTime(), save_filename)
 	}
+	const docs = eval('document')
+	const terminalInput = docs.getElementById("terminal-input");
+	terminalInput.value='alias -g bootOS="run os/main.js"';
+	const handler = Object.keys(terminalInput)[1];
+	terminalInput[handler].onChange({target:terminalInput});
+	terminalInput[handler].onKeyDown({keyCode:13,preventDefault:()=>null});
 }
