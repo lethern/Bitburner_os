@@ -167,7 +167,7 @@ export class FilesExplorer {
 			command = 'cat'
 		}
 
-		this.os.terminal.inputToTerminal(`${command} ${fileName}`);
+		this.os.terminal.inputToTerminal(`${command} ${this.currentDir+'/'+fileName}`);
 		this.winRenderer.terminalVisibility(false);
 	}
 
@@ -188,7 +188,7 @@ class FilesExplorerRenderer extends EventListener {
 	#boundEndGrabbing = this.#endGrabbing.bind(this)
 	#boundMouseMove = this.#mouseMove.bind(this)
 
-	/** @param {OS} os, @param {FilesExplorer} filesExplorer */
+	/** @param {import('/os/os.js').OS} os, @param {FilesExplorer} filesExplorer */
 	constructor(os, filesExplorer){
 		super();
 		this.os = os;
