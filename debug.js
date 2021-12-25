@@ -16,7 +16,7 @@ export class Debug{
 		let last = args[args.length - 1];
 		if (this.debugLevels.includes(last)) {
 			severity = last;
-			args.shift();
+			args.pop();
 		}
 		this.console.write(severity, args);
 	}
@@ -55,8 +55,8 @@ class DebugConsoleRender {
 		return `[${('' + s).toUpperCase()}]`;
 	}
 
-	write(text, severity) {
-		let log = this.storeLog(text, severity);
+	write(severity, args) {
+		let log = this.storeLog(''+args, severity);
 		if (!this.visible) {
 			return;
 		}
@@ -87,6 +87,7 @@ class DebugConsoleRender {
 		let elem = this.doc.createElement('div');
 		elem.textContent = text
 		let css = this.severityToCss(log.severity);
+		console.log(log.severity, css)
 		if(css){ elem.classList.add(css);}
 		console.log(text)
 		this.windowWidget.getContentDiv().appendChild(elem);
@@ -102,30 +103,29 @@ class DebugConsoleRender {
 		}
 	}
 
-	renderWindow() {
-		if (this.rendered) return;
-
-		this.windowWidget = new WindowWidget(this);
-		this.windowWidget.init()
-		this.windowWidget.windowVisibility(true);
-		//this.windowDiv = this.doc.createElement('div');
-		//this.windowDiv.innerHTML = ``;
-		this.rendered = true;
-		this.visible = true;
+	showWindow() {
+		if (!this.rendered) {
+			this.renderWindow();
+		}
 		this.logs.forEach(log => this.renderLog(log));
+		this.windowWidget.show();
+		this.visible = true;
+	}
+
+	renderWindow() {
+		this.windowWidget = new WindowWidget(this, this.owner.os);
+		this.windowWidget.init()
+		this.windowWidget.getContentDiv().style.display = 'block'
+		this.rendered = true;
 	}
 
 	on_exit() {
-		if (!this.rendered) return;
-		this.windowWidget.dispose()
 		this.rendered = false;
-	}
-
-	windowVisibility(visible) {
-		// called by windowWidget, but no need to do anything
+		this.visible = false;
 	}
 
 	onWindowClose() {
-		// called by windowWidget, but no need to do anything
+		// called by windowWidget
+		this.visible = false;
 	}
 }

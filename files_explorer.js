@@ -1,5 +1,5 @@
 import { DOM_CONSTANTS, icons } from '/os/constants.js'
-import { EventListener, OS_EVENT, FilesExplorerRenderer_EVENT } from '/os/event_listener.js'
+import { EventListener, OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.js'
 import { WindowWidget } from '/os/window_widget.js'
 import { Debug } from '/os/debug.js'
 
@@ -14,7 +14,7 @@ export class FilesExplorer {
 		this.isRendered = false;
 
 		this.os.listen(OS_EVENT.INIT, this.init.bind(this));
-		this.winRenderer.listen(FilesExplorerRenderer_EVENT.SHOW, this.onRenderVisible.bind(this));
+		this.winRenderer.listen(WindowWidget_EVENT.SHOW, this.onRenderVisible.bind(this));
 		this.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
 	}
 
@@ -133,7 +133,7 @@ export class FilesExplorer {
 		}
 		let dir = this.currentDir ? this.currentDir + '/' : ''
 		this.os.terminal.inputToTerminal(`${command} ${dir+fileName}`);
-		this.winRenderer.windowVisibility(false);
+		this.winRenderer.hide();
 	}
 
 	on_exit() {
@@ -149,7 +149,7 @@ class FilesExplorerRenderer extends EventListener {
 		this.filesExplorer = filesExplorer;
 
 		this.terminal_visible = false;
-		this.windowWidget = new WindowWidget(this, DOM_CONSTANTS.myCustomWindowId);
+		this.windowWidget = new WindowWidget(this, os, DOM_CONSTANTS.myCustomWindowId);
 
 		this.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
 		this.os.listen(OS_EVENT.INIT, this.init.bind(this));
@@ -160,7 +160,6 @@ class FilesExplorerRenderer extends EventListener {
 		return `${this.filesExplorer.currentServer}: /${this.filesExplorer.currentDir}`
 	}
 
-	
 	renderFiles(currentFiles, currentDirName) {
 		this.windowWidget.setTitle(this.title)
 
@@ -212,24 +211,30 @@ class FilesExplorerRenderer extends EventListener {
 
 	init() {
 		this.windowWidget.init();
-		this.windowWidget.setContentHTML('<ul class="file-list file-list--layout-icon-row" />');
-		this.windowWidget.addMenuItem({label: 'Debug', callback: this.onDebugMenuClick.bind(this)})
+		this.windowWidget.getContentDiv().innerHTML = '<ul class="file-list file-list--layout-icon-row" />';
+		this.windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
+		this.windowWidget.addMenuItem({ label: 'Test', callback: this.onTestMenuClick.bind(this) })
 		//this.listenForTerminalHidden();
 	}
 
+	hide() {
+		this.windowWidget.hide();
+	}
+
 	onDebugMenuClick() {
-		this.os.debug.console.renderWindow()
 		this.os.debug.print("MENU OPEN", Debug.DEBUG_LEVEL);
+		this.os.debug.console.showWindow()
+	}
+
+	onTestMenuClick() {
+		this.os.debug.print("test dbg", Debug.DEBUG_LEVEL);
+		this.os.debug.print("test info", Debug.INFO_LEVEL);
+		this.os.debug.print("test warn", Debug.WARN_LEVEL);
+		this.os.debug.print("test error", Debug.ERROR_LEVEL);
 	}
 
 	windowVisibilityToggle() {
-		this.windowVisibility(!this.terminal_visible);
-	}
-
-	/** @param {boolean} visible */
-	windowVisibility(visible) {
-		this.windowWidget.windowVisibility(visible);
-		if (visible) this.fire(FilesExplorerRenderer_EVENT.SHOW);
+		this.windowWidget.windowVisibilityToggle();
 	}
 
 	onWindowClose() {
@@ -237,7 +242,6 @@ class FilesExplorerRenderer extends EventListener {
 	}
 
 	on_exit() {
-		this.windowWidget.dispose();
 		Object.keys(this).forEach(key => this[key] = null);
 	}
 }

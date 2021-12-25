@@ -71,6 +71,7 @@ export const INJECTED_CSS = `
 	min-width: 35vw;
 	padding: 2px;
 	pointer-events: auto;
+	background-color: white;
 }
 
 .window__toolbar {
@@ -95,7 +96,7 @@ export const INJECTED_CSS = `
 	background: rgb(212, 208, 200);
 	color: #333;
 	padding-left: 5px;
-	padding-bottom: 2px;
+	padding-bottom: 3px;
 }
 .window__menu span{
 	padding: 0 1px;
@@ -103,6 +104,7 @@ export const INJECTED_CSS = `
 	font-size: 15px;
 	border: 1px inset transparent;
 	cursor: pointer;
+	overflow: hidden;
 }
 .window__menu span:hover{
 	border: 1px inset #bdbdbd;
@@ -139,7 +141,7 @@ export const INJECTED_CSS = `
 /* TODO: buttons */
 
 .window__content {
-	background: #FFF;
+	background: #f1f1f1;
 	border: 2px solid #D4D0C8;
 	border-top: none;
 	display: flex;
@@ -199,6 +201,18 @@ export const INJECTED_CSS = `
 .block-but-hidden {
 	display: block !important;
 	visibility: hidden !important;
+}
+.consoleDebug{
+	color: #828282;
+}
+.consoleInfo{
+	color: #252525;
+}
+.consoleWarn{
+	color: #9e6c12;
+}
+.consoleError{
+	color: #ec3131;
 }
 `;
 

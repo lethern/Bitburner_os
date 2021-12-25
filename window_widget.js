@@ -1,4 +1,5 @@
 import { DOM_CONSTANTS, windowIcon } from '/os/constants.js'
+import { WindowWidget_EVENT, OS_EVENT  } from '/os/event_listener.js'
 
 export class WindowWidget {
 	#left
@@ -14,18 +15,36 @@ export class WindowWidget {
 	#boundMouseMove = this.#mouseMove.bind(this)
 
 	/**
-	 * @param { {windowVisibility: Function, onWindowClose: Function} } parent @param {string} id
+	 * @param { {onWindowClose: Function} } parent @param {string} id
+	 * @param {import('/os/os.js').OS} os
 	 * @param {any} [id]
 	 */
-	constructor(parent, id) {
+	constructor(parent, os, id) {
 		this.parent = parent;
 		this.windowId = id;
 		this.doc = globalThis['document'];
 		this.menuItems = [];
+		os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
 	}
 
 	init() {
 		this.#initialiseWindow(this.windowId)
+	}
+
+	on_exit() {
+		this.dispose()
+	}
+
+	show() {
+		this.windowVisibility(true);
+	}
+
+	hide() {
+		this.windowVisibility(false);
+	}
+
+	windowVisibilityToggle() {
+		this.windowVisibility(!this.isVisible);
 	}
 
 	windowVisibility(visible) {
@@ -37,6 +56,7 @@ export class WindowWidget {
 			if (this.isVisible) {
 				this.container.style.display = ''
 				this.#initialiseWindowPosition()
+				if (this.parent.fire) this.parent.fire(WindowWidget_EVENT.SHOW);
 			} else {
 				this.container.style.display = 'none'
 			}
@@ -46,6 +66,7 @@ export class WindowWidget {
 	dispose() {
 		if (!this.container) return;
 		this.container.remove()
+		this.container = null;
 	}
 
 	#createWindow(id) {
@@ -133,8 +154,9 @@ export class WindowWidget {
 	setContentHTML(html) {
 		this.container.querySelector('.window__content').innerHTML = html
 	}
+	
     getContentDiv() {
-        return this.container.querySelector('.window__content')
+		return this.contentWindow
     }
 	getContainer() {
 		return this.container
@@ -144,7 +166,8 @@ export class WindowWidget {
 		this.container = this.#createWindow(id)
 		/** @type {HTMLElement} */
 		this.explorerWindow = this.container.querySelector('.window')
-		//this.container.style.display = 'none';
+		/** @type {HTMLElement} */
+		this.contentWindow = this.container.querySelector('.window__content')
 	}
 
 	#initialiseWindowPosition() {
@@ -167,10 +190,10 @@ export class WindowWidget {
 	/** @param {HTMLElement} element */
 	#addWindowEventListeners(element) {
 		element.querySelector('.window__cta-minimise').addEventListener('click', () => {
-			if (this.parent.windowVisibility)
-				this.parent.windowVisibility(false)
+			this.hide();
 		})
 		element.querySelector('.window__cta-close').addEventListener('click', () => {
+			this.hide();
 			if (this.parent.onWindowClose)
 				this.parent.onWindowClose()
 		})

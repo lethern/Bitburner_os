@@ -26,8 +26,8 @@ Object.defineProperties(OS_EVENT, {
     ON_EXIT: { value: 'on_exit' },
 });
 
-export const FilesExplorerRenderer_EVENT = {};
-Object.defineProperties(FilesExplorerRenderer_EVENT, {
+export const WindowWidget_EVENT = {};
+Object.defineProperties(WindowWidget_EVENT, {
     SHOW: { value: 'show'},
 });
 
