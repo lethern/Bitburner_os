@@ -1,4 +1,3 @@
-// Credit: Waffle_Attack
 const baseUrl = 'https://raw.githubusercontent.com/lethern/bitrunner_os/main/'
 const filesToDownload = [
 	'constants.js','debug.js', 'event_listener.js', 'files_explorer.js', 'gui.js', 
