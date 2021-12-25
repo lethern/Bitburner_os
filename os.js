@@ -4,7 +4,7 @@ import { FilesExplorer } from '/os/files_explorer.js'
 import { GUI } from '/os/gui.js'
 import { Utils } from '/os/utils.js'
 import { Terminal } from '/os/terminal.js'
-import { ServersManager } from '/os/servers_manager'
+import { ServersManager } from '/os/servers_manager.js'
 
 export class OS extends EventListener {
 

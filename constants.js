@@ -90,6 +90,10 @@ export const INJECTED_CSS = `
 	width: 16px;
 }
 
+.window__menu{
+
+}
+
 .window__title {
 	align-self: center;
 	flex: 0 1 100%;

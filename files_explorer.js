@@ -284,6 +284,8 @@ class FilesExplorerRenderer extends EventListener {
 					</button>
 				</div>
 			</div>
+			<div class="window__menu">
+			</div>
 			<div class="window__content">
 				<ul class="file-list file-list--layout-icon-row" />
 			</div>
@@ -291,8 +293,17 @@ class FilesExplorerRenderer extends EventListener {
 		`
 
 		this.#addWindowEventListeners(element)
-
+		this.renderMenu(element);
 		return element
+	}
+
+	renderMenu(element) {
+		let menuDiv = element.querySelector('window__menu')
+
+		// TMP
+		let menuItem = this.doc.createElement('span');
+		menuItem.textContent = 'Debug'
+		menuDiv.appendChild(menuItem)
 	}
 
 	renderFiles(currentFiles, currentDirName) {

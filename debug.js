@@ -42,6 +42,7 @@ class DebugConsoleRender {
 		this.visible = false;
 		this.logs = [];
 		this.logsMax = 150;
+		this.doc = globalThis['document'];
 
 		this.debugLevels = Object.keys(Debug).map(p => Debug[p]);
 	}
@@ -79,7 +80,7 @@ class DebugConsoleRender {
 		if (!this.rendered) return;
 
 		let text = this.severityToString(log.severity) + ' ' + log.text;
-		let elem = document.createElement('div');
+		let elem = this.doc.createElement('div');
 		let css = this.severityToCss(log.severity);
 		if(css) elem.classList.add(css);
 
@@ -98,7 +99,7 @@ class DebugConsoleRender {
 
 	renderWindow() {
 		if (this.rendered) return;
-		this.windowDiv = document.createElement('div');
+		this.windowDiv = this.doccreateElement('div');
 		this.windowDiv.innerHTML = ``;
 		this.rendered = true;
 		this.logs.forEach(log => this.renderLog(log));
