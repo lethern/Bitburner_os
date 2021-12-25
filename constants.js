@@ -7,6 +7,7 @@ export const DOM_CONSTANTS = {
 	fileExplorerBtnId: 'file-explorer-button',
 	hiddenClass: 'block-but-hidden',
 	myCustomWindowId: 'custom-window',
+	windowFocusedClass: 'window--focused'
 };
 
 
@@ -51,7 +52,7 @@ export const INJECTED_CSS = `
 	z-index: 1200;
 }
 
-.window-container--focused .window__toolbar {
+.window--focused .window__toolbar {
 	background: linear-gradient(to right,#0A246A 0%,#A6CAF0 100%);
 	color: #fff;
 }

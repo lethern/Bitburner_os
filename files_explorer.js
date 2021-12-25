@@ -154,7 +154,7 @@ export class FilesExplorer {
 			command = 'cat'
 		}
 
-		this.os.terminal.inputToTerminal(`${command} ${this.currentDir+'/'+fileName}`);
+		this.os.terminal.inputToTerminal(`${command} ${fileName}`);
 		this.winRenderer.terminalVisibility(false);
 	}
 
@@ -175,7 +175,7 @@ class FilesExplorerRenderer extends EventListener {
 	#boundEndGrabbing = this.#endGrabbing.bind(this)
 	#boundMouseMove = this.#mouseMove.bind(this)
 
-	/** @param {import('/os/os.js').OS} os, @param {FilesExplorer} filesExplorer */
+	/** @param {OS} os, @param {FilesExplorer} filesExplorer */
 	constructor(os, filesExplorer) {
 		super();
 		this.os = os;
@@ -225,13 +225,22 @@ class FilesExplorerRenderer extends EventListener {
 	#addWindowEventListeners(element) {
 		element.querySelector('.window__cta-close').addEventListener('click', () => this.terminalVisibility(false))
 		element.querySelector('.window__toolbar').addEventListener('mousedown', this.#boundBeginGrabbing)
+		element.querySelector('.window').addEventListener('click', (e) => {
+			e.stopPropagation()
+			this.explorerWindow.classList.add(DOM_CONSTANTS.windowFocusedClass)
+		})
+
+		if (!globalThis.hasBoundWindowFocusListener) {
+			globalThis.hasBoundWindowFocusListener = true
+			this.doc.body.addEventListener('click', stealFocusHandler)
+		}
 	}
 
 	showWindow() {
 		console.log('show window');
 	}
 
-	createWindow(id) {
+	createWindow() {
 		const element = this.createBodyDiv();
 		element.id = DOM_CONSTANTS.myCustomWindowId
 		element.classList.add('window-container')
@@ -505,4 +514,10 @@ class FilesExplorerRenderer extends EventListener {
 		this.#top = topFinal
 		this.#updateWindowPosition()
 	}
+}
+
+function stealFocusHandler() {
+	Array.from(globalThis['document'].querySelectorAll(`.window.${DOM_CONSTANTS.windowFocusedClass}`)).forEach((win) =>
+		win.classList.remove(DOM_CONSTANTS.windowFocusedClass)
+	)
 }

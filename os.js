@@ -122,7 +122,7 @@ export class OS extends EventListener {
 
 	#serverWatch(ns) {
 		const currentServer = this.#getCurrentServer(ns)
-		console.log('current = ', currentServer, '; old = ', this.server)
+
 		if (currentServer !== this.server) {
 			this.#server = currentServer
 			this.FilesExplorer.render()
