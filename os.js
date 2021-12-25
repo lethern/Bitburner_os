@@ -45,13 +45,15 @@ export class OS extends EventListener{
 			}
 		}
 	}
-	
+
+	/** @param {(NS) => void} func @returns Promise */
 	getNS(func){
 		let def = new Utils.Deferred();
 		this.NSqueue.push( { func, def })
 		return def.promise;
 	}
-	
+
+	/** @param {(NS) => void} func */
 	getNS_noPromise(func){
 		this.NSqueue.push( { func })
 	}

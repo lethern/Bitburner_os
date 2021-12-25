@@ -4,38 +4,41 @@ import { Utils } from '/os/utils.js'
 export class Terminal {
 	constructor(os){
 		this.os = os;
+		this.doc = globalThis['document'];
 	}
 	async inputToTerminal(command) {
-		const doc = globalThis['document']
-		let terminal = doc.getElementById(DOM_CONSTANTS.terminalInput)
+		let terminal = this.doc.getElementById(DOM_CONSTANTS.terminalInputId)
 		
-		const executeTerminalCommand = () => {
-			terminal = terminal || doc.getElementById(DOM_CONSTANTS.terminalInput)
-
-			if (terminal) {
-				terminal.value = command
-				const handler = Object.keys(terminal)[1];
-				terminal[handler].onChange({ target: terminal });
-				terminal[handler].onKeyDown({ keyCode: 13, preventDefault: () => null })
-
-				return true
-			}
-
-			return false
-		}
-
 		if (!terminal) {
-			const terminalButton = doc.querySelector(DOM_CONSTANTS.terminalBtnSelector)
+			console.log('no terminal');
+			const terminalButton = this.doc.querySelector(DOM_CONSTANTS.terminalBtnSelector)
 
 			if (terminalButton) {
+				console.log('terminalButton');
 				terminalButton.click()
-				return Utils.sleep(300).then(executeTerminalCommand);
-				//return new Promise((resolve) => setTimeout(() => resolve(executeTerminalCommand()), 300))
-				// return delay(2000).then(executeTerminalCommand)
+				return Utils.sleep(300).then(this.executeTerminalCommand.bind(this, terminal, command));
 			}
 		}
 
-		return executeTerminalCommand()
+		return this.executeTerminalCommand(terminal, command);
+	}
+
+	/** @param {HTMLElement} terminal  @param {string} command */
+	executeTerminalCommand(terminal, command) {
+		terminal = terminal || this.doc.getElementById(DOM_CONSTANTS.terminalInputId)
+
+		console.log('terminal ', !!terminal, command);
+
+		if (terminal) {
+			terminal.value = command
+			const handler = Object.keys(terminal)[1];
+			terminal[handler].onChange({ target: terminal });
+			terminal[handler].onKeyDown({ keyCode: 13, preventDefault: () => null })
+
+			return true
+		}
+
+		return false
 	}
 
 

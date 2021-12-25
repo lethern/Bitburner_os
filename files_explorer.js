@@ -2,7 +2,7 @@ import { DOM_CONSTANTS, directorySvg, jsSvg, windowIcon } from '/os/constants.js
 import { EventListener, OS_EVENT, FilesExplorerRenderer_EVENT } from '/os/event_listener.js'
 
 export class FilesExplorer {
-	/** @param {OS} os */
+	/** @param {import('/os/os.js').OS} os */
 	constructor(os){
 		this.os = os;
 		
@@ -165,18 +165,12 @@ export class FilesExplorer {
 		if (!command) {
 			command = 'cat'
 		}
-		/*
-		if (await this.os.inputToTerminal(`${command} ${fileName}`)) {
-			if (command === 'cd') {
-				this.currentDirectory += fileName + '/' //`${this.currentDirectory}` + fileName
-				this.render()
-			} else if (command === 'nano') {
-				this.isVisible = false
-			}
-		}
-		//*/
+
+		this.os.terminal.inputToTerminal(`${command} ${fileName}`);
+		this.winRenderer.terminalVisibility(false);
 	}
-	on_exit(){
+
+	on_exit() {
 	}
 }
 
@@ -193,7 +187,7 @@ class FilesExplorerRenderer extends EventListener {
 	#boundEndGrabbing = this.#endGrabbing.bind(this)
 	#boundMouseMove = this.#mouseMove.bind(this)
 
-	/** @param {OS} os */
+	/** @param {OS} os, @param {FilesExplorer} filesExplorer */
 	constructor(os, filesExplorer){
 		super();
 		this.os = os;
@@ -212,6 +206,7 @@ class FilesExplorerRenderer extends EventListener {
 	
 	#initialiseWindow() {
 		this.container = this.createWindow(DOM_CONSTANTS.myCustomWindowId)
+		/** @type {HTMLElement} */
 		this.explorerWindow = this.container.querySelector('.window')
 		this.container.style.display = 'none';
 	}
@@ -421,11 +416,11 @@ class FilesExplorerRenderer extends EventListener {
 		return div;
 	}
 	
-	/** @param {boolean} visible */
-	terminalVisibilityToggle(visible){
+	terminalVisibilityToggle(){
 		this.terminalVisibility(!this.terminal_visible);
 	}
 
+	/** @param {boolean} visible */
 	terminalVisibility(visible){
 		if(visible != this.terminal_visible){
 			this.terminal_visible = visible;
