@@ -15,7 +15,7 @@ export class OS extends EventListener {
 
 		this.NSqueue = [];
 		/** @type {Debug} */
-		this.debug = new Debug();
+		this.debug = new Debug(this);
 		this.filesExplorer = new FilesExplorer(this);
 		this.gui = new GUI(this);
 		this.terminal = new Terminal();

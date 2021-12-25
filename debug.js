@@ -1,8 +1,12 @@
+import { OS_EVENT } from '/os/event_listener.js'
+import { WindowWidget } from '/os/window_widget.js'
 
 export class Debug{
-	constructor(){
+	/** @param {import('/os/os.js').OS} os */
+	constructor(os){
 		this.cache = {};
-		this.console = new DebugConsoleRender();
+		this.os = os;
+		this.console = new DebugConsoleRender(this);
 
 		this.debugLevels = Object.keys(Debug).map(p => Debug[p]);
 	}
@@ -37,7 +41,9 @@ Object.defineProperties(Debug, {
 
 
 class DebugConsoleRender {
-	constructor() {
+	/** @param {Debug} owner */
+	constructor(owner) {
+		this.owner = owner;
 		this.rendered = false;
 		this.visible = false;
 		this.logs = [];
@@ -45,6 +51,7 @@ class DebugConsoleRender {
 		this.doc = globalThis['document'];
 
 		this.debugLevels = Object.keys(Debug).map(p => Debug[p]);
+		this.owner.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
 	}
 
 	severityToString = function (s) {
@@ -84,7 +91,7 @@ class DebugConsoleRender {
 		let css = this.severityToCss(log.severity);
 		if(css) elem.classList.add(css);
 
-		this.windowDiv.appendChild(elem);
+		this.windowWidget.getContainer().appendChild(elem);
 	}
 
 	severityToCss(severity) {
@@ -99,13 +106,23 @@ class DebugConsoleRender {
 
 	renderWindow() {
 		if (this.rendered) return;
-		this.windowDiv = this.doccreateElement('div');
-		this.windowDiv.innerHTML = ``;
+
+		this.windowWidget = new WindowWidget(this);
+		this.windowWidget.init()
+		this.windowWidget.windowVisibility(true);
+		//this.windowDiv = this.doc.createElement('div');
+		//this.windowDiv.innerHTML = ``;
 		this.rendered = true;
 		this.logs.forEach(log => this.renderLog(log));
 	}
 
-	showWindow() {
+	on_exit() {
+		if (!this.rendered) return;
+		this.windowWidget.dispose()
+		this.rendered = false;
+	}
 
+	windowVisibility(visible) {
+		// called by windowWidget, but no need to do anything
 	}
 }
