@@ -2,7 +2,7 @@ import { OS_EVENT } from '/os/event_listener.js'
 
 export class ServersManager {
 	#server
-	#serverList
+	#serverObjList
 
 	/** @param {import('/os/os.js').OS} os */
 	constructor(os) {
@@ -35,12 +35,12 @@ export class ServersManager {
 	}
 
 	async #getCurrentConnectedServer() {
-		if (!this.#serverList) await this.#fetchServerList()
+		if (!this.#serverObjList) await this.#fetchAllServers()
 
 		let connectedServer = await this.os.getNS(ns => {
-			for (const server of this.#serverList) {
-				if (ns.getServer(server).isConnectedTo) {
-					return server.getHostname()
+			for (const { name } of this.#serverObjList) {
+				if (ns.getServer(name).isConnectedTo) {
+					return name
 				}
 			}
 		})
@@ -49,16 +49,16 @@ export class ServersManager {
 		return connectedServer
 	}
 
-	async #fetchServerList() {
-		this.#serverList = new Set()
-		this.#serverList.add('home')
-
-		await this.os.getNS(ns => {
-			for (let server of this.#serverList) {
-				ns.scan(server).forEach((result) => this.#serverList.add(result))
-			}
-		});
-	}
+	//async #fetchServerList() {
+	//	this.#serverList = new Set()
+	//	.add('home')
+	//
+	//	await this.os.getNS(ns => {
+	//		for (let server of this.#serverList) {
+	//			ns.scan(server.name).forEach((result) => this.#serverList.add(result))
+	//		}
+	//	});
+	//}
 
 	async #serverWatch() {
 		const currentServer = await this.#getCurrentConnectedServer()
@@ -69,8 +69,8 @@ export class ServersManager {
 		}
 	}
 
-	async fetchAllServers() {
-		return await this.os.getNS(ns => {
+	async #fetchAllServers() {
+		this.#serverObjList = await this.os.getNS(ns => {
 			let found = {};
 			let targets = getNewNeighbors(ns, "home", found);
 			let servers = [];
@@ -86,6 +86,7 @@ export class ServersManager {
 
 				targets = neighbors_sum;
 			}
+			return servers;
 		});
 
 		function getNewNeighbors(ns, target, found) {

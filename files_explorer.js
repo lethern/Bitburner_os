@@ -211,6 +211,7 @@ class FilesExplorerRenderer extends EventListener {
 
 	#initialiseWindow() {
 		this.container = this.createWindow(DOM_CONSTANTS.myCustomWindowId)
+		console.log('main window', this.container)
 		/** @type {HTMLElement} */
 		this.explorerWindow = this.container.querySelector('.window')
 		this.container.style.display = 'none';
@@ -298,7 +299,7 @@ class FilesExplorerRenderer extends EventListener {
 	}
 
 	renderMenu(element) {
-		let menuDiv = element.querySelector('window__menu')
+		let menuDiv = element.querySelector('.window__menu')
 
 		// TMP
 		let menuItem = this.doc.createElement('span');
