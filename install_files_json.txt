@@ -1,8 +1,8 @@
 {
-	welcomeLabel: 'HackaOS :: Install',
-	filesToDownload: [
-		'constants.js','debug.js', 'event_listener.js', 'files_explorer.js', 'gui.js', 
-		'main.js', 'os.js', 'terminal.js', 'utils.js', 'servers_manager.js', 'window_widget.js',
-		'lib/jit-yc.js'
+	"welcomeLabel": "HackaOS :: Install",
+	"filesToDownload": [
+		"constants.js","debug.js", "event_listener.js", "files_explorer.js", "gui.js", 
+		"main.js", "os.js", "terminal.js", "utils.js", "servers_manager.js", "window_widget.js",
+		"lib/jit-yc.js"
 	]
 }

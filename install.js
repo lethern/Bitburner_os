@@ -1,4 +1,4 @@
-let baseUrl = 'https://raw.githubusercontent.com/lethern/bitrunner_os/main/';
+let baseUrl = 'https://raw.githubusercontent.com/lethern/Bitburner_os/main/';
 let json_filename = 'install_files_json.txt';
 
 /** @param {NS} ns */
@@ -36,6 +36,7 @@ export async function main(ns) {
 
 async function fetchConfig(ns) {
 	try{
+		await ns.rm(json_filename)
 		await ns.wget(baseUrl + json_filename + '?ts=' + new Date().getTime(), json_filename)
 		return JSON.parse(ns.read(json_filename));
 	}catch(e){
