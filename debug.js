@@ -116,6 +116,7 @@ class DebugConsoleRender {
 		this.windowWidget = new WindowWidget(this, this.owner.os);
 		this.windowWidget.init()
 		this.windowWidget.getContentDiv().style.display = 'block'
+		this.windowWidget.getContentDiv().style.overflow = 'scroll'
 		this.rendered = true;
 	}
 

@@ -1,11 +1,11 @@
-const baseUrl = 'https://raw.githubusercontent.com/lethern/bitrunner_os/main/'
-const filesToDownload = [
-	'constants.js','debug.js', 'event_listener.js', 'files_explorer.js', 'gui.js', 
-	'main.js', 'os.js', 'terminal.js', 'utils.js', 'servers_manager.js', 'window_widget.js',
-]
+let baseUrl = 'https://raw.githubusercontent.com/lethern/bitrunner_os/main/';
+let json_filename = 'install_files_json.txt';
 
+/** @param {NS} ns */
 export async function main(ns) {
-	ns.tprint('HackaOS :: Install')
+	let { welcomeLabel, filesToDownload } = await fetchConfig(ns)
+	
+	ns.tprint(welcomeLabel)
 
 	let hostname = ns.getHostname()
 
@@ -13,22 +13,39 @@ export async function main(ns) {
 		throw new Exception('Run the script from home')
 	}
 
-	for (let i = 0; i < filesToDownload.length; i++) {
-		const filename = filesToDownload[i]
+	for (let filename of filesToDownload) {
 		const path = baseUrl + filename
 		const save_filename = '/os/'+filename
-		await ns.scriptKill(save_filename, 'home')
-		await ns.rm(save_filename)
-		await ns.sleep(20)
-		ns.tprint('Trying to download:   ' + path)
-		await ns.wget(path + '?ts=' + new Date().getTime(), save_filename)
+		
+		try{
+			await ns.scriptKill(save_filename, 'home')
+			await ns.rm(save_filename)
+			await ns.sleep(20)
+			await ns.wget(path + '?ts=' + new Date().getTime(), save_filename)
+		}catch(e){
+			ns.tprint(`ERROR (tried to download  ${path})`)
+			throw e;
+		}
 	}
+
 	terminalCommand('unalias bootOS')
 	terminalCommand('alias -g bootOS="run os/main.js"')
+
+	ns.tprint("Install complete! To start, type:    bootOS")
+}
+
+async function fetchConfig(ns) {
+	try{
+		await ns.wget(baseUrl + json_filename + '?ts=' + new Date().getTime(), json_filename)
+		return JSON.parse(ns.read(json_filename));
+	}catch(e){
+		ns.tprint(`ERROR: Downloading and reading config file failed ${json_filename}`);
+		throw e;
+	}
 }
 
 function terminalCommand(message){
-	const docs = eval('document')
+	const docs = globalThis['document']
 	const terminalInput = docs.getElementById("terminal-input");
 	terminalInput.value=message;
 	const handler = Object.keys(terminalInput)[1];
