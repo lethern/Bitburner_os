@@ -115,8 +115,8 @@ class DebugConsoleRender {
 	renderWindow() {
 		this.windowWidget = new WindowWidget(this, this.owner.os);
 		this.windowWidget.init()
-		this.windowWidget.getContentDiv().style.display = 'block'
-		this.windowWidget.getContentDiv().style.overflow = 'scroll'
+		this.windowWidget.getContentDiv().classList.add('debugWindow')
+		this.windowWidget.getContentDiv().classList.add('whiteScrollbar')
 		this.rendered = true;
 	}
 

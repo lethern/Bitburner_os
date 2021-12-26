@@ -72,6 +72,7 @@ export const INJECTED_CSS = `
 	padding: 2px;
 	pointer-events: auto;
 	background-color: white;
+	user-select: none;
 }
 
 .window__toolbar {
@@ -79,7 +80,6 @@ export const INJECTED_CSS = `
 	border: 1px solid #D4D0C8;
 	display: flex;
 	padding: 3px 3px 3px 8px;
-	user-select: none;
 	width: 100%;
 }
 
@@ -201,6 +201,30 @@ export const INJECTED_CSS = `
 .block-but-hidden {
 	display: block !important;
 	visibility: hidden !important;
+}
+.debugWindow{
+	display: block;
+	overflow: scroll;
+	height: 400px;
+	width: 600px;
+}
+.whiteScrollbar::-webkit-scrollbar {
+	display: unset;
+	background-color: #DFDFDF;
+}
+.greenScrollbar::-webkit-scrollbar {
+	display: unset;
+	background-color: #4d5d4e;
+}
+.whiteScrollbar::-webkit-scrollbar-thumb {
+	-webkit-border-radius: 10px;
+    background: rgb(150 150 150);
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+}
+.greenScrollbar::-webkit-scrollbar-thumb {
+	-webkit-border-radius: 10px;
+    background: rgb(7 156 7);
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
 }
 .consoleDebug{
 	color: #828282;
