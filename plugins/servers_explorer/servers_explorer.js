@@ -46,8 +46,23 @@ export class ServersExplorer {
 	}
 
 	svConnect(svName) {
-		let command = 'run /os/plugins/servers_exploer/connect.js'
+		let command = 'run /os/plugins/servers_exploer/connect.js '
 		this.os.terminal.inputToTerminal(`${command}` + svName);
+		this.winRenderer.hide();
+	}
+
+	svBackdoor(svName) {
+		let command = 'run /os/plugins/servers_exploer/connect.js '
+		this.os.terminal.inputToTerminal(`${command}` + svName);
+		command = 'backdoor'
+		this.os.terminal.inputToTerminal(`${command}`);
+		this.winRenderer.hide();
+	}
+	svHack(svName) {
+		let command = 'run /os/plugins/servers_exploer/connect.js '
+		this.os.terminal.inputToTerminal(`${command}` + svName);
+		command = 'run NUKE.exe'
+		this.os.terminal.inputToTerminal(`${command}`);
 		this.winRenderer.hide();
 	}
 
@@ -153,7 +168,8 @@ class ServersExplorerRenderer extends EventListener {
 		event.stopPropagation()
 		const fileName = button.dataset.fileName
 
-		this.serversExplorer.svConnect(fileName)
+		this.serversExplorer.svBackdoor(fileName)
+
 	}
 	svHackOnClick(event) {
 		let button = event.currentTarget;
@@ -161,7 +177,7 @@ class ServersExplorerRenderer extends EventListener {
 		event.stopPropagation()
 		const fileName = button.dataset.fileName
 
-		this.serversExplorer.svConnect(fileName)
+		this.serversExplorer.svHack(fileName)
 	}
 
 	init() {
