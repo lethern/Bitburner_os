@@ -50,7 +50,7 @@ export class ServersManager {
 
 		let connectedServer = await this.#os.getNS(ns => {
 			for (const { name } of this.#serverObjList) {
-				if (ns.getServer(name).isConnectedTo) {
+				if (ns.serverExists(name) && ns.getServer(name).isConnectedTo) {
 					return name
 				}
 			}
