@@ -2,37 +2,22 @@ import { DOM_CONSTANTS, windowIcon } from '/os/constants.js'
 import { WindowWidget_EVENT, OS_EVENT  } from '/os/event_listener.js'
 
 export class WindowWidget {
-	#left
-	#top
-	#elementWidth
-	#elementHeight
-	#windowWidth
-	#windowHeight
-	#grabStart = {}
-	#modalStart = {}
-	#boundBeginGrabbing = this.#beginGrabbing.bind(this)
-	#boundEndGrabbing = this.#endGrabbing.bind(this)
-	#boundMouseMove = this.#mouseMove.bind(this)
-
 	/**
-	 * @param { {onWindowClose: Function} } parent @param {string} id
+	 * @param { {onWindowClose: Function} } parent
 	 * @param {import('/os/os.js').OS} os
-	 * @param {any} [id]
+	 * @param {string} [id]
 	 */
 	constructor(parent, os, id) {
-		this.parent = parent;
-		this.windowId = id;
-		this.doc = globalThis['document'];
-		this.menuItems = [];
+		this.#parent = parent;
+		this.#windowId = id;
+		this.#doc = globalThis['document'];
+		this.#menuItems = [];
+
 		os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
 	}
-
+	
 	init() {
-		this.#initialiseWindow(this.windowId)
-	}
-
-	on_exit() {
-		this.dispose()
+		this.#initialiseWindow(this.#windowId)
 	}
 
 	show() {
@@ -56,11 +41,37 @@ export class WindowWidget {
 			if (this.isVisible) {
 				this.container.style.display = ''
 				this.#initialiseWindowPosition()
-				if (this.parent.fire) this.parent.fire(WindowWidget_EVENT.SHOW);
+				if (this.#parent.fire) this.#parent.fire(WindowWidget_EVENT.SHOW);
 			} else {
 				this.container.style.display = 'none'
 			}
 		}
+	}
+
+	/** @param { {label: string, callback: Function} } params */
+	addMenuItem(params) {
+		this.#menuItems.push({ ...params, div: null });
+
+		if (!this.menuDiv) return;
+
+		let item = this.#menuItems[this.#menuItems.length - 1];
+		this.#renderMenuItem(item);
+	}
+
+	setTitle(title) {
+		this.container.querySelector('.window__title').textContent = title
+	}
+
+	getContentDiv() {
+		return this.contentWindow
+	}
+
+	getContainer() {
+		return this.container
+	}
+
+	on_exit() {
+		this.dispose()
 	}
 
 	dispose() {
@@ -68,6 +79,26 @@ export class WindowWidget {
 		this.container.remove()
 		this.container = null;
 	}
+
+
+	// private fields, methods
+
+	#parent
+	#windowId
+	#doc
+	#menuItems
+
+	#left
+	#top
+	#elementWidth
+	#elementHeight
+	#windowWidth
+	#windowHeight
+	#grabStart = {}
+	#modalStart = {}
+	#boundBeginGrabbing = this.#beginGrabbing.bind(this)
+	#boundEndGrabbing = this.#endGrabbing.bind(this)
+	#boundMouseMove = this.#mouseMove.bind(this)
 
 	#createWindow(id) {
 		const element = this.#createBodyDiv();
@@ -110,56 +141,31 @@ export class WindowWidget {
 		`
 
 		this.#addWindowEventListeners(element)
-		this.renderMenu(element);
+		this.#renderMenu(element);
 		return element
 	}
 
 	#createBodyDiv() {
-		let div = this.doc.createElement('div');
-		this.doc.body.appendChild(div);
+		let div = this.#doc.createElement('div');
+		this.#doc.body.appendChild(div);
 		return div;
 	}
 
-	renderMenu(parentDiv) {
+	#renderMenu(parentDiv) {
 		this.menuDiv = parentDiv.querySelector('.window__menu')
 
-		for (let item of this.menuItems) {
-			this.renderMenuItem(item);
+		for (let item of this.#menuItems) {
+			this.#renderMenuItem(item);
 		}
 	}
 
-	/** @param { {label: string, callback: Function} } params */
-	addMenuItem(params) {
-		this.menuItems.push({ ...params, div: null });
-
-		if (!this.menuDiv) return;
-
-		let item = this.menuItems[this.menuItems.length - 1];
-		this.renderMenuItem(item);
-	}
-
-	renderMenuItem(menuItem) {
+	#renderMenuItem(menuItem) {
 		let { label, callback } = menuItem;
-		let div = this.doc.createElement('span');
+		let div = this.#doc.createElement('span');
 		menuItem.div = div;
 		div.textContent = label
 		div.addEventListener('click', callback);
 		this.menuDiv.appendChild(div)
-	}
-
-	setTitle(title) {
-		this.container.querySelector('.window__title').textContent = title
-	}
-
-	setContentHTML(html) {
-		this.container.querySelector('.window__content').innerHTML = html
-	}
-	
-    getContentDiv() {
-		return this.contentWindow
-    }
-	getContainer() {
-		return this.container
 	}
 
 	#initialiseWindow(id) {
@@ -194,19 +200,19 @@ export class WindowWidget {
 		})
 		element.querySelector('.window__cta-close').addEventListener('click', () => {
 			this.hide();
-			if (this.parent.onWindowClose)
-				this.parent.onWindowClose()
+			if (this.#parent.onWindowClose)
+				this.#parent.onWindowClose()
 		})
 		element.querySelector('.window__toolbar').addEventListener('mousedown', this.#boundBeginGrabbing)
 		element.querySelector('.window').addEventListener('click', (e) => {
 			e.stopPropagation()
-			stealFocusHandler()
+			WindowWidget.stealFocusHandler()
 			this.explorerWindow.classList.add(DOM_CONSTANTS.windowFocusedClass)
 		})
 
 		if (!globalThis.hasBoundWindowFocusListener) {
 			globalThis.hasBoundWindowFocusListener = true
-			this.doc.body.addEventListener('click', stealFocusHandler)
+			this.#doc.body.addEventListener('click', WindowWidget.stealFocusHandler)
 		}
 	}
 
@@ -220,7 +226,7 @@ export class WindowWidget {
 			this.#windowWidth = win.innerWidth
 			this.#windowHeight = win.innerHeight
 
-			const body = this.doc.body
+			const body = this.#doc.body
 			body.addEventListener('mousemove', this.#boundMouseMove)
 			body.addEventListener('mouseup', this.#boundEndGrabbing)
 			body.addEventListener('mouseleave', this.#boundEndGrabbing)
@@ -228,7 +234,7 @@ export class WindowWidget {
 	}
 
 	#endGrabbing() {
-		const body = this.doc.body
+		const body = this.#doc.body
 		body.removeEventListener('mousemove', this.#boundMouseMove)
 		body.removeEventListener('mouseup', this.#boundEndGrabbing)
 		body.removeEventListener('mouseleave', this.#boundEndGrabbing)
@@ -268,10 +274,12 @@ export class WindowWidget {
 		this.#top = topFinal
 		this.#updateWindowPosition()
 	}
+
+	static stealFocusHandler() {
+		Array.from(globalThis['document'].querySelectorAll(`.window.${DOM_CONSTANTS.windowFocusedClass}`)).forEach((win) =>
+			win.classList.remove(DOM_CONSTANTS.windowFocusedClass)
+		)
+	}
 }
 
-function stealFocusHandler() {
-	Array.from(globalThis['document'].querySelectorAll(`.window.${DOM_CONSTANTS.windowFocusedClass}`)).forEach((win) =>
-		win.classList.remove(DOM_CONSTANTS.windowFocusedClass)
-	)
-}
+

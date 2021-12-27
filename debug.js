@@ -6,7 +6,7 @@ export class Debug{
 	constructor(os){
 		this.cache = {};
 		this.os = os;
-		this.console = new DebugConsoleRender(this);
+		this.console = new DebugConsoleRender(this, os);
 
 		this.debugLevels = Object.keys(Debug).map(p => Debug[p]);
 	}
@@ -39,8 +39,9 @@ Object.defineProperties(Debug, {
 
 class DebugConsoleRender {
 	/** @param {Debug} owner */
-	constructor(owner) {
+	constructor(owner, os) {
 		this.owner = owner;
+		this.os = os;
 		this.rendered = false;
 		this.visible = false;
 		this.logs = [];
@@ -48,7 +49,7 @@ class DebugConsoleRender {
 		this.doc = globalThis['document'];
 
 		this.debugLevels = Object.keys(Debug).map(p => Debug[p]);
-		this.owner.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
+		this.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
 	}
 
 	severityToString = function (s) {
@@ -113,7 +114,7 @@ class DebugConsoleRender {
 	}
 
 	renderWindow() {
-		this.windowWidget = new WindowWidget(this, this.owner.os);
+		this.windowWidget = new WindowWidget(this, this.os);
 		this.windowWidget.init()
 		this.windowWidget.getContentDiv().classList.add('debugWindow')
 		this.windowWidget.getContentDiv().classList.add('whiteScrollbar')

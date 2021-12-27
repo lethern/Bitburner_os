@@ -1,18 +1,16 @@
 import { OS_EVENT } from '/os/event_listener.js'
 
 export class ServersManager {
-	#server
-	#serverObjList
 
 	/** @param {import('/os/os.js').OS} os */
 	constructor(os) {
-		this.os = os;
+		this.#os = os;
 		//this.#cacheServers()
 		this.#server = 'home'
 		//this.#server = this.#getCurrentServer()
-		this.lastWatchTime = Date.now();
+		this.#lastWatchTime = Date.now();
 
-		this.os.listen(OS_EVENT.LOOP_STEP, this.run.bind(this));
+		this.#os.listen(OS_EVENT.LOOP_STEP, this.#run.bind(this));
 
 		this.#getCurrentConnectedServer();
 	}
@@ -22,14 +20,27 @@ export class ServersManager {
 		return this.#server
 	}
 
-	run() {
+	/** @return {string[]} */
+	get allServers(){
+		return this.#serverObjList ? [...this.#serverObjList] : []
+	}
+	
+	
+	// private fields, methods
+	
+	#server
+	#serverObjList
+	#os
+	#lastWatchTime
+
+	#run() {
 		const watchDelay = 1000;
 
-		let diff = Date.now() - this.lastWatchTime;
-		if (diff < 0) { this.lastWatchTime = Date.now() } // OS error
+		let diff = Date.now() - this.#lastWatchTime;
+		if (diff < 0) { this.#lastWatchTime = Date.now() } // OS error
 
 		if (diff > watchDelay) {
-			this.lastWatchTime = Date.now();
+			this.#lastWatchTime = Date.now();
 			this.#serverWatch()
 		}
 	}
@@ -37,7 +48,7 @@ export class ServersManager {
 	async #getCurrentConnectedServer() {
 		if (!this.#serverObjList) await this.#fetchAllServers()
 
-		let connectedServer = await this.os.getNS(ns => {
+		let connectedServer = await this.#os.getNS(ns => {
 			for (const { name } of this.#serverObjList) {
 				if (ns.getServer(name).isConnectedTo) {
 					return name
@@ -54,12 +65,12 @@ export class ServersManager {
 
 		if (currentServer !== this.connectedServer) {
 			this.#server = currentServer
-			this.os.filesExplorer.render()
+			this.#os.filesExplorer.render()
 		}
 	}
 
 	async #fetchAllServers() {
-		this.#serverObjList = await this.os.getNS(ns => {
+		this.#serverObjList = await this.#os.getNS(ns => {
 			let found = {};
 			let targets = getNewNeighbors(ns, "home", found);
 			let servers = [];

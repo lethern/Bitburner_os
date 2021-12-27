@@ -3,13 +3,13 @@ import { Utils } from '/os/utils.js'
 
 export class Terminal {
 	constructor() {
-		this.doc = globalThis['document'];
+		this.#doc = globalThis['document'];
 	}
 	async inputToTerminal(command) {
-		let terminal = this.doc.getElementById(DOM_CONSTANTS.terminalInputId)
+		let terminal = this.#doc.getElementById(DOM_CONSTANTS.terminalInputId)
 
 		if (!terminal) {
-			const terminalButton = this.doc.querySelector(DOM_CONSTANTS.terminalBtnSelector)
+			const terminalButton = this.#doc.querySelector(DOM_CONSTANTS.terminalBtnSelector)
 
 			if (terminalButton) {
 				terminalButton.click()
@@ -35,4 +35,8 @@ export class Terminal {
 
 		return false
 	}
+
+	// private fields, methods
+
+	#doc
 }

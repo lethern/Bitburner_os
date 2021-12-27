@@ -13,22 +13,25 @@ export class OS extends EventListener {
 
 		this.initNSInternals(ns);
 
-		this.NSqueue = [];
+		this.#NSqueue = [];
+		this.#doLoop = true;
+
 		/** @type {Debug} */
 		this.debug = new Debug(this);
 		this.filesExplorer = new FilesExplorer(this);
 		this.gui = new GUI(this);
 		this.terminal = new Terminal();
 		this.serversManager = new ServersManager(this);
-
-		this.doLoop = true;
 	}
 
 	/** @param {NS} ns */
 	initNSInternals(ns) {
+		// this is the only function that has direct access to NS object,
+		// its *carefuly* used in runNSQueue
+
 		let _hasAccessToNS = false;
 
-		this.internal_NS = function () {
+		this.#internal_NS = function () {
 			if (_hasAccessToNS)
 				return ns;
 			else {
@@ -39,11 +42,11 @@ export class OS extends EventListener {
 			this.fire(OS_EVENT.INIT);
 
 			const delay = 50
-			while (this.doLoop) {
+			while (this.#doLoop) {
 				_hasAccessToNS = true;
 
 				this.fire(OS_EVENT.LOOP_STEP);
-				await this.runNSQueue();
+				await this.#runNSQueue();
 
 				_hasAccessToNS = false;
 				await ns.sleep(delay);
@@ -54,21 +57,32 @@ export class OS extends EventListener {
 	/** @param {(NS) => void} func @returns Promise */
 	getNS(func) {
 		let def = new Utils.Deferred();
-		this.NSqueue.push({ func, def })
+		this.#NSqueue.push({ func, def })
 		return def.promise;
 	}
 
 	/** @param {(NS) => void} func */
 	getNS_noPromise(func) {
-		this.NSqueue.push({ func })
+		this.#NSqueue.push({ func })
 	}
 
-	async runNSQueue() {
+	closeAndExit() {
+		this.getNS_noPromise(ns => ns.exit());
+	}
+
+
+	// private fields, methods
+
+	#doLoop
+	#internal_NS
+	#NSqueue
+
+	async #runNSQueue() {
 		let stopwatch = 0;
-		let ns = this.internal_NS();
-		while (this.NSqueue.length) {
-			let q = this.NSqueue;
-			this.NSqueue = [];
+		let ns = this.#internal_NS();
+		while (this.#NSqueue.length) {
+			let q = this.#NSqueue;
+			this.#NSqueue = [];
 
 			if (++stopwatch > 10) {
 				q.forEach(({ def }) => { def && def.reject('stopwatch (there is too big recursion in getNS calls)'); })
@@ -85,13 +99,9 @@ export class OS extends EventListener {
 		}
 	}
 
-	closeAndExit() {
-		this.getNS_noPromise(ns => ns.exit());
-	}
-
 	on_exit() {
 		this.debug.print("OS on_exit", Debug.DEBUG_LEVEL);
-		this.doLoop = false;
+		this.#doLoop = false;
 		this.fire(OS_EVENT.ON_EXIT);
 	}
 }

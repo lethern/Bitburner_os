@@ -1,22 +1,29 @@
 
 export class EventListener{
 	constructor(parent){
-		this.e_parent = parent || this;
-		this.e_listeners = {};
+		this.#parent = parent || this;
+		this.#listeners = {};
 	}
+
 	listen(event, func){
 		if(!event) console.log('empty event for listen', func);
-		if(!this.e_listeners[event]) this.e_listeners[event] = [];
-		this.e_listeners[event].push(func);
+		if(!this.#listeners[event]) this.#listeners[event] = [];
+		this.#listeners[event].push(func);
 	}
+
 	fire(event, ...args){
-		if(!event) console.log('empty event for fire', func);
-		if(!this.e_listeners[event]){
-			this.e_parent.debug.printOnce('No listener for event ', event);
+		if(!event) console.log('empty event for fire');
+		if(!this.#listeners[event]){
+			this.#parent.debug.printOnce('No listener for event ', event);
 			return;
 		}
-		this.e_listeners[event].forEach(listener => listener.call(this.e_parent, ...args));
+		this.#listeners[event].forEach(listener => listener.call(this.#parent, ...args));
 	}
+
+	// private fields, methods
+
+	#parent
+	#listeners
 }
 
 export const OS_EVENT = {};
