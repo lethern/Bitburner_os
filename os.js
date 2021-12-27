@@ -1,4 +1,4 @@
-import { Debug } from '/os/debug.js'
+import { DebugConsoleRender, Logger } from '/os/logger.js'
 import { EventListener, OS_EVENT } from '/os/event_listener.js'
 import { FilesExplorer } from '/os/files_explorer.js'
 import { GUI } from '/os/gui.js'
@@ -17,8 +17,9 @@ export class OS extends EventListener {
 		this.#NSqueue = [];
 		this.#doLoop = true;
 
-		/** @type {Debug} */
-		this.debug = new Debug(this);
+		this.logRenderer = new DebugConsoleRender(this);
+		this.#log = new Logger(this, this.logRenderer);
+		this.eventListener_initLog(this.#log);
 		this.filesExplorer = new FilesExplorer(this);
 		this.gui = new GUI(this);
 		this.terminal = new Terminal();
@@ -78,6 +79,7 @@ export class OS extends EventListener {
 	#doLoop
 	#internal_NS
 	#NSqueue
+	#log
 
 	async #runNSQueue() {
 		let stopwatch = 0;
@@ -102,7 +104,7 @@ export class OS extends EventListener {
 	}
 
 	on_exit() {
-		this.debug.log(Debug.DEBUG_LEVEL, "OS.on_exit");
+		this.#log.debug("on_exit");
 		this.#doLoop = false;
 		this.fire(OS_EVENT.ON_EXIT);
 	}

@@ -1,9 +1,14 @@
-import { Debug } from '/os/debug.js'
 
 export class EventListener{
-	constructor(parent){
+	constructor(parent, log){
 		this.#parent = parent || this;
 		this.#listeners = {};
+		this.#log = log;
+	}
+
+	/** @param {import('/os/debug').Logger} log */
+	eventListener_initLog(log) {
+		this.#log = log;
 	}
 
 	listen(event, func){
@@ -15,7 +20,7 @@ export class EventListener{
 	fire(event, ...args){
 		if(!event) console.log('empty event for fire');
 		if(!this.#listeners[event]){
-			if (this.#parent.debug) this.#parent.debug.logOnce(Debug.WARN_LEVEL, 'No listener for event ', event);
+			if (this.#log) this.#log.warn('No listener for event ', event);
 			return;
 		}
 		this.#listeners[event].forEach(listener => listener.call(this.#parent, ...args));
@@ -25,6 +30,8 @@ export class EventListener{
 
 	#parent
 	#listeners
+	/** @type {import('/os/debug').Logger} */
+	#log
 }
 
 

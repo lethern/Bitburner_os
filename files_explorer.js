@@ -1,7 +1,7 @@
 import { DOM_CONSTANTS, icons } from '/os/constants.js'
 import { EventListener, OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.js'
 import { WindowWidget } from '/os/window_widget.js'
-import { Debug } from '/os/debug.js'
+import { Logger } from '/os/logger.js'
 
 export class FilesExplorer {
 	/** @param {import('/os/os.js').OS} os */
@@ -96,7 +96,7 @@ export class FilesExplorer {
 	#injectFileExplorerButton() {
 		let fileExplorer_newPath = '<path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z">'
 
-		this.#os.gui.injectButton({
+		this.#os.gui.addMenuButton({
 			btnLabel: 'File Explorer',
 			btnId: DOM_CONSTANTS.fileExplorerBtnId,
 			callback: () => this.#winRenderer.windowVisibilityToggle(),
@@ -162,8 +162,10 @@ class FilesExplorerRenderer extends EventListener {
 	constructor(os, filesExplorer) {
 		super();
 		this.#os = os;
-		this.#debug = os.debug;
 		this.#filesExplorer = filesExplorer;
+
+		this.#log = new Logger(this, os.logRenderer);
+		this.eventListener_initLog(this.#log);
 
 		this.#terminalVisible = false;
 		this.#windowWidget = new WindowWidget(this, os, DOM_CONSTANTS.myCustomWindowId);
@@ -231,11 +233,10 @@ class FilesExplorerRenderer extends EventListener {
 	// private fields, methods
 
 	#os
-	#debug
 	#filesExplorer
 	#terminalVisible
 	#windowWidget
-
+	#log
 
 	#renderIcon(name, type) {
 		return `
@@ -257,15 +258,15 @@ class FilesExplorerRenderer extends EventListener {
 	}
 
 	#onDebugMenuClick() {
-		this.#os.debug.print("MENU OPEN", Debug.DEBUG_LEVEL);
-		this.#os.debug.console.showWindow()
+		this.#log.debug("MENU OPEN");
+		this.#log.showWindow()
 	}
 
 	#onTestMenuClick() {
-		this.#os.debug.print("test dbg", Debug.DEBUG_LEVEL);
-		this.#os.debug.print("test info", Debug.INFO_LEVEL);
-		this.#os.debug.print("test warn", Debug.WARN_LEVEL);
-		this.#os.debug.print("test error", Debug.ERROR_LEVEL);
+		this.#log.debug("test dbg");
+		this.#log.info("test info");
+		this.#log.warn("test warn");
+		this.#log.error("test error");
 	}
 
 	#on_exit() {

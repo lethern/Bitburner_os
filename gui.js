@@ -1,10 +1,12 @@
 import { DOM_CONSTANTS, INJECTED_CSS } from '/os/constants.js'
 import { OS_EVENT } from '/os/event_listener.js'
-import { Debug } from '/os/debug.js'
+import { Logger } from '/os/logger.js'
 
 export class GUI {
+	/** @param {import('/os/os.js').OS} os */
 	constructor(os){
 		this.#os = os;
+		this.#log = new Logger(this, os.logRenderer);
 		this.#doc = globalThis['document'];
 		this.#buttons = [];
 		this.#styles = [];
@@ -12,19 +14,19 @@ export class GUI {
 		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
 	}
 	
-	injectButton(params) {
+	addMenuButton(params) {
 		let { btnLabel, btnIconPath, btnIconViewBox, btnId, callback } = params;
 		
 		const siblingButton = Array.from(this.#doc.querySelectorAll(DOM_CONSTANTS.siblingBtnSelector))
 			.find(({ textContent }) => textContent === DOM_CONSTANTS.siblingButtonLabel)
 			
 		if (!siblingButton) {
-			this.#os.debug.log(Debug.WARN_LEVEL, "GUI.injectButton: can't find siblingButton");
+			this.#log.debug("GUI.injectButton: can't find siblingButton");
 			return;
 		}
 		
 		let newButtonMarkup = siblingButton.outerHTML.replace(DOM_CONSTANTS.siblingButtonLabel, btnLabel)
-			
+		
 		let path_from = newButtonMarkup.indexOf('<path')
 		let path_to = newButtonMarkup.indexOf('</path>')
 		
@@ -53,9 +55,63 @@ export class GUI {
 	#doc
 	#buttons
 	#styles
+	#log
 
 	#init() {
+		this.#injectStartBtn()
 		this.#injectDefaultCSS()
+	}
+
+	#onStartBtnClick() {
+		this.#doc.addEventListener('click', () => {
+			// if clicked elment = menu, activate
+			// else, hide
+		});
+	}
+
+	#injectStartBtn() {
+		// make sure that our text (that is wider than menu) is visible outside Menu div
+		let menu = this.#doc.querySelectorAll('.MuiDrawer-paperAnchorLeft')
+		if (!menu) {
+			this.#log.warn('injectStartBtn');
+			return;
+		}
+		//let { btnLabel, btnIconPath, btnIconViewBox, btnId, callback } = params;
+		let btnLabel = "OS";
+		let btnIconPath = "";
+		let btnIconViewBox = "";
+		let btnId = "";
+		let callback = this.#onStartBtnClick.bind(this);
+
+		const siblingButton = Array.from(this.#doc.querySelectorAll(DOM_CONSTANTS.siblingBtnSelector))
+			.find(({ textContent }) => textContent === DOM_CONSTANTS.siblingButtonLabel)
+
+		if (!siblingButton) {
+			this.#log.warn("GUI.injectButton: can't find siblingButton");
+			return;
+		}
+
+		let newButtonMarkup = siblingButton.outerHTML.replace(DOM_CONSTANTS.siblingButtonLabel, btnLabel)
+
+		let path_from = newButtonMarkup.indexOf('<path')
+		let path_to = newButtonMarkup.indexOf('</path>')
+
+		if (btnIconPath && btnIconPath.length) {
+			newButtonMarkup = newButtonMarkup.substr(0, path_from) + btnIconPath + newButtonMarkup.substr(path_to);
+		}
+		if (btnIconViewBox && btnIconViewBox.length) {
+			newButtonMarkup = newButtonMarkup.replace('viewBox="0 0 24 24"', btnIconViewBox)
+		}
+
+		siblingButton.insertAdjacentHTML('afterend', newButtonMarkup)
+
+		let btn = siblingButton.nextElementSibling
+		btn.id = btnId
+
+		btn._gui_listener = callback;
+		btn.addEventListener('click', btn._gui_listener)
+
+		this.#buttons.push({ btn });
 	}
 
 	#injectDefaultCSS() {

@@ -1,8 +1,9 @@
 import { DOM_CONSTANTS, icons } from '/os/constants.js'
 import { EventListener, OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.js'
 import { WindowWidget } from '/os/window_widget.js'
-import { Debug } from '/os/debug.js'
 import { Utils } from '/os/utils.js'
+import { Logger } from '/os/logger.js'
+
 // |-----------------------------------------------------------------------|
 // |				servers_explorer.js
 // |			Created by: TheDroidUrLookingFor
@@ -17,19 +18,18 @@ import { Utils } from '/os/utils.js'
 // |	More features will be added in future versions.
 // |
 // |-----------------------------------------------------------------------|
+
 export class ServersExplorer {
 	/** @param {import('/os/os.js').OS} os */
 	constructor(os) {
-		this.os = os;
-		this.winRenderer = new ServersExplorerRenderer(os, this);
+		this.#os = os;
+		this.#winRenderer = new ServersExplorerRenderer(os, this);
 
-		this.currentServer = 'Home'; // current rendered server
-		this.currentDir = '';
-		this.isRendered = false;
+		this.#isRendered = false;
 
-		this.os.listen(OS_EVENT.INIT, this.init.bind(this));
-		this.winRenderer.listen(WindowWidget_EVENT.SHOW, this.onRenderVisible.bind(this));
-		this.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
+		this.#os.listen(OS_EVENT.INIT, this.init.bind(this));
+		this.#winRenderer.listen(WindowWidget_EVENT.SHOW, this.onRenderVisible.bind(this));
+		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
 	}
 
 	init() {
@@ -39,10 +39,10 @@ export class ServersExplorer {
 	injectFileExplorerButton() {
 		let fileExplorer_newPath = '<path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z">'
 
-		this.os.gui.injectButton({
+		this.#os.gui.addMenuButton({
 			btnLabel: 'Network Explorer',
 			btnId: DOM_CONSTANTS.fileExplorerBtnId,
-			callback: () => this.winRenderer.windowVisibilityToggle(),
+			callback: () => this.#winRenderer.windowVisibilityToggle(),
 			btnIconPath: fileExplorer_newPath,
 			btnIconViewBox: 'viewBox="0 2 18 17"',
 		});
@@ -50,65 +50,75 @@ export class ServersExplorer {
 
 	onRenderVisible() {
 		// runs only one time
-		if (this.isRendered) return;
-		this.isRendered = true;
+		if (this.#isRendered) return;
+		this.#isRendered = true;
 		this.render()
 	}
 
 	render() {
-		this.winRenderer.renderServers();
+		this.#winRenderer.renderServers();
 	}
 
 	async svConnect(svName) {
 		let command = 'home'
-		this.os.terminal.inputToTerminal(`${command}`);
+		this.#os.terminal.inputToTerminal(`${command}`);
 		await Utils.sleep(250);
-		command = 'run /os/plugins/servers_explorer/connect.js '
-		this.os.terminal.inputToTerminal(`${command}` + svName);
-		this.winRenderer.hide();
+		command = 'run /os/plugins/servers_explorer/connect.js'
+		this.#os.terminal.inputToTerminal(`${command} ${svName}`);
+		this.#winRenderer.hide();
 	}
 
 	async svBackdoor(svName) {
 		let command = 'home'
-		this.os.terminal.inputToTerminal(`${command}`);
+		this.#os.terminal.inputToTerminal(`${command}`);
 		await Utils.sleep(250);
 		command = 'run /os/plugins/servers_explorer/connect.js '
-		this.os.terminal.inputToTerminal(`${command}` + svName);
+		this.#os.terminal.inputToTerminal(`${command}` + svName);
 		await Utils.sleep(250);
 		command = 'backdoor'
-		this.os.terminal.inputToTerminal(`${command}`);
-		this.winRenderer.hide();
+		this.#os.terminal.inputToTerminal(`${command}`);
+		this.#winRenderer.hide();
 	}
 	async svHack(svName) {
 		let command = 'home'
-		this.os.terminal.inputToTerminal(`${command}`);
+		this.#os.terminal.inputToTerminal(`${command}`);
 		await Utils.sleep(250);
 		command = 'run /os/plugins/servers_explorer/connect.js '
-		this.os.terminal.inputToTerminal(`${command}` + svName);
+		this.#os.terminal.inputToTerminal(`${command}` + svName);
 		await Utils.sleep(250);
 		command = 'run NUKE.exe'
-		this.os.terminal.inputToTerminal(`${command}`);
-		this.winRenderer.hide();
+		this.#os.terminal.inputToTerminal(`${command}`);
+		this.#winRenderer.hide();
 	}
 
-	on_exit() {
+	#on_exit() {
 	}
+
+	#os
+	#winRenderer
+	#isRendered
 }
 
 class ServersExplorerRenderer extends EventListener {
 	/** @param {import('/os/os.js').OS} os, @param {ServersExplorer} serversExplorer */
 	constructor(os, serversExplorer) {
 		super();
-		this.os = os;
-		this.debug = os.debug;
-		this.serversExplorer = serversExplorer;
+		this.#os = os;
+		this.#log = new Logger(this, os.logRenderer);
+		this.eventListener_initLog(this.#log);
+		this.#serversExplorer = serversExplorer;
 
-		this.terminal_visible = false;
-		this.windowWidget = new WindowWidget(this, os, DOM_CONSTANTS.myCustomWindowId);
+		this.#windowWidget = new WindowWidget(this, os, DOM_CONSTANTS.myCustomWindowId);
 
-		this.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
-		this.os.listen(OS_EVENT.INIT, this.init.bind(this));
+		this.#os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
+		this.#os.listen(OS_EVENT.INIT, this.init.bind(this));
 	}
+
+	#os
+	#log
+	#serversExplorer
+	#windowWidget
+
 
 	/** @return {String} */
 	get title() {
@@ -116,8 +126,8 @@ class ServersExplorerRenderer extends EventListener {
 	}
 
 	async renderServers() {
-		this.windowWidget.setTitle(this.title)
-		let windowDiv = this.windowWidget.getContainer()
+		this.#windowWidget.setTitle(this.title)
+		let windowDiv = this.#windowWidget.getContainer()
 		// Update file list
 		const fileList = windowDiv.querySelector('.file-list')
 
@@ -132,7 +142,7 @@ class ServersExplorerRenderer extends EventListener {
 			svNames.push(name);
 			let depth = visited[name];
 			result.push(svObj(name, depth));
-			scanRes = await this.os.getNS((ns) => {
+			scanRes = await this.#os.getNS((ns) => {
 				return ns.scan(name)
 			});
 			for (let i = scanRes.length; i >= 0; i--) {
@@ -185,7 +195,7 @@ class ServersExplorerRenderer extends EventListener {
 		event.stopPropagation()
 		const fileName = button.dataset.fileName
 
-		this.serversExplorer.svConnect(fileName)
+		this.#serversExplorer.svConnect(fileName)
 	}
 	svBackdoorOnClick(event) {
 		let button = event.currentTarget;
@@ -193,7 +203,7 @@ class ServersExplorerRenderer extends EventListener {
 		event.stopPropagation()
 		const fileName = button.dataset.fileName
 
-		this.serversExplorer.svBackdoor(fileName)
+		this.#serversExplorer.svBackdoor(fileName)
 
 	}
 	svHackOnClick(event) {
@@ -202,39 +212,26 @@ class ServersExplorerRenderer extends EventListener {
 		event.stopPropagation()
 		const fileName = button.dataset.fileName
 
-		this.serversExplorer.svHack(fileName)
+		this.#serversExplorer.svHack(fileName)
 	}
 
 	init() {
-		this.windowWidget.init();
-		this.windowWidget.getContentDiv().innerHTML = '<ul class="file-list file-list--layout-icon-row" />';
-		this.windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
-		this.windowWidget.addMenuItem({ label: 'Test', callback: this.onTestMenuClick.bind(this) })
+		this.#windowWidget.init();
+		this.#windowWidget.getContentDiv().innerHTML = '<ul class="file-list file-list--layout-icon-row" />';
+		//this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
 		//this.listenForTerminalHidden();
 	}
 
 	hide() {
-		this.windowWidget.hide();
-	}
-
-	onDebugMenuClick() {
-		this.os.debug.log(Debug.DEBUG_LEVEL, "MENU OPEN");
-		this.os.debug.console.showWindow()
-	}
-
-	onTestMenuClick() {
-		this.os.debug.log(Debug.DEBUG_LEVEL, "test dbg");
-		this.os.debug.log(Debug.INFO_LEVEL, "test info");
-		this.os.debug.log(Debug.WARN_LEVEL, "test warn");
-		this.os.debug.log(Debug.ERROR_LEVEL, "test error");
+		this.#windowWidget.hide();
 	}
 
 	windowVisibilityToggle() {
-		this.windowWidget.windowVisibilityToggle();
+		this.#windowWidget.windowVisibilityToggle();
 	}
 
 	onWindowClose() {
-		this.os.closeAndExit();
+		this.#os.closeAndExit();
 	}
 
 	on_exit() {
