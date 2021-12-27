@@ -46,20 +46,20 @@ export class ServersExplorer {
 	}
 
 	svConnect(svName) {
-		let command = 'run /os/plugins/servers_exploer/connect.js '
+		let command = 'run /os/plugins/servers_explorer/connect.js '
 		this.os.terminal.inputToTerminal(`${command}` + svName);
 		this.winRenderer.hide();
 	}
 
 	svBackdoor(svName) {
-		let command = 'run /os/plugins/servers_exploer/connect.js '
+		let command = 'run /os/plugins/servers_explorer/connect.js '
 		this.os.terminal.inputToTerminal(`${command}` + svName);
 		command = 'backdoor'
 		this.os.terminal.inputToTerminal(`${command}`);
 		this.winRenderer.hide();
 	}
 	svHack(svName) {
-		let command = 'run /os/plugins/servers_exploer/connect.js '
+		let command = 'run /os/plugins/servers_explorer/connect.js '
 		this.os.terminal.inputToTerminal(`${command}` + svName);
 		command = 'run NUKE.exe'
 		this.os.terminal.inputToTerminal(`${command}`);
@@ -118,7 +118,7 @@ class ServersExplorerRenderer extends EventListener {
 			}
 		}
 
-		fileList.innerHTML = svNames.map((elem) => this.#renderIcon(elem, 'networkPC', 'doorOpen', 'check')).join('');
+		fileList.innerHTML = svNames.map((elem) => this.#renderIcon(elem, 'networkPC', 'check', 'doorOpen')).join('');
 		// Add icon event listeners
 		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
 			button.addEventListener('dblclick', this.svConnectOnClick.bind(this))
