@@ -147,7 +147,7 @@ export const INJECTED_CSS = `
 	display: flex;
 	flex: 1 0 auto;
 	height: inherit;
-	max-height: 85vh;
+	max-height: 75vh;
 	min-height: 27vh;
 	padding: 6px;
 	width: 100%;
@@ -181,8 +181,50 @@ export const INJECTED_CSS = `
 	padding: 2px;
 	width: inherit;
 }
-
+.file-list__bs_center {
+	margin-left:-20px;
+  	marin-right:-20px;
+	text-align:center;
+    display: flex;
+	flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+.file-list__backdoor {
+	align-items: center;
+	appearance: none;
+	border: 1px dotted transparent;
+	border-radius: 2px;
+	background: none;
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 2px;
+	width: 100%;
+	height: 100%;
+}
+.file-list__status {
+	align-items: center;
+	appearance: none;
+	border: 1px dotted transparent;
+	border-radius: 2px;
+	background: none;
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 2px;
+	width: 100%;
+	height: 100%;
+}
 .file-list__button:focus {
+	background: rgba(15, 75, 255, .3);
+	border-color: #222;
+}
+.file-list__status:focus {
+	background: rgba(15, 75, 255, .3);
+	border-color: #222;
+}
+.file-list__backdoor:focus {
 	background: rgba(15, 75, 255, .3);
 	border-color: #222;
 }
@@ -247,6 +289,29 @@ export const icons = {
 	networkPC: `
 		<svg class="svg-icon" viewBox="0 0 20 20">
 			<path d="M17.237,3.056H2.93c-0.694,0-1.263,0.568-1.263,1.263v8.837c0,0.694,0.568,1.263,1.263,1.263h4.629v0.879c-0.015,0.086-0.183,0.306-0.273,0.423c-0.223,0.293-0.455,0.592-0.293,0.92c0.07,0.139,0.226,0.303,0.577,0.303h4.819c0.208,0,0.696,0,0.862-0.379c0.162-0.37-0.124-0.682-0.374-0.955c-0.089-0.097-0.231-0.252-0.268-0.328v-0.862h4.629c0.694,0,1.263-0.568,1.263-1.263V4.319C18.5,3.625,17.932,3.056,17.237,3.056 M8.053,16.102C8.232,15.862,8.4,15.597,8.4,15.309v-0.89h3.366v0.89c0,0.303,0.211,0.562,0.419,0.793H8.053z M17.658,13.156c0,0.228-0.193,0.421-0.421,0.421H2.93c-0.228,0-0.421-0.193-0.421-0.421v-1.263h15.149V13.156z M17.658,11.052H2.509V4.319c0-0.228,0.193-0.421,0.421-0.421h14.308c0.228,0,0.421,0.193,0.421,0.421V11.052z"></path>
+		</svg>
+	`,
+	check: `
+	<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+  <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+</svg>
+	`,
+	xmark:`
+	<svg class="svg-icon" viewBox="0 0 20 20">
+							<path d="M10.185,1.417c-4.741,0-8.583,3.842-8.583,8.583c0,4.74,3.842,8.582,8.583,8.582S18.768,14.74,18.768,10C18.768,5.259,14.926,1.417,10.185,1.417 M10.185,17.68c-4.235,0-7.679-3.445-7.679-7.68c0-4.235,3.444-7.679,7.679-7.679S17.864,5.765,17.864,10C17.864,14.234,14.42,17.68,10.185,17.68 M10.824,10l2.842-2.844c0.178-0.176,0.178-0.46,0-0.637c-0.177-0.178-0.461-0.178-0.637,0l-2.844,2.841L7.341,6.52c-0.176-0.178-0.46-0.178-0.637,0c-0.178,0.176-0.178,0.461,0,0.637L9.546,10l-2.841,2.844c-0.178,0.176-0.178,0.461,0,0.637c0.178,0.178,0.459,0.178,0.637,0l2.844-2.841l2.844,2.841c0.178,0.178,0.459,0.178,0.637,0c0.178-0.176,0.178-0.461,0-0.637L10.824,10z"></path>
+						</svg>
+	`,
+	doorClosed: `
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-door-closed" viewBox="0 0 16 16">
+			<path d="M3 2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v13h1.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3V2zm1 13h8V2H4v13z"/>
+			<path d="M9 9a1 1 0 1 0 2 0 1 1 0 0 0-2 0z"/>
+		</svg>
+	`,
+	doorOpen: `
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-door-open" viewBox="0 0 16 16">
+			<path d="M8.5 10c-.276 0-.5-.448-.5-1s.224-1 .5-1 .5.448.5 1-.224 1-.5 1z"/>
+			<path d="M10.828.122A.5.5 0 0 1 11 .5V1h.5A1.5 1.5 0 0 1 13 2.5V15h1.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3V1.5a.5.5 0 0 1 .43-.495l7-1a.5.5 0 0 1 .398.117zM11.5 2H11v13h1V2.5a.5.5 0 0 0-.5-.5zM4 1.934V15h6V1.077l-6 .857z"/>
 		</svg>
 	`,
 	upDirectory: `
