@@ -67,12 +67,15 @@ export const INJECTED_CSS = `
 	display: inline-flex;
 	flex-wrap: wrap;
 	font-family: Tahoma, "Segoe UI", Geneva, sans-serif;
-	max-width: 65vw;
-	min-width: 35vw;
+	width: 50vw;
 	padding: 2px;
 	pointer-events: auto;
 	background-color: white;
 	user-select: none;
+	resize: both;
+	overflow: auto;
+	min-height: 220px;
+	min-width: 220px;
 }
 
 .window__toolbar {
@@ -146,9 +149,7 @@ export const INJECTED_CSS = `
 	border-top: none;
 	display: flex;
 	flex: 1 0 auto;
-	height: inherit;
-	max-height: 75vh;
-	min-height: 27vh;
+	height: calc(100% - 50px);
 	padding: 6px;
 	width: 100%;
 }
