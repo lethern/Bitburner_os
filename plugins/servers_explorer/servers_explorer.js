@@ -2,6 +2,7 @@ import { DOM_CONSTANTS, icons } from '/os/constants.js'
 import { EventListener, OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.js'
 import { WindowWidget } from '/os/window_widget.js'
 import { Debug } from '/os/debug.js'
+import { Utils } from '/os/utils.js'
 
 export class ServersExplorer {
 	/** @param {import('/os/os.js').OS} os */
@@ -45,22 +46,33 @@ export class ServersExplorer {
 		this.winRenderer.renderServers();
 	}
 
-	svConnect(svName) {
-		let command = 'run /os/plugins/servers_explorer/connect.js '
+	async svConnect(svName) {
+		let command = 'home'
+		this.os.terminal.inputToTerminal(`${command}`);
+		await Utils.sleep(250);
+		command = 'run /os/plugins/servers_explorer/connect.js '
 		this.os.terminal.inputToTerminal(`${command}` + svName);
 		this.winRenderer.hide();
 	}
 
-	svBackdoor(svName) {
-		let command = 'run /os/plugins/servers_explorer/connect.js '
+	async svBackdoor(svName) {
+		let command = 'home'
+		this.os.terminal.inputToTerminal(`${command}`);
+		await Utils.sleep(250);
+		command = 'run /os/plugins/servers_explorer/connect.js '
 		this.os.terminal.inputToTerminal(`${command}` + svName);
+		await Utils.sleep(250);
 		command = 'backdoor'
 		this.os.terminal.inputToTerminal(`${command}`);
 		this.winRenderer.hide();
 	}
-	svHack(svName) {
-		let command = 'run /os/plugins/servers_explorer/connect.js '
+	async svHack(svName) {
+		let command = 'home'
+		this.os.terminal.inputToTerminal(`${command}`);
+		await Utils.sleep(250);
+		command = 'run /os/plugins/servers_explorer/connect.js '
 		this.os.terminal.inputToTerminal(`${command}` + svName);
+		await Utils.sleep(250);
 		command = 'run NUKE.exe'
 		this.os.terminal.inputToTerminal(`${command}`);
 		this.winRenderer.hide();
