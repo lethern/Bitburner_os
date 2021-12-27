@@ -5,6 +5,7 @@ import { GUI } from '/os/gui.js'
 import { Utils } from '/os/utils.js'
 import { Terminal } from '/os/terminal.js'
 import { ServersManager } from '/os/servers_manager.js'
+import { ServersExplorer } from '/os/plugins/servers_explorer/servers_explorer.js'
 
 export class OS extends EventListener {
 
@@ -22,6 +23,7 @@ export class OS extends EventListener {
 		this.gui = new GUI(this);
 		this.terminal = new Terminal();
 		this.serversManager = new ServersManager(this);
+		this.serversExplorer = new ServersExplorer(this);
 	}
 
 	/** @param {NS} ns */
