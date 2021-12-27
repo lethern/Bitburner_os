@@ -11,7 +11,7 @@ import { Utils } from '/os/utils.js'
 // |
 // |      Last Modified by: TheDroidUrLookingFor
 // |
-// |		Version:	1.0.2
+// |		Version:	1.0.3
 // |
 // | Information: Currently you can only connect, backdoor, or NUKE targets.
 // |	More features will be added in future versions.
@@ -49,7 +49,6 @@ export class ServersExplorer {
 	}
 
 	onRenderVisible() {
-		// runs only one time
 		if (this.isRendered) return;
 		this.isRendered = true;
 		this.render()
@@ -118,7 +117,6 @@ class ServersExplorerRenderer extends EventListener {
 	async renderServers() {
 		this.windowWidget.setTitle(this.title)
 		let windowDiv = this.windowWidget.getContainer()
-		// Update file list
 		const fileList = windowDiv.querySelector('.file-list')
 
 		let result = [];
@@ -144,7 +142,6 @@ class ServersExplorerRenderer extends EventListener {
 		}
 
 		fileList.innerHTML = svNames.map((elem) => this.#renderIcon(elem, 'server', 'check', 'doorOpen', false)).join('');
-		// Add icon event listeners
 		Array.from(windowDiv.querySelectorAll('.server-connect__button')).forEach((button) => {
 			button.addEventListener('dblclick', this.svConnectOnClick.bind(this))
 		});
@@ -174,15 +171,6 @@ class ServersExplorerRenderer extends EventListener {
 			"The-Cave",
 			"w0r1d_d43m0n"
 		];
-
-		// let facServers = {
-		// 	"CSEC": "yellow",
-		// 	"avmnite-02h": "yellow",
-		// 	"I.I.I.I": "yellow",
-		// 	"run4theh111z": "yellow",
-		// 	"The-Cave": "orange",
-		// 	"w0r1d_d43m0n": "red"
-		// };
 
 		var systemColor = "server-connect__button";
 		let rootStatus = "server-run__status";
@@ -264,7 +252,6 @@ class ServersExplorerRenderer extends EventListener {
 		this.windowWidget.getContentDiv().innerHTML = '<ul class="file-list file-list--layout-icon-row" />';
 		this.windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
 		this.windowWidget.addMenuItem({ label: 'Test', callback: this.onTestMenuClick.bind(this) })
-		//this.listenForTerminalHidden();
 	}
 
 	hide() {
