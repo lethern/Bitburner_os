@@ -1,4 +1,3 @@
-// Credit: TheDroidUrLookingFor
 import { DOM_CONSTANTS, icons } from '/os/constants.js'
 import { EventListener, OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.js'
 import { WindowWidget } from '/os/window_widget.js'
@@ -10,7 +9,7 @@ export class ServersExplorer {
 		this.os = os;
 		this.winRenderer = new ServersExplorerRenderer(os, this);
 
-		this.currentServer = 'home'; // current rendered server
+		this.currentServer = 'Home'; // current rendered server
 		this.currentDir = '';
 		this.isRendered = false;
 
@@ -39,15 +38,16 @@ export class ServersExplorer {
 		// runs only one time
 		if (this.isRendered) return;
 		this.isRendered = true;
+		this.render()
+	}
 
-		//this.winRenderer.showWindow();
-		//this.render()
+	render() {
 		this.winRenderer.renderServers();
 	}
-	
+
 	svConnect(svName) {
-		let command = 'run /os/plugins/connect.js'
-		this.os.terminal.inputToTerminal(`${command} ${svName}`);
+		let command = 'run /os/plugins/servers_exploer/connect.js'
+		this.os.terminal.inputToTerminal(`${command}` + svName);
 		this.winRenderer.hide();
 	}
 
@@ -103,35 +103,16 @@ class ServersExplorerRenderer extends EventListener {
 			}
 		}
 
-		fileList.innerHTML = svNames.map((elem) => this.#renderIcon(elem, 'networkPC')).join('');
+		fileList.innerHTML = svNames.map((elem) => this.#renderIcon(elem, 'networkPC', 'doorOpen', 'check')).join('');
 		// Add icon event listeners
 		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
-			button.addEventListener('dblclick', this.fileListedOnClick.bind(this))
+			button.addEventListener('dblclick', this.svConnectOnClick.bind(this))
 		});
 		Array.from(windowDiv.querySelectorAll('.file-list__backdoor')).forEach((button) => {
-			button.addEventListener('dblclick', this.backdoorServerOnClick.bind(this))
+			button.addEventListener('dblclick', this.svBackdoorOnClick.bind(this))
 		});
 		Array.from(windowDiv.querySelectorAll('.file-list__status')).forEach((button) => {
-			button.addEventListener('dblclick', this.hackServerOnClick.bind(this))
-		});
-	}
-
-	renderFiles(currentFiles, currentDirName) {
-		this.windowWidget.setTitle(this.title)
-
-		let windowDiv = this.windowWidget.getContainer()
-
-		// Update file list
-		const fileList = windowDiv.querySelector('.file-list')
-
-		fileList.innerHTML =
-			(currentDirName ? this.#renderIcon('..', 'upDirectory') : '') +
-			Object.keys(currentFiles).map((elem) => this.#renderIcon(elem, 'directory')).join('') +
-			currentFiles.files.map((elem) => this.#renderIcon(elem, 'file', 'doorOpen', 'check')).join('');
-
-		// Add icon event listeners
-		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
-			button.addEventListener('dblclick', this.fileListedOnClick.bind(this))
+			button.addEventListener('dblclick', this.svHackOnClick.bind(this))
 		});
 	}
 
@@ -158,7 +139,7 @@ class ServersExplorerRenderer extends EventListener {
 		`
 	}
 
-	fileListedOnClick(event) {
+	svConnectOnClick(event) {
 		let button = event.currentTarget;
 
 		event.stopPropagation()
@@ -166,8 +147,7 @@ class ServersExplorerRenderer extends EventListener {
 
 		this.serversExplorer.svConnect(fileName)
 	}
-	
-	backdoorServerOnClick(event) {
+	svBackdoorOnClick(event) {
 		let button = event.currentTarget;
 
 		event.stopPropagation()
@@ -175,7 +155,7 @@ class ServersExplorerRenderer extends EventListener {
 
 		this.serversExplorer.svConnect(fileName)
 	}
-	hackServerOnClick(event) {
+	svHackOnClick(event) {
 		let button = event.currentTarget;
 
 		event.stopPropagation()
@@ -187,13 +167,25 @@ class ServersExplorerRenderer extends EventListener {
 	init() {
 		this.windowWidget.init();
 		this.windowWidget.getContentDiv().innerHTML = '<ul class="file-list file-list--layout-icon-row" />';
-		//this.windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
-		//this.windowWidget.addMenuItem({ label: 'Test', callback: this.onTestMenuClick.bind(this) })
+		this.windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
+		this.windowWidget.addMenuItem({ label: 'Test', callback: this.onTestMenuClick.bind(this) })
 		//this.listenForTerminalHidden();
 	}
 
 	hide() {
 		this.windowWidget.hide();
+	}
+
+	onDebugMenuClick() {
+		this.os.debug.print("MENU OPEN", Debug.DEBUG_LEVEL);
+		this.os.debug.console.showWindow()
+	}
+
+	onTestMenuClick() {
+		this.os.debug.print("test dbg", Debug.DEBUG_LEVEL);
+		this.os.debug.print("test info", Debug.INFO_LEVEL);
+		this.os.debug.print("test warn", Debug.WARN_LEVEL);
+		this.os.debug.print("test error", Debug.ERROR_LEVEL);
 	}
 
 	windowVisibilityToggle() {
