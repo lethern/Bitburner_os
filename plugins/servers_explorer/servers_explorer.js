@@ -3,7 +3,20 @@ import { EventListener, OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.
 import { WindowWidget } from '/os/window_widget.js'
 import { Debug } from '/os/debug.js'
 import { Utils } from '/os/utils.js'
-
+// |-----------------------------------------------------------------------|
+// |				servers_explorer.js
+// |			Created by: TheDroidUrLookingFor
+// |
+// |	Github: https://github.com/TheDroidYourLookingFor/BitBurner-Scripts
+// |
+// |      Last Modified by: TheDroidUrLookingFor
+// |
+// |		Version:	1.0.1
+// |
+// | Information: Currently you can only connect, backdoor, or NUKE targets.
+// |	More features will be added in future versions.
+// |
+// |-----------------------------------------------------------------------|
 export class ServersExplorer {
 	/** @param {import('/os/os.js').OS} os */
 	constructor(os) {
