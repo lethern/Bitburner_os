@@ -3,6 +3,6 @@
 	"filesToDownload": [
 		"constants.js","debug.js", "event_listener.js", "files_explorer.js", "gui.js", 
 		"main.js", "os.js", "terminal.js", "utils.js", "servers_manager.js", "window_widget.js",
-		"lib/jit-yc.js"
+		"lib/jit-yc.js", "plugins/servers_explorer/connect.js", "plugins/servers_explorer/servers_explorer.js"
 	]
 }
