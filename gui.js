@@ -1,5 +1,6 @@
 import { DOM_CONSTANTS, INJECTED_CSS } from '/os/constants.js'
 import { OS_EVENT } from '/os/event_listener.js'
+import { Debug } from '/os/debug.js'
 
 export class GUI {
 	constructor(os){
@@ -17,8 +18,8 @@ export class GUI {
 		const siblingButton = Array.from(this.#doc.querySelectorAll(DOM_CONSTANTS.siblingBtnSelector))
 			.find(({ textContent }) => textContent === DOM_CONSTANTS.siblingButtonLabel)
 			
-		if (!siblingButton){
-			this.#os.debug.print("GUI.injectButton: can't find siblingButton");
+		if (!siblingButton) {
+			this.#os.debug.log(Debug.WARN_LEVEL, "GUI.injectButton: can't find siblingButton");
 			return;
 		}
 		

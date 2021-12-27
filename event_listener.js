@@ -1,3 +1,4 @@
+import { Debug } from '/os/debug.js'
 
 export class EventListener{
 	constructor(parent){
@@ -14,7 +15,7 @@ export class EventListener{
 	fire(event, ...args){
 		if(!event) console.log('empty event for fire');
 		if(!this.#listeners[event]){
-			this.#parent.debug.printOnce('No listener for event ', event);
+			if (this.#parent.debug) this.#parent.debug.logOnce(Debug.WARN_LEVEL, 'No listener for event ', event);
 			return;
 		}
 		this.#listeners[event].forEach(listener => listener.call(this.#parent, ...args));
@@ -25,6 +26,7 @@ export class EventListener{
 	#parent
 	#listeners
 }
+
 
 export const OS_EVENT = {};
 Object.defineProperties(OS_EVENT, {

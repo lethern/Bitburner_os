@@ -102,7 +102,7 @@ export class OS extends EventListener {
 	}
 
 	on_exit() {
-		this.debug.print("OS on_exit", Debug.DEBUG_LEVEL);
+		this.debug.log(Debug.DEBUG_LEVEL, "OS.on_exit");
 		this.#doLoop = false;
 		this.fire(OS_EVENT.ON_EXIT);
 	}

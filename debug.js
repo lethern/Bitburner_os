@@ -4,52 +4,53 @@ import { WindowWidget } from '/os/window_widget.js'
 export class Debug{
 	/** @param {import('/os/os.js').OS} os */
 	constructor(os){
-		this.cache = {};
-		this.os = os;
-		this.console = new DebugConsoleRender(this, os);
+		this.#cache = {};
+		this.#os = os;
+		this.#console = new DebugConsoleRender(this, os);
 
-		this.debugLevels = Object.keys(Debug).map(p => Debug[p]);
+		this.#debugLevels = Object.keys(Debug).map(p => Debug[p]);
 	}
-	
-	print(...args){
-		let severity = 'info';
-		let last = args[args.length - 1];
-		if (this.debugLevels.includes(last)) {
-			severity = last;
-			args.pop();
+
+	/** @param {string} severity @param {...any} args */
+	log(severity, ...args){
+		if (!this.#debugLevels.includes(severity)) {
+			args.unshift(severity);
+			severity = 'info';
 		}
-		this.console.write(severity, args);
+		this.#console.write(severity, args);
 	}
 
-	printOnce(...args){
+	logOnce(...args){
 		let json = JSON.stringify(args);
-		if(this.cache[json])return;
-		this.cache[json] = 1;
-		this.print(...args);
+		if(this.#cache[json])return;
+		this.#cache[json] = 1;
+		this.log(...args);
 	}
+
+	#os
+	#cache
+	#console
+	#debugLevels
+
+	static DEBUG_LEVEL = 'debug'
+	static INFO_LEVEL = 'info'
+	static WARN_LEVEL = 'warn'
+	static ERROR_LEVEL = 'error'
 }
-
-Object.defineProperties(Debug, {
-	DEBUG_LEVEL: { value: 'debug', enumerable: true },
-	INFO_LEVEL: { value: 'info', enumerable: true },
-	WARN_LEVEL: { value: 'warn', enumerable: true },
-	ERROR_LEVEL: { value: 'error', enumerable: true },
-});
-
 
 class DebugConsoleRender {
 	/** @param {Debug} owner */
 	constructor(owner, os) {
-		this.owner = owner;
-		this.os = os;
-		this.rendered = false;
-		this.visible = false;
-		this.logs = [];
-		this.logsMax = 150;
-		this.doc = globalThis['document'];
+		this.#owner = owner;
+		this.#os = os;
+		this.#rendered = false;
+		this.#visible = false;
+		this.#logs = [];
+		this.#logsMax = 150;
+		this.#doc = globalThis['document'];
 
-		this.debugLevels = Object.keys(Debug).map(p => Debug[p]);
-		this.os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
+		this.#debugLevels = Object.keys(Debug).map(p => Debug[p]);
+		this.#os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
 	}
 
 	severityToString = function (s) {
@@ -58,22 +59,22 @@ class DebugConsoleRender {
 
 	write(severity, args) {
 		let log = this.storeLog(''+args, severity);
-		if (!this.visible) {
+		if (!this.#visible) {
 			return;
 		}
 		this.renderLog(log);
 	}
 
 	storeLog(text, severity) {
-		this.logs.push({ severity, text, dom: null });
-		if (this.logs.length > this.logsMax) {
+		this.#logs.push({ severity, text, dom: null });
+		if (this.#logs.length > this.#logsMax) {
 			this.removeSomeLogs();
 		}
-		return this.logs[this.logs.length - 1];
+		return this.#logs[this.#logs.length - 1];
 	}
 
 	removeSomeLogs() {
-		let removed = this.logs.splice(0, 20);
+		let removed = this.#logs.splice(0, 20);
 		removed.forEach(log => {
 			if (log.dom && log.dom.parentNode) {
 				log.dom.parentNode.removeChild(log.dom);
@@ -82,10 +83,10 @@ class DebugConsoleRender {
 	}
 
 	renderLog(log) {
-		if (!this.rendered) return;
+		if (!this.#rendered) return;
 
 		let text = this.severityToString(log.severity) + ' ' + log.text;
-		let elem = this.doc.createElement('div');
+		let elem = this.#doc.createElement('div');
 		elem.textContent = text
 		let css = this.severityToCss(log.severity);
 		console.log(log.severity, css)
@@ -105,29 +106,38 @@ class DebugConsoleRender {
 	}
 
 	showWindow() {
-		if (!this.rendered) {
+		if (!this.#rendered) {
 			this.renderWindow();
 		}
-		this.logs.forEach(log => this.renderLog(log));
+		this.#logs.forEach(log => this.renderLog(log));
 		this.windowWidget.show();
-		this.visible = true;
+		this.#visible = true;
 	}
 
 	renderWindow() {
-		this.windowWidget = new WindowWidget(this, this.os);
+		this.windowWidget = new WindowWidget(this, this.#os);
 		this.windowWidget.init()
 		this.windowWidget.getContentDiv().classList.add('debugWindow')
 		this.windowWidget.getContentDiv().classList.add('whiteScrollbar')
-		this.rendered = true;
+		this.#rendered = true;
 	}
 
 	on_exit() {
-		this.rendered = false;
-		this.visible = false;
+		this.#rendered = false;
+		this.#visible = false;
 	}
 
 	onWindowClose() {
 		// called by windowWidget
-		this.visible = false;
+		this.#visible = false;
 	}
+
+	#os
+	#owner
+	#rendered
+	#visible
+	#logs
+	#logsMax
+	#doc
+	#debugLevels
 }

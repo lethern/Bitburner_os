@@ -218,15 +218,15 @@ class ServersExplorerRenderer extends EventListener {
 	}
 
 	onDebugMenuClick() {
-		this.os.debug.print("MENU OPEN", Debug.DEBUG_LEVEL);
+		this.os.debug.log(Debug.DEBUG_LEVEL, "MENU OPEN");
 		this.os.debug.console.showWindow()
 	}
 
 	onTestMenuClick() {
-		this.os.debug.print("test dbg", Debug.DEBUG_LEVEL);
-		this.os.debug.print("test info", Debug.INFO_LEVEL);
-		this.os.debug.print("test warn", Debug.WARN_LEVEL);
-		this.os.debug.print("test error", Debug.ERROR_LEVEL);
+		this.os.debug.log(Debug.DEBUG_LEVEL, "test dbg");
+		this.os.debug.log(Debug.INFO_LEVEL, "test info");
+		this.os.debug.log(Debug.WARN_LEVEL, "test warn");
+		this.os.debug.log(Debug.ERROR_LEVEL, "test error");
 	}
 
 	windowVisibilityToggle() {

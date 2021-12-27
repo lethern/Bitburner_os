@@ -31,14 +31,15 @@ export async function main(ns) {
 	terminalCommand('unalias bootOS')
 	terminalCommand('alias -g bootOS="run os/main.js"')
 
-	ns.tprint("Install complete! To start, type:    bootOS")
+	ns.tprint("Install complete! To start, type: bootOS")
 }
 
 async function fetchConfig(ns) {
-	try{
-		await ns.rm(json_filename)
-		await ns.wget(baseUrl + json_filename + '?ts=' + new Date().getTime(), json_filename)
-		return JSON.parse(ns.read(json_filename));
+	try {
+		let local_filename = '/os/' + json_filename;
+		await ns.rm(local_filename)
+		await ns.wget(baseUrl + json_filename + '?ts=' + new Date().getTime(), local_filename)
+		return JSON.parse(ns.read(local_filename));
 	}catch(e){
 		ns.tprint(`ERROR: Downloading and reading config file failed ${json_filename}`);
 		throw e;
