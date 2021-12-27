@@ -11,7 +11,7 @@ import { Utils } from '/os/utils.js'
 // |
 // |      Last Modified by: TheDroidUrLookingFor
 // |
-// |		Version:	1.0.1
+// |		Version:	1.0.2
 // |
 // | Information: Currently you can only connect, backdoor, or NUKE targets.
 // |	More features will be added in future versions.
@@ -143,38 +143,92 @@ class ServersExplorerRenderer extends EventListener {
 			}
 		}
 
-		fileList.innerHTML = svNames.map((elem) => this.#renderIcon(elem, 'networkPC', 'check', 'doorOpen')).join('');
+		fileList.innerHTML = svNames.map((elem) => this.#renderIcon(elem, 'server', 'check', 'doorOpen', false)).join('');
 		// Add icon event listeners
-		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
+		Array.from(windowDiv.querySelectorAll('.server-connect__button')).forEach((button) => {
 			button.addEventListener('dblclick', this.svConnectOnClick.bind(this))
 		});
-		Array.from(windowDiv.querySelectorAll('.file-list__backdoor')).forEach((button) => {
+		Array.from(windowDiv.querySelectorAll('.server-run__backdoor')).forEach((button) => {
 			button.addEventListener('dblclick', this.svBackdoorOnClick.bind(this))
 		});
-		Array.from(windowDiv.querySelectorAll('.file-list__status')).forEach((button) => {
+		Array.from(windowDiv.querySelectorAll('.server-run__status')).forEach((button) => {
 			button.addEventListener('dblclick', this.svHackOnClick.bind(this))
 		});
 	}
 
-	#renderIcon(name, type, svhacked, svbackdoored) {
+
+	async rootCheck(svName) {
+		var checkRoot = await this.os.getNS((ns) => {
+				return ns.hasRootAccess(svName)
+			});
+		this.#renderIcon(svName, 'server', 'check', 'doorOpen', checkRoot)
+	}
+
+
+	#renderIcon(name, type, svhacked, svbackdoored, hasRoot) {
+		let facServers = [
+			"CSEC",
+			"avmnite-02h",
+			"I.I.I.I",
+			"run4theh111z",
+			"The-Cave",
+			"w0r1d_d43m0n"
+		];
+
+		// let facServers = {
+		// 	"CSEC": "yellow",
+		// 	"avmnite-02h": "yellow",
+		// 	"I.I.I.I": "yellow",
+		// 	"run4theh111z": "yellow",
+		// 	"The-Cave": "orange",
+		// 	"w0r1d_d43m0n": "red"
+		// };
+
+		var systemColor = "server-connect__button";
+		let rootStatus = "server-run__status";
+		if (facServers.includes(name)) {
+			type = 'firewall'
+			if (name == "CSEC" | name == "avmnite-02h" | name == "I.I.I.I" | name == "run4theh111z") systemColor = "server-connect__button_gold";
+			if (name == "The-Cave") systemColor = "server-connect__button_orange";
+			if (name == "w0r1d_d43m0n") systemColor = "server-connect__button_red";
+		}
+		if (name == "home") {
+			type = 'networkPC'
+		}
+		if (name == "n00dles") {
+			type = 'noodles'
+		}
+		if (hasRoot) {
+			rootStatus = "server-run__status_rooted";
+		}
+
 		return `
-			<li class="file-list__item">
+			<li class="server-list__item">
 			<center>
-			<table>
-			<tr>
-				<td><button class="file-list__backdoor" data-file-name="${name}">
-					${icons[svbackdoored]}
-				</button></td>
-				<td><button class="file-list__status" data-file-name="${name}">
-					${icons[svhacked]}
-				</button></td>
-				</tr>
+				<table>
+					<tr>
+						<td>
+						<button class="server-run__backdoor" data-file-name="${name}">
+							${icons[svbackdoored]}
+						</button>
+						</td>
+						<td>
+						<button class="server-run__scripts" data-file-name="${name}">
+							${icons['ihack']}
+						</button>
+						</td>
+						<td>
+						<button class="${rootStatus}" data-file-name="${name}">
+							${icons[svhacked]}
+						</button>
+						</td>
+					</tr>
 				</table>
-				</center>
-				<button class="file-list__button" data-file-name="${name}" data-file-type="${type}">
-					${icons[type]}
-					<span class="file-list__label">${name}</span>
-				</button>
+			</center>
+			<button class="${systemColor}" data-file-name="${name}" data-file-type="${type}">
+				${icons[type]}
+				<span class="server-list__label">${name}</span>
+			</button>
 			</li>
 		`
 	}
