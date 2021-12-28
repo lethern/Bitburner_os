@@ -95,11 +95,11 @@ export const WINDOW_WIDGET_CSS = `
 	min-width: 220px;
 	max-height: 95vh;
 	max-width: 95vw;
+	resize: both;
 /*
 	align-items: center;
 	display: inline-flex;
 	flex-wrap: wrap;
-	resize: both;
 */
 }
 
