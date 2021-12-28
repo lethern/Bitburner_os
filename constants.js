@@ -180,6 +180,7 @@ export const WINDOW_WIDGET_CSS = `
 	height: calc(100% - 50px);
 	padding: 6px;
 	width: 100%;
+	overflow-x: auto;
 }
 `;
 

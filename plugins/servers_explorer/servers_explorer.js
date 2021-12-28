@@ -198,9 +198,9 @@ class ServersExplorerRenderer extends EventListener {
 		let statusSVG = 'check';
 		if (facServers.includes(name)) {
 			type = 'firewall'
-			if (["CSEC", "avmnite-02h", "I.I.I.I", "run4theh111z"].includes(name)) systemColor = "server-connect__button_gold";
-			if (name == "The-Cave") systemColor = "server-connect__button_orange";
-			if (name == "w0r1d_d43m0n") systemColor = "server-connect__button_red";
+			if (["CSEC", "avmnite-02h", "I.I.I.I", "run4theh111z"].includes(name)) systemColor += " gold";
+			if (name == "The-Cave") systemColor += " orange";
+			if (name == "w0r1d_d43m0n") systemColor += " red";
 		}
 		if (name == "home") {
 			type = 'networkPC'
@@ -216,30 +216,20 @@ class ServersExplorerRenderer extends EventListener {
 		}
 		return `
 			<li class="server-list__item">
-			<center>
-			<table>
-				<tr>
-					<td>
-						<button class="server-run__backdoor" style="color:${backdoorStatus}" data-file-name="${name}">
+			<div class="server-list__item-title">
+				<button class="server-run__backdoor" style="color:${backdoorStatus}" data-file-name="${name}">
 					${server_icons[backdoorSVG]}
-						</button>
-					</td>
-					<td>
-						<button class="server-run__scripts" data-file-name="${name}">
-							${server_icons['ihack']}
-						</button>
-					</td>
-					<td>
-						<button class="server-run__status" style="color:${rootStatus}" data-file-name="${name}">
+				</button>
+				<button class="server-run__scripts" data-file-name="${name}">
+					${server_icons['ihack']}
+				</button>
+				<button class="server-run__status" style="color:${rootStatus}" data-file-name="${name}">
 					${server_icons[statusSVG]}
-						</button>
-					</td>
-				</tr>
-			</table>
-			</center>
+				</button>
+			</div>
 			<button class="${systemColor}" data-file-name="${name}" data-file-type="${type}">
 					${server_icons[type]}
-				<span class="server-list__label">${name}</span>
+				<div class="server-list__label">${name}</div>
 				</button>
 				</div>
 			</li>
@@ -324,6 +314,18 @@ const servers_explorer_css = `
 	text-align: center;
 	width: 100px;
 }
+.server-list__item-title{
+	display: flex;
+    align-items: center;
+	justify-content: center;
+}
+.server-list__item-title button{
+	padding: 0
+}
+.server-list__item-title svg {
+	max-width: 25px;
+    max-height: 25px;
+}
 .server-list__icon {
 	height: 20px;
 	width: 20px;
@@ -336,58 +338,30 @@ const servers_explorer_css = `
 }
 
 .server-connect__button {
-	align-items: center;
 	appearance: none;
-	border: 1px dotted transparent;
-	border-radius: 2px;
-	background: none;
-	display: flex;
-	flex-direction: column;
+	border: none;
 	margin: 0;
 	padding: 2px;
-	width: inherit;
 }
-.server-connect__button_gold {
-	align-items: center;
+.server-connect__button svg{
+	width: 64px;
+	height: 64px;
+}
+.server-connect__button.gold {
 	fill: gold;
 	color: gold;
-	appearance: none;
-	border: 1px dotted transparent;
-	border-radius: 2px;
-	background: none;
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-	padding: 2px;
-	width: inherit;
 }
-.server-connect__button_orange {
-	align-items: center;
+.server-connect__button.orange {
 	fill: orange;
 	color: orange;
-	appearance: none;
-	border: 1px dotted transparent;
-	border-radius: 2px;
-	background: none;
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-	padding: 2px;
-	width: inherit;
 }
-.server-connect__button_red {
-	align-items: center;
+.server-connect__button.red {
 	fill: red;
 	color: red;
-	appearance: none;
-	border: 1px dotted transparent;
-	border-radius: 2px;
-	background: none;
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-	padding: 2px;
-	width: inherit;
+}
+.server-connect__button.orange svg,
+.server-connect__button.gold svg{
+	margin-left: 10px;
 }
 .server-list__bs_center {
 	margin-left:-10px;
@@ -399,77 +373,28 @@ const servers_explorer_css = `
     justify-content: center;
 }
 .server-run__backdoor {
-	align-items: center;
-	appearance: none;
 	fill: red;
 	color: red;
-	border: 1px dotted transparent;
-	border-radius: 2px;
-	background: none;
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-	padding: 2px;
-	width: 100%;
-	height: 100%;
+	
 }
 .server-run__backdoor_complete {
-	align-items: center;
-	appearance: none;
 	fill: green;
 	color: green;
-	border: 1px dotted transparent;
-	border-radius: 2px;
-	background: none;
-	display: flex;
-	flex-direction: column;
+}
+.server-run__scripts,
+.server-run__status,
+.server-run__backdoor_complete,
+.server-run__backdoor
+{
+	appearance: none;
+	border: none;
 	margin: 0;
-	padding: 2px;
-	width: 100%;
-	height: 100%;
 }
 .server-run__scripts {
-	align-items: center;
-	appearance: none;
-	border: 1px dotted transparent;
-	border-radius: 2px;
-	background: none;
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-	padding: 2px;
-	width: 100%;
-	height: 100%;
 }
 .server-run__status {
-	align-items: center;
-	appearance: none;
 	fill: red;
 	color: red;
-	border: 1px dotted transparent;
-	border-radius: 2px;
-	background: none;
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-	padding: 2px;
-	width: 100%;
-	height: 100%;
-}
-.server-run__status_rooted {
-	align-items: center;
-	appearance: none;
-	fill: green;
-	color: green;
-	border: 1px dotted transparent;
-	border-radius: 2px;
-	background: none;
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-	padding: 2px;
-	width: 100%;
-	height: 100%;
 }
 .server-connect__button:focus {
 	background: rgba(15, 75, 255, .3);
