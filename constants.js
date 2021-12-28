@@ -11,8 +11,6 @@ export const DOM_CONSTANTS = {
 };
 
 
-export const INJECTED_CSS = ''
-
 export const GENERAL_CSS = `
 .btn {
 	background-color: #d6cec8;

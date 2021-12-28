@@ -118,46 +118,45 @@ class ServersExplorerRenderer extends EventListener {
 		return `Network Explorer`
 	}
 
+	async #getServers() {
+		let servers = this.#os.serversManager.allServers
+
+		return await this.#os.getNS(ns => {
+			return servers
+				.filter(ns.serverExists)
+				.sort()
+				.map(ns.getServer)
+				.map(serverObj => ({
+					name: serverObj.hostname,
+					rooty: serverObj.hasAdminRights,
+					backy: serverObj.backdoorInstalled,
+				}))
+			/*
+			let result = [];
+			for (let server of servers) {
+				if (!ns.serverExists(server)) continue;
+				let serverObj = ns.getServer(name);
+
+				result.push({
+					name: server,
+					rooty: serverObj.hasAdminRights,
+					backy: serverObj.backdoorInstalled,
+				});
+			}
+			return result;
+			*/
+		})
+		
+	}
+
 	async renderServers() {
 		this.#windowWidget.setTitle(this.title)
 		let windowDiv = this.#windowWidget.getContainer()
+
+		let serversData = await this.#getServers();
 		const fileList = windowDiv.querySelector('.server-list')
 
-		let result = [];
-		let visited = { 'home': 0 };
-		let queue = Object.keys(visited);
-		let name;
-		let svObj = (name = 'home', depth = 0) => ({ name: name, depth: depth });
-		var scanRes;
-		var svNames = [];
-		var svRoot = [];
-		while ((name = queue.pop())) {
-			svNames.push(name);
-			svRoot.push(name);
-			let rooty = await this.#os.getNS((ns) => {
-				return ns.hasRootAccess(name)
-			});
-			let backy = await this.#os.getNS((ns) => {
-				return ns.getServer(name).backdoorInstalled
-			});
-			fileList.innerHTML = svRoot.map((elem) => this.#renderIcon(elem, rooty, backy)).join('');
-			let depth = visited[name];
-			result.push(svObj(name, depth));
-			scanRes = await this.#os.getNS((ns) => {
-				return ns.scan(name)
-			});
-			for (let i = scanRes.length; i >= 0; i--) {
-				if (visited[scanRes[i]] === undefined) {
-					queue.push(scanRes[i]);
-					visited[scanRes[i]] = depth + 1;
-				}
-			}
-		}
-
-		// svNames.sort();
-		// var homeIndex = svNames.indexOf("home");
-		// svNames.splice(homeIndex,1);
-		// svNames.unshift("home")
+		fileList.innerHTML = serversData.map(({name, rooty, backy}) => this.#renderIcon(name, rooty, backy)).join('');
 
 		Array.from(windowDiv.querySelectorAll('.server-connect__button')).forEach((button) => {
 			button.addEventListener('dblclick', this.svConnectOnClick.bind(this))
@@ -298,6 +297,7 @@ class ServersExplorerRenderer extends EventListener {
 
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<ul class="server-list server-list--layout-icon-row" />';
+		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
 		//this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
 	}
 

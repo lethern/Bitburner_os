@@ -254,8 +254,9 @@ class FilesExplorerRenderer extends EventListener {
 		
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<ul class="file-list file-list--layout-icon-row" />';
-		this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.#onDebugMenuClick.bind(this) })
-		this.#windowWidget.addMenuItem({ label: 'Test', callback: this.#onTestMenuClick.bind(this) })
+		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
+		//this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.#onDebugMenuClick.bind(this) })
+		//this.#windowWidget.addMenuItem({ label: 'Test', callback: this.#onTestMenuClick.bind(this) })
 		//this.listenForTerminalHidden();
 	}
 
