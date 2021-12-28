@@ -243,7 +243,7 @@ class ServersExplorerRenderer extends EventListener {
 			</table>
 			</center>
 			<button class="${systemColor}" data-file-name="${name}" data-file-type="${type}">
-					test${icons[type]}
+					${icons[type]}
 				<span class="server-list__label">${name}</span>
 				</button>
 				</div>
