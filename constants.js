@@ -207,7 +207,8 @@ export const INJECTED_CSS = `
 	flex-wrap: wrap;
 	list-style: none;
 	margin: 0;
-	overflow: auto;
+	height: 40em;
+	width: 100em;
 	padding: 0;
 }
 .server-list__item {
@@ -215,6 +216,17 @@ export const INJECTED_CSS = `
 	text-align: center;
 	width: 100px;
 }
+.server-list__icon {
+	height: 20px;
+	width: 20px;
+}
+
+.server-list__label {
+	color: #222;
+	text-shadow: none;
+	word-wrap: anywhere;
+}
+
 .server-connect__button {
 	align-items: center;
 	appearance: none;
@@ -293,8 +305,20 @@ export const INJECTED_CSS = `
 	width: 100%;
 	height: 100%;
 }
-.server-run__backdoor_complete svg {
-    fill: green;
+.server-run__backdoor_complete {
+	align-items: center;
+	appearance: none;
+	fill: green;
+	color: green;
+	border: 1px dotted transparent;
+	border-radius: 2px;
+	background: none;
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 2px;
+	width: 100%;
+	height: 100%;
 }
 .server-run__scripts {
 	align-items: center;
@@ -354,17 +378,6 @@ export const INJECTED_CSS = `
 .server-run__backdoor:focus {
 	background: rgba(15, 75, 255, .3);
 	border-color: #222;
-}
-
-.server-list__icon {
-	height: 38px;
-	width: 32px;
-}
-
-.server-list__label {
-	color: #222;
-	text-shadow: none;
-	word-wrap: anywhere;
 }
 
 .block-but-hidden {
@@ -514,7 +527,7 @@ aria-describedby="desc" role="img" xmlns:xlink="http://www.w3.org/1999/xlink">
 			<path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
 		</svg>
 	`,
-	xmark:`
+	xmark: `
 		<svg class="svg-icon" viewBox="0 0 20 20">
 								<path d="M10.185,1.417c-4.741,0-8.583,3.842-8.583,8.583c0,4.74,3.842,8.582,8.583,8.582S18.768,14.74,18.768,10C18.768,5.259,14.926,1.417,10.185,1.417 M10.185,17.68c-4.235,0-7.679-3.445-7.679-7.68c0-4.235,3.444-7.679,7.679-7.679S17.864,5.765,17.864,10C17.864,14.234,14.42,17.68,10.185,17.68 M10.824,10l2.842-2.844c0.178-0.176,0.178-0.46,0-0.637c-0.177-0.178-0.461-0.178-0.637,0l-2.844,2.841L7.341,6.52c-0.176-0.178-0.46-0.178-0.637,0c-0.178,0.176-0.178,0.461,0,0.637L9.546,10l-2.841,2.844c-0.178,0.176-0.178,0.461,0,0.637c0.178,0.178,0.459,0.178,0.637,0l2.844-2.841l2.844,2.841c0.178,0.178,0.459,0.178,0.637,0c0.178-0.176,0.178-0.461,0-0.637L10.824,10z"></path>
 							</svg>
