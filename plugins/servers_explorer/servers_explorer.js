@@ -127,7 +127,7 @@ class ServersExplorerRenderer extends EventListener {
 	async renderServers() {
 		this.#windowWidget.setTitle(this.title)
 		let windowDiv = this.#windowWidget.getContainer()
-		const fileList = windowDiv.querySelector('.file-list')
+		const fileList = windowDiv.querySelector('.server-list')
 
 		let result = [];
 		let visited = { 'home': 0 };
@@ -136,8 +136,17 @@ class ServersExplorerRenderer extends EventListener {
 		let svObj = (name = 'home', depth = 0) => ({ name: name, depth: depth });
 		var scanRes;
 		var svNames = [];
+		var svRoot = [];
 		while ((name = queue.pop())) {
 			svNames.push(name);
+			svRoot.push(name);
+			let rooty = await this.#os.getNS((ns) => {
+				return ns.hasRootAccess(name)
+			});
+			let backy = await this.#os.getNS((ns) => {
+				return ns.getServer(name).backdoorInstalled
+			});
+			fileList.innerHTML = svRoot.map((elem) => this.#renderIcon(elem, rooty, backy)).join('');
 			let depth = visited[name];
 			result.push(svObj(name, depth));
 			scanRes = await this.#os.getNS((ns) => {
@@ -151,7 +160,11 @@ class ServersExplorerRenderer extends EventListener {
 			}
 		}
 
-		fileList.innerHTML = svNames.map((elem) => this.#renderIcon(elem, 'server', 'check', 'doorOpen', false)).join('');
+		// svNames.sort();
+		// var homeIndex = svNames.indexOf("home");
+		// svNames.splice(homeIndex,1);
+		// svNames.unshift("home")
+
 		Array.from(windowDiv.querySelectorAll('.server-connect__button')).forEach((button) => {
 			button.addEventListener('dblclick', this.svConnectOnClick.bind(this))
 		});
@@ -168,11 +181,11 @@ class ServersExplorerRenderer extends EventListener {
 		var checkRoot = await this.os.getNS((ns) => {
 				return ns.hasRootAccess(svName)
 			});
-		this.#renderIcon(svName, 'server', 'check', 'doorOpen', checkRoot)
+		return checkRoot;
 	}
 
 
-	#renderIcon(name, type, svhacked, svbackdoored, hasRoot) {
+	#renderIcon(name, svhacked, svbackdoored) {
 		let facServers = [
 			"CSEC",
 			"avmnite-02h",
@@ -182,8 +195,12 @@ class ServersExplorerRenderer extends EventListener {
 			"w0r1d_d43m0n"
 		];
 
+		let type = 'server'
 		var systemColor = "server-connect__button";
-		let rootStatus = "server-run__status";
+		let rootStatus = "red";
+		let backdoorStatus = "red";
+		let backdoorSVG = 'doorOpen';
+		let statusSVG = 'check';
 		if (facServers.includes(name)) {
 			type = 'firewall'
 			if (name == "CSEC" | name == "avmnite-02h" | name == "I.I.I.I" | name == "run4theh111z") systemColor = "server-connect__button_gold";
@@ -196,37 +213,40 @@ class ServersExplorerRenderer extends EventListener {
 		if (name == "n00dles") {
 			type = 'noodles'
 		}
-		if (hasRoot) {
-			rootStatus = "server-run__status_rooted";
+		if (svhacked) {
+			rootStatus = "green";
 		}
-
+		if (svbackdoored) {
+			backdoorStatus = "green";
+		}
 		return `
 			<li class="server-list__item">
 			<center>
 			<table>
-			<tr>
-						<td>
-						<button class="server-run__backdoor" data-file-name="${name}">
-					${icons[svbackdoored]}
+				<tr>
+					<td>
+						<button class="server-run__backdoor" style="color:${backdoorStatus}" data-file-name="${name}">
+					${icons[backdoorSVG]}
 						</button>
-						</td>
-						<td>
+					</td>
+					<td>
 						<button class="server-run__scripts" data-file-name="${name}">
 							${icons['ihack']}
 						</button>
-						</td>
-						<td>
-						<button class="${rootStatus}" data-file-name="${name}">
-					${icons[svhacked]}
+					</td>
+					<td>
+						<button class="server-run__status" style="color:${rootStatus}" data-file-name="${name}">
+					${icons[statusSVG]}
 						</button>
-						</td>
+					</td>
 				</tr>
-				</table>
-				</center>
+			</table>
+			</center>
 			<button class="${systemColor}" data-file-name="${name}" data-file-type="${type}">
-					${icons[type]}
+					test${icons[type]}
 				<span class="server-list__label">${name}</span>
 				</button>
+				</div>
 			</li>
 		`
 	}
@@ -259,7 +279,7 @@ class ServersExplorerRenderer extends EventListener {
 
 	init() {
 		this.#windowWidget.init();
-		this.#windowWidget.getContentDiv().innerHTML = '<ul class="file-list file-list--layout-icon-row" />';
+		this.#windowWidget.getContentDiv().innerHTML = '<ul class="server-list server-list--layout-icon-row" />';
 		//this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
 	}
 
