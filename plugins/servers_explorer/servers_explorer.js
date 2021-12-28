@@ -335,6 +335,7 @@ const servers_explorer_css = `
 	color: #222;
 	text-shadow: none;
 	word-wrap: anywhere;
+	font-size: 12px;
 }
 
 .server-connect__button {
@@ -344,8 +345,8 @@ const servers_explorer_css = `
 	padding: 2px;
 }
 .server-connect__button svg{
-	width: 64px;
-	height: 64px;
+	width: 44px;
+	height: 44px;
 }
 .server-connect__button.gold {
 	fill: gold;
