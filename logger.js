@@ -47,7 +47,7 @@ export class Logger {
 			args.unshift(severity);
 			severity = 'info';
 		}
-		this.#console.write(severity, this.#parentName, arguments.callee.caller.name, args);
+		this.#console.write(severity, this.#parentName, args);
 	}
 
 	printOnce(...args) {
@@ -94,6 +94,7 @@ export class DebugConsoleRender {
 
 	showWindow() {
 		if (!this.#rendered) {
+			this.#injectCSS();
 			this.#renderWindow();
 		}
 		this.#logs.forEach(log => this.#renderLog(log));
@@ -149,6 +150,9 @@ export class DebugConsoleRender {
 		}
 	}
 
+	#injectCSS() {
+		this.#os.gui.injectCSS(console_render_css);
+	}
 	#renderWindow() {
 		this.#windowWidget = new WindowWidget(this, this.#os);
 		this.#windowWidget.init()
@@ -170,3 +174,26 @@ export class DebugConsoleRender {
 	#doc
 	#windowWidget
 }
+
+
+const console_render_css =
+`
+.debugWindow{
+	display: block;
+	overflow-y: scroll;
+	height: 400px;
+	width: 600px;
+}
+.consoleDebug{
+	color: #828282;
+}
+.consoleInfo{
+	color: #252525;
+}
+.consoleWarn{
+	color: #9e6c12;
+}
+.consoleError{
+	color: #ec3131;
+}
+`;

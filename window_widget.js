@@ -1,9 +1,9 @@
-import { DOM_CONSTANTS, windowIcon } from '/os/constants.js'
+import { DOM_CONSTANTS, windowIcon, WINDOW_WIDGET_CSS } from '/os/constants.js'
 import { WindowWidget_EVENT, OS_EVENT  } from '/os/event_listener.js'
 
 export class WindowWidget {
 	/**
-	 * @param { {onWindowClose: Function} } parent
+	 * @param { {onWindowClose: function, fire?: function} } parent
 	 * @param {import('/os/os.js').OS} os
 	 * @param {string} [id]
 	 */
@@ -12,11 +12,13 @@ export class WindowWidget {
 		this.#windowId = id;
 		this.#doc = globalThis['document'];
 		this.#menuItems = [];
+		this.#os = os;
 
-		os.listen(OS_EVENT.ON_EXIT, this.on_exit.bind(this));
+		os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
 	}
 	
 	init() {
+		this.#os.gui.injectCSS(WINDOW_WIDGET_CSS);
 		this.#initialiseWindow(this.#windowId)
 	}
 
@@ -70,16 +72,6 @@ export class WindowWidget {
 		return this.container
 	}
 
-	on_exit() {
-		this.dispose()
-	}
-
-	dispose() {
-		if (!this.container) return;
-		this.container.remove()
-		this.container = null;
-	}
-
 
 	// private fields, methods
 
@@ -87,6 +79,7 @@ export class WindowWidget {
 	#windowId
 	#doc
 	#menuItems
+	#os
 
 	#left
 	#top
@@ -273,6 +266,17 @@ export class WindowWidget {
 		this.#left = leftFinal
 		this.#top = topFinal
 		this.#updateWindowPosition()
+	}
+
+
+	#on_exit() {
+		this.#dispose()
+	}
+
+	#dispose() {
+		if (!this.container) return;
+		this.container.remove()
+		this.container = null;
 	}
 
 	static stealFocusHandler() {

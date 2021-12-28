@@ -1,4 +1,4 @@
-import { DOM_CONSTANTS, INJECTED_CSS } from '/os/constants.js'
+import { DOM_CONSTANTS, GENERAL_CSS } from '/os/constants.js'
 import { OS_EVENT } from '/os/event_listener.js'
 import { Logger } from '/os/logger.js'
 
@@ -10,6 +10,7 @@ export class GUI {
 		this.#doc = globalThis['document'];
 		this.#buttons = [];
 		this.#styles = [];
+		this.#cssUsedMap = {};
 		this.#os.listen(OS_EVENT.INIT, this.#init.bind(this));
 		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
 	}
@@ -48,6 +49,16 @@ export class GUI {
 		this.#buttons.push( { btn } );
 	}
 
+	injectCSS(css_string) {
+		if (this.#cssUsedMap[css_string]) return;
+
+		const stylesheet = this.#doc.createElement('style')
+		stylesheet.innerHTML = css_string
+
+		this.#styles.push(stylesheet);
+		this.#doc.head.insertAdjacentElement('beforeend', stylesheet)
+		this.#cssUsedMap[css_string] = 1;
+	}
 
 	// private fields, methods
 
@@ -56,6 +67,7 @@ export class GUI {
 	#buttons
 	#styles
 	#log
+	#cssUsedMap
 
 	#init() {
 		this.#injectStartBtn()
@@ -115,15 +127,8 @@ export class GUI {
 	}
 
 	#injectDefaultCSS() {
-		const stylesheetId = 'window-styles'
-
-		const stylesheet = this.#doc.createElement('style')
-		stylesheet.id = stylesheetId
-
-		stylesheet.innerHTML = INJECTED_CSS
-
-		this.#styles.push(stylesheet);
-		this.#doc.head.insertAdjacentElement('beforeend', stylesheet)
+		this.injectCSS(GENERAL_CSS)
+		
 	}
 
 	#on_exit() {

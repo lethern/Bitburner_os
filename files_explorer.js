@@ -1,4 +1,4 @@
-import { DOM_CONSTANTS, icons } from '/os/constants.js'
+import { DOM_CONSTANTS } from '/os/constants.js'
 import { EventListener, OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.js'
 import { WindowWidget } from '/os/window_widget.js'
 import { Logger } from '/os/logger.js'
@@ -242,7 +242,7 @@ class FilesExplorerRenderer extends EventListener {
 		return `
 			<li class="file-list__item">
 				<button class="file-list__button" data-file-name="${name}" data-file-type="${type}">
-					${icons[type]}
+					${files_icons[type]}
 					<span class="file-list__label">${name}</span>
 				</button>
 			</li>
@@ -250,6 +250,8 @@ class FilesExplorerRenderer extends EventListener {
 	}
 
 	#init() {
+		this.#os.gui.injectCSS(files_explorer_css);
+		
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<ul class="file-list file-list--layout-icon-row" />';
 		this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.#onDebugMenuClick.bind(this) })
@@ -273,3 +275,75 @@ class FilesExplorerRenderer extends EventListener {
 		Object.keys(this).forEach(key => this[key] = null);
 	}
 }
+
+
+const files_explorer_css = `
+.file-list {
+	align-content: flex-start;
+	display: flex;
+	flex-wrap: wrap;
+	list-style: none;
+	margin: 0;
+	overflow: auto;
+	padding: 0;
+}
+
+.file-list__item {
+	margin-bottom: 8px;
+	text-align: center;
+	width: 100px;
+}
+
+.file-list__button {
+	align-items: center;
+	appearance: none;
+	border: 1px dotted transparent;
+	border-radius: 2px;
+	background: none;
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 2px;
+	width: inherit;
+}
+
+.file-list__button:focus {
+	background: rgba(15, 75, 255, .3);
+	border-color: #222;
+}
+
+.file-list__icon {
+	height: 38px;
+	width: 32px;
+}
+
+.file-list__label {
+	color: #222;
+	text-shadow: none;
+	word-wrap: anywhere;
+}`;
+
+const files_icons = {
+	upDirectory: `
+		<svg viewBox="0 0 64 64" class="file-list__icon">
+			<path d="M5 8v43a4 4 0 0 0 4 4h46a4 4 0 0 0 4-4V13H25l-5-5H5zm50 11v32H9V20l46-1zm-15.84 4-12.965 1.586 3.494 3.492C27.62 30.333 26 33.221 26 36.814 26 43.711 31 48 31 48l3-2s-3-3.977-3-8c0-2.346 1.18-4.115 3.037-5.574l3.54 3.539L39.16 23z" />
+		</svg>
+	`,
+	directory: `
+		<svg viewBox="0 0 64 64" class="file-list__icon">
+			<path d="M5 8v43a4 4 0 0 0 4 4h46a4 4 0 0 0 4-4V13H25l-5-5H5zm50 11v32H9V20l46 0z" />
+		</svg>
+	`,
+	file: `
+		<svg viewBox="0 0 24 24" class="file-list__icon">
+			<path
+				fill="#5B5B5B"
+				d="M11.5 12h-3a.5.5 0 0 0 0 1H11v3.5c0 .827-.673 1.5-1.5 1.5S8 17.327 8 16.5a.5.5 0 0 0-1 0C7 17.879 8.121 19 9.5 19s2.5-1.121 2.5-2.5v-4a.5.5 0 0 0-.5-.5zM14.736 13H16.5c.275 0 .5.225.5.5a.5.5 0 0 0 1 0c0-.827-.673-1.5-1.5-1.5h-1.764c-.957 0-1.736.779-1.736 1.736 0 .661.368 1.256.96 1.553l2.633 1.316A.737.737 0 0 1 16.264 18H14.5a.501.501 0 0 1-.5-.5.5.5 0 0 0-1 0c0 .827.673 1.5 1.5 1.5h1.764c.957 0 1.736-.779 1.736-1.736a1.73 1.73 0 0 0-.96-1.553l-2.633-1.316A.737.737 0 0 1 14.736 13z"
+			/>
+			<path
+				fill="#5B5B5B"
+				d="M22.5 10H21V1.5a.5.5 0 0 0-.5-.5h-11c-.023 0-.044.01-.066.013a.509.509 0 0 0-.288.133l-5 5a.505.505 0 0 0-.133.289C4.01 6.457 4 6.477 4 6.5V10H2.5a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5H4v2.5a.5.5 0 0 0 .5.5h16a.5.5 0 0 0 .5-.5V21h1.5a.5.5 0 0 0 .5-.5v-10a.5.5 0 0 0-.5-.5zM9 2.707V6H5.707L9 2.707zM5 7h4.5a.5.5 0 0 0 .5-.5V2h10v8H5V7zm15 16H5v-2h15v2zm2-3H3v-9h19v9z"
+			/>
+		</svg>
+	`
+};
