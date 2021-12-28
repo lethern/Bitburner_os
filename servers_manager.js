@@ -20,7 +20,7 @@ export class ServersManager {
 		return this.#server
 	}
 
-	/** @return {string[]} */
+	/** @return {{name: string, parent: string}[]} */
 	get allServers(){
 		return this.#serverObjList ? [...this.#serverObjList] : []
 	}

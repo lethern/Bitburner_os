@@ -123,6 +123,7 @@ class ServersExplorerRenderer extends EventListener {
 
 		return await this.#os.getNS(ns => {
 			return servers
+				.map(({ name })=>name)
 				.filter(ns.serverExists)
 				.sort()
 				.map(ns.getServer)
@@ -134,11 +135,12 @@ class ServersExplorerRenderer extends EventListener {
 			/*
 			let result = [];
 			for (let server of servers) {
-				if (!ns.serverExists(server)) continue;
+				let name = server.name;
+				if (!ns.serverExists(name)) continue;
 				let serverObj = ns.getServer(name);
 
 				result.push({
-					name: server,
+					name: name,
 					rooty: serverObj.hasAdminRights,
 					backy: serverObj.backdoorInstalled,
 				});
@@ -154,8 +156,8 @@ class ServersExplorerRenderer extends EventListener {
 		let windowDiv = this.#windowWidget.getContainer()
 
 		let serversData = await this.#getServers();
-		const fileList = windowDiv.querySelector('.server-list')
 
+		const fileList = windowDiv.querySelector('.server-list')
 		fileList.innerHTML = serversData.map(({name, rooty, backy}) => this.#renderIcon(name, rooty, backy)).join('');
 
 		Array.from(windowDiv.querySelectorAll('.server-connect__button')).forEach((button) => {
