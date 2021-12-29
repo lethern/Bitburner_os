@@ -41,10 +41,6 @@ export class Logger {
 		this.#console.write(severity, this.#parentName, args);
 	}
 
-	showWindow() {
-		this.#console.showWindow()
-	}
-
 	#console
 	#parentName
 

@@ -292,5 +292,3 @@ export class WindowWidget extends EventListener {
 		)
 	}
 }
-
-

@@ -10,6 +10,6 @@
 		"plugins/plugins_manager.js", "plugins/plugins_utils.js", "plugins/api_adapter.js",
 		
 		"plugins/servers_explorer/connect.js", "plugins/servers_explorer/servers_explorer.js",
-		"plugins/servers_explorer/servers_explorer_css.js",
+		"plugins/servers_explorer/servers_explorer_css.js"
 	]
 }

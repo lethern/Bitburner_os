@@ -4,7 +4,6 @@ export const DOM_CONSTANTS = {
 	siblingBtnSelector: '.MuiList-root .MuiButtonBase-root',
 	terminalBtnSelector: '.MuiList-root .MuiList-root .MuiButtonBase-root',
 	siblingButtonLabel: 'Active Scripts',
-	fileExplorerBtnId: 'file-explorer-button',
 	hiddenClass: 'block-but-hidden',
 	myCustomWindowId: 'custom-window',
 	windowFocusedClass: 'window--focused'

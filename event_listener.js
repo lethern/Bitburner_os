@@ -1,12 +1,14 @@
 
 export class EventListener{
-	constructor(parent, log){
+	/** @param {object} [parent] - only in case this class was not derivered */
+	constructor(parent){
 		this.#parent = parent || this;
 		this.#listeners = {};
-		this.#log = log;
 	}
 
-	/** @param {import('/os/logger').Logger} log */
+	/**
+	 * this method is needed, because classes extending from EventListener cannot create a Logger object before super()
+	 * @param {import('/os/logger').Logger} log */
 	eventListener_initLog(log) {
 		this.#log = log;
 	}

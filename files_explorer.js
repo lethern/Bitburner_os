@@ -96,7 +96,6 @@ export class FilesExplorer {
 
 		this.#os.gui.addMenuButton({
 			btnLabel: 'File Explorer',
-			btnId: DOM_CONSTANTS.fileExplorerBtnId,
 			callback: () => this.#windowVisibilityToggle(),
 			btnIconPath: fileExplorer_newPath,
 			btnIconViewBox: 'viewBox="0 2 18 17"',
@@ -246,7 +245,7 @@ class FilesExplorerRenderer extends EventListener {
 		this.#os.gui.injectCSS(files_explorer_css);
 		
 		this.#windowWidget.init();
-		this.#windowWidget.getContentDiv().innerHTML = '<ul class="file-list file-list--layout-icon-row" />';
+		this.#windowWidget.getContentDiv().innerHTML = '<ul class="file-list" />';
 		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
 		this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.#onDebugMenuClick.bind(this) })
 		this.#windowWidget.addMenuItem({ label: 'Test', callback: this.#onTestMenuClick.bind(this) })
@@ -255,7 +254,7 @@ class FilesExplorerRenderer extends EventListener {
 
 	#onDebugMenuClick() {
 		this.#log.debug("MENU OPEN");
-		this.#log.showWindow()
+		this.#os.logRenderer.showWindow()
 	}
 
 	#onTestMenuClick() {
