@@ -44,6 +44,8 @@ Object.defineProperties(OS_EVENT, {
 
 export const WindowWidget_EVENT = {};
 Object.defineProperties(WindowWidget_EVENT, {
-    SHOW: { value: 'show'},
+	SHOW: { value: 'show' },
+	HIDE: { value: 'hide' },
+	CLOSE: { value: 'close' },
 });
 

@@ -1,0 +1,10 @@
+{
+	"id": "unique identifier",
+	"name": "Descriptive name",
+	"links": [
+		"collection of URLs",
+	],
+	"dependencies": [
+		"list of ids of other plugins"
+	]
+}

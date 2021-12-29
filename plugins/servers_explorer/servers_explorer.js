@@ -23,38 +23,17 @@ export class ServersExplorer {
 	/** @param {import('/os/os.js').OS} os */
 	constructor(os) {
 		this.#os = os;
+
 		this.#winRenderer = new ServersExplorerRenderer(os, this);
 
-		this.#isRendered = false;
-
-		this.#os.listen(OS_EVENT.INIT, this.init.bind(this));
-		this.#winRenderer.listen(WindowWidget_EVENT.SHOW, this.onRenderVisible.bind(this));
-		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
-	}
-
-	init() {
-		this.injectFileExplorerButton();
-	}
-
-	injectFileExplorerButton() {
-		let fileExplorer_newPath = '<path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z">'
-
-		this.#os.gui.addMenuButton({
-			btnLabel: 'Network Explorer',
-			btnId: DOM_CONSTANTS.fileExplorerBtnId,
-			callback: () => this.#winRenderer.windowVisibilityToggle(),
-			btnIconPath: fileExplorer_newPath,
-			btnIconViewBox: 'viewBox="0 2 18 17"',
-		});
-	}
-
-	onRenderVisible() {
-		if (this.#isRendered) return;
-		this.#isRendered = true;
-		this.render()
+		this.#os.listen(OS_EVENT.INIT, () => this.#init());
+		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 	}
 
 	render() {
+		if (this.#isRendered) return;
+		this.#isRendered = true;
+
 		this.#winRenderer.renderServers();
 	}
 
@@ -78,6 +57,7 @@ export class ServersExplorer {
 		this.#os.terminal.inputToTerminal(`${command}`);
 		this.#winRenderer.hide();
 	}
+
 	async svHack(svName) {
 		let command = 'home'
 		this.#os.terminal.inputToTerminal(`${command}`);
@@ -90,12 +70,31 @@ export class ServersExplorer {
 		this.#winRenderer.hide();
 	}
 
-	#on_exit() {
-	}
+
+	// private
 
 	#os
 	#winRenderer
-	#isRendered
+	#isRendered = false
+
+	#init() {
+		this.#injectFileExplorerButton();
+	}
+
+	#injectFileExplorerButton() {
+		let fileExplorer_newPath = '<path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z">'
+
+		this.#os.gui.addMenuButton({
+			btnLabel: 'Network Explorer',
+			btnId: DOM_CONSTANTS.fileExplorerBtnId,
+			callback: () => this.#winRenderer.windowVisibilityToggle(),
+			btnIconPath: fileExplorer_newPath,
+			btnIconViewBox: 'viewBox="0 2 18 17"',
+		});
+	}
+
+	#on_exit() {
+	}
 }
 
 class ServersExplorerRenderer extends EventListener {
@@ -103,14 +102,16 @@ class ServersExplorerRenderer extends EventListener {
 	constructor(os, serversExplorer) {
 		super();
 		this.#os = os;
-		this.#log = new Logger(this, os.logRenderer);
-		this.eventListener_initLog(this.#log);
 		this.#serversExplorer = serversExplorer;
 
-		this.#windowWidget = new WindowWidget(this, os, DOM_CONSTANTS.myCustomWindowId);
+		this.#log = new Logger(this, os.logRenderer);
+		this.eventListener_initLog(this.#log);
+		
+		this.#windowWidget = new WindowWidget(this, os);
+		this.#windowWidget.listen(WindowWidget_EVENT.SHOW, () => this.#onShow());
 
-		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
-		this.#os.listen(OS_EVENT.INIT, this.#init.bind(this));
+		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit());
+		this.#os.listen(OS_EVENT.INIT, () => this.#init());
 	}
 
 	/** @return {String} */
@@ -180,6 +181,62 @@ class ServersExplorerRenderer extends EventListener {
 	}
 
 
+	svConnectOnClick(event) {
+		let button = event.currentTarget;
+
+		event.stopPropagation()
+		const fileName = button.dataset.fileName
+
+		this.#serversExplorer.svConnect(fileName)
+	}
+
+	svBackdoorOnClick(event) {
+		let button = event.currentTarget;
+
+		event.stopPropagation()
+		const fileName = button.dataset.fileName
+
+		this.#serversExplorer.svBackdoor(fileName)
+
+	}
+
+	svHackOnClick(event) {
+		let button = event.currentTarget;
+
+		event.stopPropagation()
+		const fileName = button.dataset.fileName
+
+		this.#serversExplorer.svHack(fileName)
+	}
+
+	hide() {
+		this.#windowWidget.hide();
+	}
+
+	windowVisibilityToggle() {
+		this.#windowWidget.windowVisibilityToggle();
+	}
+
+	// private
+
+	#os
+	#log
+	#serversExplorer
+	#windowWidget
+
+	#init() {
+		this.#os.gui.injectCSS(servers_explorer_css);
+
+		this.#windowWidget.init();
+		this.#windowWidget.getContentDiv().innerHTML = '<ul class="server-list server-list--layout-icon-row" />';
+		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
+		//this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
+	}
+
+	#onShow() {
+		this.#serversExplorer.render();
+	}
+
 	#renderIcon(name, svhacked, svbackdoored) {
 		let facServers = [
 			"CSEC",
@@ -234,63 +291,6 @@ class ServersExplorerRenderer extends EventListener {
 				</div>
 			</li>
 		`
-	}
-
-	svConnectOnClick(event) {
-		let button = event.currentTarget;
-
-		event.stopPropagation()
-		const fileName = button.dataset.fileName
-
-		this.#serversExplorer.svConnect(fileName)
-	}
-
-	svBackdoorOnClick(event) {
-		let button = event.currentTarget;
-
-		event.stopPropagation()
-		const fileName = button.dataset.fileName
-
-		this.#serversExplorer.svBackdoor(fileName)
-
-	}
-
-	svHackOnClick(event) {
-		let button = event.currentTarget;
-
-		event.stopPropagation()
-		const fileName = button.dataset.fileName
-
-		this.#serversExplorer.svHack(fileName)
-	}
-
-	hide() {
-		this.#windowWidget.hide();
-	}
-
-	windowVisibilityToggle() {
-		this.#windowWidget.windowVisibilityToggle();
-	}
-
-	onWindowClose() {
-		this.#os.closeAndExit();
-	}
-
-
-	// private
-
-	#os
-	#log
-	#serversExplorer
-	#windowWidget
-
-	#init() {
-		this.#os.gui.injectCSS(servers_explorer_css);
-
-		this.#windowWidget.init();
-		this.#windowWidget.getContentDiv().innerHTML = '<ul class="server-list server-list--layout-icon-row" />';
-		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
-		//this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
 	}
 
 	#on_exit() {

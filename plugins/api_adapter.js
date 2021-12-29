@@ -32,7 +32,7 @@ export class API_Adapter {
 	}
 
 	#getClassesAPI() {
-		/** @param { {onWindowClose: Function} } parent @param {import('/os/os.js').OS} os @param {string} [id]  */
+		/** @param {object} parent @param {import('/os/os.js').OS} os @param {string} [id]  */
 		WindowWidget: (parent, id) => { return new WindowWidget(parent, this.#os, id) }
 	}
 

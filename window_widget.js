@@ -1,18 +1,23 @@
 import { DOM_CONSTANTS, windowIcon, WINDOW_WIDGET_CSS } from '/os/constants.js'
-import { WindowWidget_EVENT, OS_EVENT  } from '/os/event_listener.js'
+import { EventListener, WindowWidget_EVENT, OS_EVENT  } from '/os/event_listener.js'
+import { Logger } from '/os/logger.js'
 
-export class WindowWidget {
+export class WindowWidget extends EventListener {
 	/**
-	 * @param { {onWindowClose: function, fire?: function} } parent
+	 * @param {object} parent
 	 * @param {import('/os/os.js').OS} os
 	 * @param {string} [id]
 	 */
 	constructor(parent, os, id) {
+		super();
 		this.#parent = parent;
 		this.#windowId = id;
 		this.#doc = globalThis['document'];
 		this.#menuItems = [];
 		this.#os = os;
+
+		this.#log = new Logger(this, os.logRenderer);
+		this.eventListener_initLog(this.#log);
 
 		os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
 	}
@@ -43,9 +48,10 @@ export class WindowWidget {
 			if (this.isVisible) {
 				this.container.style.display = ''
 				this.#initialiseWindowPosition()
-				if (this.#parent.fire) this.#parent.fire(WindowWidget_EVENT.SHOW);
+				this.fire(WindowWidget_EVENT.SHOW);
 			} else {
 				this.container.style.display = 'none'
+				this.fire(WindowWidget_EVENT.HIDE);
 			}
 		}
 	}
@@ -80,6 +86,7 @@ export class WindowWidget {
 	#doc
 	#menuItems
 	#os
+	#log
 
 	#left
 	#top
@@ -193,8 +200,7 @@ export class WindowWidget {
 		})
 		element.querySelector('.window__cta-close').addEventListener('click', () => {
 			this.hide();
-			if (this.#parent.onWindowClose)
-				this.#parent.onWindowClose()
+			this.fire(WindowWidget_EVENT.CLOSE);
 		})
 		element.querySelector('.window__toolbar').addEventListener('mousedown', this.#boundBeginGrabbing)
 		element.querySelector('.window').addEventListener('click', (e) => {

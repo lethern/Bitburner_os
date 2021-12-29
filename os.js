@@ -1,4 +1,5 @@
-import { DebugConsoleRender, Logger } from '/os/logger.js'
+import { Logger } from '/os/logger.js'
+import { DebugConsoleRender } from '/os/logger_render.js'
 import { EventListener, OS_EVENT } from '/os/event_listener.js'
 import { FilesExplorer } from '/os/files_explorer.js'
 import { GUI } from '/os/gui.js'
@@ -6,13 +7,14 @@ import { Utils } from '/os/utils.js'
 import { Terminal } from '/os/terminal.js'
 import { ServersManager } from '/os/servers_manager.js'
 import { ServersExplorer } from '/os/plugins/servers_explorer/servers_explorer.js'
+import { PluginsManager } from '/os/plugins/plugins_manager.js'
 
 export class OS extends EventListener {
 
 	constructor(ns) {
 		super();
 
-		this.initNSInternals(ns);
+		this.#initNSInternals(ns);
 
 		this.#NSqueue = [];
 		this.#doLoop = true;
@@ -25,10 +27,36 @@ export class OS extends EventListener {
 		this.terminal = new Terminal();
 		this.serversManager = new ServersManager(this);
 		this.serversExplorer = new ServersExplorer(this);
+
+		this.plugins = new PluginsManager(this);
 	}
 
+	/** @param {(NS) => void} func @returns Promise */
+	getNS(func) {
+		let def = new Utils.Deferred();
+		this.#NSqueue.push({ func, def })
+		return def.promise;
+	}
+
+	/** @param {(NS) => void} func */
+	getNS_noPromise(func) {
+		this.#NSqueue.push({ func })
+	}
+
+	closeAndExit() {
+		this.getNS_noPromise(ns => ns.exit());
+	}
+
+
+	// private fields, methods
+
+	#doLoop
+	#internal_NS
+	#NSqueue
+	#log
+
 	/** @param {NS} ns */
-	initNSInternals(ns) {
+	#initNSInternals(ns) {
 		// this is the only function that has direct access to NS object,
 		// its *carefuly* used in runNSQueue
 
@@ -56,30 +84,6 @@ export class OS extends EventListener {
 			}
 		}
 	}
-
-	/** @param {(NS) => void} func @returns Promise */
-	getNS(func) {
-		let def = new Utils.Deferred();
-		this.#NSqueue.push({ func, def })
-		return def.promise;
-	}
-
-	/** @param {(NS) => void} func */
-	getNS_noPromise(func) {
-		this.#NSqueue.push({ func })
-	}
-
-	closeAndExit() {
-		this.getNS_noPromise(ns => ns.exit());
-	}
-
-
-	// private fields, methods
-
-	#doLoop
-	#internal_NS
-	#NSqueue
-	#log
 
 	async #runNSQueue() {
 		let stopwatch = 0;

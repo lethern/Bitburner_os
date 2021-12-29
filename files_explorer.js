@@ -7,28 +7,11 @@ export class FilesExplorer {
 	/** @param {import('/os/os.js').OS} os */
 	constructor(os) {
 		this.#os = os;
+
 		this.#winRenderer = new FilesExplorerRenderer(os, this);
 
-		this.#currentServer = 'home'; // current rendered server
-		this.#currentDir = '';
-		this.#isRendered = false;
-
-		this.#os.listen(OS_EVENT.INIT, this.#init.bind(this));
-		this.#winRenderer.listen(WindowWidget_EVENT.SHOW, this.#onRenderVisible.bind(this));
-		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
-	}
-
-	render() {
-		if (this.#currentServer != this.#os.serversManager.connectedServer) {
-			this.#setCurrentServer(this.#os.serversManager.connectedServer);
-		}
-
-		this.#readServerFiles().then((files) => {
-			this.files = files;
-			let currentFiles = FilesExplorer.narrowFilesToGivenDir(this.files, this.#currentDir);
-			if (!currentFiles) currentFiles = [];
-			this.#winRenderer.renderFiles(currentFiles, this.#currentDir);
-		});
+		this.#os.listen(OS_EVENT.INIT, () => this.#init());
+		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 	}
 
 	changeDirectory_oneUp() {
@@ -72,6 +55,21 @@ export class FilesExplorer {
 		this.#winRenderer.hide();
 	}
 
+	render() {
+		if (this.#isRendered) return;
+		this.#isRendered = true;
+
+		if (this.#currentServer != this.#os.serversManager.connectedServer) {
+			this.#setCurrentServer(this.#os.serversManager.connectedServer);
+		}
+
+		this.#readServerFiles().then((files) => {
+			this.files = files;
+			let currentFiles = FilesExplorer.narrowFilesToGivenDir(this.files, this.#currentDir);
+			if (!currentFiles) currentFiles = [];
+			this.#winRenderer.renderFiles(currentFiles, this.#currentDir);
+		});
+	}
 
 	get currentServer() {
 		return this.#currentServer
@@ -85,9 +83,9 @@ export class FilesExplorer {
 
 	#os
 	#winRenderer
-	#currentServer
-	#currentDir
-	#isRendered
+	#currentServer = 'home'; // current rendered server
+	#currentDir = ''
+	#isRendered = false
 
 	#init() {
 		this.#injectFileExplorerButton();
@@ -99,19 +97,15 @@ export class FilesExplorer {
 		this.#os.gui.addMenuButton({
 			btnLabel: 'File Explorer',
 			btnId: DOM_CONSTANTS.fileExplorerBtnId,
-			callback: () => this.#winRenderer.windowVisibilityToggle(),
+			callback: () => this.#windowVisibilityToggle(),
 			btnIconPath: fileExplorer_newPath,
 			btnIconViewBox: 'viewBox="0 2 18 17"',
 		});
 	}
 
-	#onRenderVisible() {
-		// runs only one time
-		if (this.#isRendered) return;
-		this.#isRendered = true;
-
-		//this.#winRenderer.showWindow();
-		this.render()
+	/** when something (button) wants us to be shown or hiden */
+	#windowVisibilityToggle() {
+		this.#winRenderer.windowVisibilityToggle()
 	}
 
 	#setCurrentServer(server) {
@@ -167,11 +161,11 @@ class FilesExplorerRenderer extends EventListener {
 		this.#log = new Logger(this, os.logRenderer);
 		this.eventListener_initLog(this.#log);
 
-		this.#terminalVisible = false;
-		this.#windowWidget = new WindowWidget(this, os, DOM_CONSTANTS.myCustomWindowId);
+		this.#windowWidget = new WindowWidget(this, os);
+		this.#windowWidget.listen(WindowWidget_EVENT.SHOW, () => this.#onShow());
 
-		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
-		this.#os.listen(OS_EVENT.INIT, this.#init.bind(this));
+		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
+		this.#os.listen(OS_EVENT.INIT, () => this.#init());
 	}
 
 	/** @return {String} */
@@ -194,7 +188,7 @@ class FilesExplorerRenderer extends EventListener {
 
 		// Add icon event listeners
 		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
-			button.addEventListener('dblclick', this.fileListedOnClick.bind(this))
+			button.addEventListener('dblclick', ()=> this.fileListedOnClick)
 		});
 	}
 
@@ -225,18 +219,17 @@ class FilesExplorerRenderer extends EventListener {
 		this.#windowWidget.windowVisibilityToggle();
 	}
 
-	onWindowClose() {
-		this.#os.closeAndExit();
-	}
-
 
 	// private fields, methods
 
 	#os
 	#filesExplorer
-	#terminalVisible
 	#windowWidget
 	#log
+
+	#onShow() {
+		this.#filesExplorer.render();
+	}
 
 	#renderIcon(name, type) {
 		return `
@@ -255,8 +248,8 @@ class FilesExplorerRenderer extends EventListener {
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<ul class="file-list file-list--layout-icon-row" />';
 		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
-		//this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.#onDebugMenuClick.bind(this) })
-		//this.#windowWidget.addMenuItem({ label: 'Test', callback: this.#onTestMenuClick.bind(this) })
+		this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.#onDebugMenuClick.bind(this) })
+		this.#windowWidget.addMenuItem({ label: 'Test', callback: this.#onTestMenuClick.bind(this) })
 		//this.listenForTerminalHidden();
 	}
 
@@ -285,7 +278,6 @@ const files_explorer_css = `
 	flex-wrap: wrap;
 	list-style: none;
 	margin: 0;
-	overflow: auto;
 	padding: 0;
 }
 
