@@ -277,7 +277,7 @@ const files_explorer_css = `
 	flex-wrap: wrap;
 	list-style: none;
 	margin: 0;
-	padding: 0;
+	padding: 6px;
 }
 
 .file-list__item {

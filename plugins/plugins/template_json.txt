@@ -1,6 +1,6 @@
 {
 	"id": "unique identifier",
-	"name": "Descriptive name",
+	"description": "Descriptive name",
 	"links": [
 		"collection of URLs",
 	],

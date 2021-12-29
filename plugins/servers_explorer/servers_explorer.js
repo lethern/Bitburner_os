@@ -113,17 +113,16 @@ export class ServersExplorer {
 	#isRendered = false
 
 	#init() {
-		this.#injectFileExplorerButton();
+		this.#injectMenuButton();
 	}
 
-	#injectFileExplorerButton() {
-		let fileExplorer_newPath = '<path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z">'
+	#injectMenuButton() {
+		let btn_newPath = '<path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z">'
 
 		this.#os.gui.addMenuButton({
 			btnLabel: 'Network Explorer',
-			btnId: DOM_CONSTANTS.fileExplorerBtnId,
 			callback: () => this.#winRenderer.windowVisibilityToggle(),
-			btnIconPath: fileExplorer_newPath,
+			btnIconPath: btn_newPath,
 			btnIconViewBox: 'viewBox="0 2 18 17"',
 		});
 	}
@@ -159,8 +158,8 @@ class ServersExplorerRenderer extends EventListener {
 		this.#windowWidget.setTitle(this.title)
 		let windowDiv = this.#windowWidget.getContainer()
 
-		const fileList = windowDiv.querySelector('.server-list')
-		fileList.innerHTML = serverObjs.map(({ name, rooty, backy }) => this.#renderIcon(name, rooty, backy)).join('');
+		const serverList = windowDiv.querySelector('.server-list')
+		serverList.innerHTML = serverObjs.map(({ name, rooty, backy }) => this.#renderIcon(name, rooty, backy)).join('');
 
 		Array.from(windowDiv.querySelectorAll('.server-connect__button')).forEach((button) => {
 			button.addEventListener('dblclick', this.svConnectOnClick.bind(this))
@@ -186,18 +185,18 @@ class ServersExplorerRenderer extends EventListener {
 		let button = event.currentTarget;
 
 		event.stopPropagation()
-		const fileName = button.dataset.fileName
+		const serverName = button.dataset.serverName
 
-		this.#serversExplorer.svConnect(fileName)
+		this.#serversExplorer.svConnect(serverName)
 	}
 
 	svBackdoorOnClick(event) {
 		let button = event.currentTarget;
 
 		event.stopPropagation()
-		const fileName = button.dataset.fileName
+		const serverName = button.dataset.serverName
 
-		this.#serversExplorer.svBackdoor(fileName)
+		this.#serversExplorer.svBackdoor(serverName)
 
 	}
 
@@ -205,9 +204,9 @@ class ServersExplorerRenderer extends EventListener {
 		let button = event.currentTarget;
 
 		event.stopPropagation()
-		const fileName = button.dataset.fileName
+		const serverName = button.dataset.serverName
 
-		this.#serversExplorer.svHack(fileName)
+		this.#serversExplorer.svHack(serverName)
 	}
 
 	hide() {
@@ -276,17 +275,17 @@ class ServersExplorerRenderer extends EventListener {
 		return `
 			<li class="server-list__item">
 			<div class="server-list__item-title">
-				<button class="server-run__backdoor" style="color:${backdoorStatus}" data-file-name="${name}">
+				<button class="server-run__backdoor" style="color:${backdoorStatus}" data-server-name="${name}">
 					${server_icons[backdoorSVG]}
 				</button>
-				<button class="server-run__scripts" data-file-name="${name}">
+				<button class="server-run__scripts" data-server-name="${name}">
 					${server_icons['ihack']}
 				</button>
-				<button class="server-run__status" style="color:${rootStatus}" data-file-name="${name}">
+				<button class="server-run__status" style="color:${rootStatus}" data-server-name="${name}">
 					${server_icons[statusSVG]}
 				</button>
 			</div>
-			<button class="${systemColor}" data-file-name="${name}" data-file-type="${type}">
+			<button class="${systemColor}" data-server-name="${name}" data-server-type="${type}">
 					${server_icons[type]}
 				<div class="server-list__label">${name}</div>
 				</button>

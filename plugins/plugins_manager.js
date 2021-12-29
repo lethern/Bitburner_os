@@ -3,6 +3,10 @@ import { WindowWidget } from '/os/window_widget.js'
 import { OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.js'
 import { Logger } from '/os/logger.js'
 
+/** @typedef {{path: string, pluginDir: string, pluginFile: string, pluginExtension: string}} PluginLsFile  */
+/** @typedef {{result?: any, error?: any, time_diff?: number}} PluginExecution */
+/** @typedef {{script?: string, configFile?, error, config?, executions: PluginExecution[]}} PluginData  */
+
 export class PluginsManager {
 	/** @param {import('/os/os.js').OS} os */
 	constructor(os) {
@@ -20,6 +24,8 @@ export class PluginsManager {
 	#windowWidget
 	#rendered = false
 	#log
+	/** @type {Object.<string, PluginData>}  */
+	#pluginsMap
 
 	#init() {
 		this.#injectMenuButton();
@@ -29,6 +35,7 @@ export class PluginsManager {
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<div class="plugins-list" />';
 		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
+		this.#windowWidget.getContentDiv().classList.add('grayBackground')
 		//this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.#onDebugMenuClick.bind(this) })
 	}
 
@@ -54,59 +61,156 @@ export class PluginsManager {
 		this.#render();
 	}
 
-	#render() {
+	/** @returns {Promise<PluginLsFile[]>} */
+	async #scanForPlugins() {
+		// only stuff that is in subfolders of folder /os/plugins/. Also we don't care for initial /
+		return (await this.#os.getNS(ns => {
+				return ns.ls('home');
+			})).map(file => file.match(/^\/{0,1}os\/plugins\/(.+)\/(.*)\.(.*)/))
+			.filter(res => res)
+			.map(res => ({
+				path: res[0],
+				pluginDir: res[1],
+				pluginFile: res[2] + '.' + res[3],
+				pluginExtension: res[3]
+			}))
+	}
+	
+	async #getPluginsData() {
+		if (this.#pluginsMap) return;
+
+		/** @type { Object.<string, PluginData>} */
+		let pluginsMap = {};
+		let plugins = await this.#scanForPlugins();
+
+		plugins.forEach(p => {
+			let obj = pluginsMap[p.pluginDir];
+			if (!obj) pluginsMap[p.pluginDir] = obj = { error: [], executions: [] };
+
+			if (p.pluginExtension == 'txt') {
+				if (!obj.configFile) {
+					this.#log.debug(`Plugin ${p.pluginDir}: config found ${p.path}`);
+					obj.configFile = p.path;
+				} else {
+					this.#log.warn(`Plugin ${p.pluginDir}: Multiple config files ${p.path}`);
+					obj.error.push('Multiple config files')
+				}
+			}
+			if (p.pluginExtension == 'js' || p.pluginExtension == 'ns') {
+				if (!obj.script) {
+					this.#log.debug(`Plugin ${p.pluginDir}: script found ${p.path}`);
+					obj.script = p.path;
+				} else {
+					this.#log.warn(`Plugin ${p.pluginDir}: Multiple script files ${p.path}`);
+					obj.error.push('Multiple script files')
+				}
+			}
+		});
+
+		let configs = Object.entries(pluginsMap)
+			.filter(([name, { configFile, error }]) => !error.length && configFile)
+			.map(([name, { configFile }]) => ([name, configFile]));
+
+		let jsons = await this.#os.getNS(ns => {
+			return configs
+				.filter(([name, configFile]) => configFile && ns.fileExists(configFile))
+				.map(([name, configFile]) =>
+					({ name, configJSON: ns.read(configFile) }))
+		});
+		jsons.forEach(({ name, configJSON }) => {
+			let obj = pluginsMap[name];
+			try {
+				obj.config = JSON.parse(configJSON);
+				if (!obj.config.id) obj.error.push('Config missing id');
+				if (!obj.script) obj.error.push('Script file missing');
+			} catch (e) {
+				this.#log.error('Error parsing JSON for file ', name, e.message);
+				obj.error.push('Error parsing config');
+			}
+		})
+
+		this.#pluginsMap = pluginsMap;
+	}
+
+	async #render() {
 		this.#windowWidget.setTitle('Plugins Manager')
 
 		let windowDiv = this.#windowWidget.getContainer()
-
-		let plugins = ["test", "test2"];
-
 		const fileList = windowDiv.querySelector('.plugins-list')
 
-		fileList.innerHTML = plugins.map(plugin => {
-			// <button class="file-list__button" data-file-name="${name}" data-file-type="${type}">
-			return `
-<div class="plugins-list__row">
-	<div><button class="plugins-list__button" data-plugin-name="${plugin}"/></div>
-	<div>${plugin}</div>
-</div>
-`
-		}).join('');
+		await this.#getPluginsData();
+
+		fileList.innerHTML = Object.entries(this.#pluginsMap)
+			//.filter( ( [name, { configFile, error }] ) => !error && configFile)
+			.map(([name, { config, error }]) => {
+				if (!config) error.push('Missing config');
+				let btn_name = error.length ? '' : 'Run';
+				let id = (config || {}).id || name;
+				let error_msg = error.join(' ');
+				return `
+				<div class="plugins-list__row ${(error.length) ? 'plugin-error' : ''}">
+					<div>`
+						+ (btn_name ? `<button class="plugins-list__button" data-plugin-name="${name}" >${btn_name}</button>` : '') +`
+					</div >
+					<div>${id}</div>
+					<div>${error_msg ? error_msg : (config.description || '')}</div>
+				</div>
+				`
+			}).join('');
 
 		// Add btn listeners
-		Array.from(windowDiv.querySelectorAll('.plugins-list__button')).forEach((button) => {
-			button.addEventListener('click', () => this.#pluginInstallOnClick)
+		Array.from(fileList.querySelectorAll('.plugins-list__button')).forEach((button) => {
+			button.addEventListener('click', (event) => this.#onClickPluginRun(event))
 		});
 	}
 
 
-	#pluginInstallOnClick(event) {
+	#onClickPluginRun(event) {
 		let button = event.currentTarget;
-
 		event.stopPropagation()
-		const pluginName = button.dataset.pluginName
 
+		const pluginName = button.dataset.pluginName
+		this.#log.debug(`Running ${pluginName}`);
+
+		/* we can ignore async */
+		this.#runPlugin(pluginName);
 	}
 
+	async #runPlugin(pluginName) {
+		let obj = this.#pluginsMap[pluginName];
+		if (!obj) return;
+
+		
+		let res = await runPlugin(this.#os, obj.script)
+		obj.executions.push(res);
+		this.#log.debug(JSON.stringify(res));
+	}
 
 	#on_exit() {
 	}
 }
 
 const plugins_manager_css = `
+.grayBackground{
+	background: #dadada;
+}
 .plugins-list {
-	align-content: flex-start;
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	list-style: none;
 	margin: 0;
-	padding: 0;
+	padding: 1px;
+	width: 100%;
 }
 .plugins-list__row{
+	padding: 0px 2px 3px;
+	margin 3px 0;
+}
+.plugins-list__row:nth-child(2n+1){
+	background: #ececec;
+}
+.plugin-error{
+	background: #cccccc;
 }
 
-plugins-list__button{
+.plugins-list__button{
 	border-left: 1px solid white;
 	border-top: 1px solid white;
 	border-right: 1px solid rgb(128,128,128);
@@ -115,14 +219,27 @@ plugins-list__button{
 	margin: 0;
 	padding: 1px 2px;
 }
+.plugins-list__button:active {
+	border-left: 2px solid rgb(128,128,128);
+	border-top: 1px solid rgb(128,128,128);
+	border-right: 1px solid white;
+	border-bottom: 1px solid white;
+}
 .plugins-list__row div{
 	display: inline-block;
+	vertical-align: middle;
 }
-.plugins-list__row div:nth-child(1){
-	width: 100px;
+.plugins-list__row div:nth-child(1){ /*btn*/
+	width: 45px;
 }
-.plugins-list__row div:nth-child(1){
-	width: (100%-100px);
+.plugins-list__row div:nth-child(2){ /*id*/
+	width: 130px;
+}
+.plugins-list__row div:nth-child(3){ /*message/error*/
+	width: 700px;
+}
+.plugins-list__row.plugin-error div:nth-child(3){ /*error*/
+	color: #a90000;
 }
 
 `;

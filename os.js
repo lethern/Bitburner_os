@@ -97,13 +97,18 @@ export class OS extends EventListener {
 				break;
 			}
 
-			q.forEach(({ func, def }) => {
-				let res = func(ns);
-				if (res instanceof Promise)
-					def && def.reject('Cannot use async callback with getNS');
-				else
-					def && def.resolve(res);
-			});
+			for (let { func, def } of q) {
+				let res = await func(ns);
+				def && def.resolve(res);
+			}
+//			q.forEach(({ func, def }) => {
+//				let res = await func(ns);
+//				def && def.resolve(res);
+//				//if (res instanceof Promise)
+//				//	def && def.reject('Cannot use async callback with getNS');
+//				//else
+//				//	def && def.resolve(res);
+//			});
 		}
 	}
 

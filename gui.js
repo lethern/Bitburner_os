@@ -82,6 +82,8 @@ export class GUI {
 	}
 
 	#injectStartBtn() {
+		return;
+		/*
 		// make sure that our text (that is wider than menu) is visible outside Menu div
 		let menu = this.#doc.querySelectorAll('.MuiDrawer-paperAnchorLeft')
 		if (!menu) {
@@ -124,6 +126,7 @@ export class GUI {
 		btn.addEventListener('click', btn._gui_listener)
 
 		this.#buttons.push({ btn });
+		*/
 	}
 
 	#injectDefaultCSS() {

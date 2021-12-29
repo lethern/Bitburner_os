@@ -177,7 +177,6 @@ export const WINDOW_WIDGET_CSS = `
 	border-top: none;
 	display: flex;
 	flex: 0 1 100%;
-	padding: 6px;
 	width: 100%;
 	overflow-x: auto;
 }

@@ -9,7 +9,7 @@ export async function runPlugin(os, filepath) {
 			return ns.read(filepath)
 		})
 
-		js = js.replace(/^(\s)*export /g, '\n')
+		js = js.replace(/(^|\n)(\s*)export /g, '\n')
 
 		let adapter = new API_Adapter(os, filepath);
 		let API = adapter.getAPI_Object();
@@ -29,6 +29,6 @@ export async function runPlugin(os, filepath) {
 		let end_time = performance.now();
 		return { result, time_diff: (end_time - start_time) };
 	} catch (e) {
-		return { error: e }
+		return { error: e.message }
 	}
 }

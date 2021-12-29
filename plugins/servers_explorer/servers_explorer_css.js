@@ -8,7 +8,7 @@ export const servers_explorer_css = `
 	margin: 0;
 	height: 40em;
 	width: 100em;
-	padding: 0;
+	padding: 6px;
 }
 .server-list__item {
 	margin-bottom: 8px;

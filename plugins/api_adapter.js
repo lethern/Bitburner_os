@@ -19,9 +19,9 @@ export class API_Adapter {
 	#getOS_API() {
 		return {
 			/** @param {(NS) => void} func @returns Promise */
-			getNS: (func) => {
-				this.#log.debug("API.getNS for "+this.#pluginName)
-				this.#os.getNS(func)
+			getNS: async (func) => {
+				this.#log.debug("API.getNS for " + this.#pluginName);
+				return this.#os.getNS(func);
 			},
 
 			/** @param {(NS) => void} func */
@@ -32,8 +32,10 @@ export class API_Adapter {
 	}
 
 	#getClassesAPI() {
-		/** @param {object} parent @param {import('/os/os.js').OS} os @param {string} [id]  */
-		WindowWidget: (parent, id) => { return new WindowWidget(parent, this.#os, id) }
+		return {
+			/** @param {object} parent @param {import('/os/os.js').OS} os @param {string} [id]  */
+			newWindowWidget: (parent) => { return new WindowWidget(parent, this.#os) }
+		}
 	}
 
 	#os
