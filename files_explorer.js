@@ -187,7 +187,7 @@ class FilesExplorerRenderer extends EventListener {
 
 		// Add icon event listeners
 		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
-			button.addEventListener('dblclick', ()=> this.#fileListedOnClick)
+			button.addEventListener('dblclick', (event)=> this.#fileListedOnClick(event))
 		});
 	}
 
