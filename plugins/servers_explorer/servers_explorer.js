@@ -78,7 +78,7 @@ export class ServersExplorer {
 
 		return await this.#os.getNS(ns => {
 			return servers
-				.map(({ name })=>name)
+				.map(({ name }) => name)
 				.filter(ns.serverExists)
 				.sort()
 				.map(ns.getServer)
@@ -103,7 +103,7 @@ export class ServersExplorer {
 			return result;
 			*/
 		})
-		
+
 	}
 
 	// private
@@ -141,11 +141,11 @@ class ServersExplorerRenderer extends EventListener {
 
 		this.#log = new Logger(this, os.logRenderer);
 		this.eventListener_initLog(this.#log);
-		
+
 		this.#windowWidget = new WindowWidget(this, os);
 		this.#windowWidget.listen(WindowWidget_EVENT.SHOW, () => this.#onShow());
 
-		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit());
+		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 		this.#os.listen(OS_EVENT.INIT, () => this.#init());
 	}
 
@@ -160,7 +160,7 @@ class ServersExplorerRenderer extends EventListener {
 		let windowDiv = this.#windowWidget.getContainer()
 
 		const fileList = windowDiv.querySelector('.server-list')
-		fileList.innerHTML = serverObjs.map(({name, rooty, backy}) => this.#renderIcon(name, rooty, backy)).join('');
+		fileList.innerHTML = serverObjs.map(({ name, rooty, backy }) => this.#renderIcon(name, rooty, backy)).join('');
 
 		Array.from(windowDiv.querySelectorAll('.server-connect__button')).forEach((button) => {
 			button.addEventListener('dblclick', this.svConnectOnClick.bind(this))
