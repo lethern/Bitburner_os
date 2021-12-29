@@ -16,10 +16,14 @@ export class DebugConsoleRender {
 
 	write(severity, className, args) {
 		let log = this.#storeLog(severity, className, '' + args);
+
+		let text = '[' + log.severity.toUpperCase() + '] ' + (log.className ? log.className + ': ' : '') + log.text;
+		console.log(text);
+
 		if (!this.#visible) {
 			return;
 		}
-		this.#renderLog(log);
+		this.#renderLog(text, log.severity);
 	}
 
 	showWindow() {
@@ -35,15 +39,13 @@ export class DebugConsoleRender {
 
 	// private
 
-	#renderLog(log) {
+	#renderLog(text, severity) {
 		if (!this.#rendered) return;
-
-		let text = '[' + log.severity.toUpperCase() + '] ' + (log.className ? log.className + ': ' : '') + log.text;
 
 		let elem = this.#doc.createElement('div');
 		elem.textContent = text
 
-		let css = this.#severityToCss(log.severity);
+		let css = this.#severityToCss(severity);
 		if (css) { elem.classList.add(css); }
 
 		this.#windowWidget.getContentDiv().appendChild(elem);

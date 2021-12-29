@@ -36,21 +36,21 @@ export class WindowWidget extends EventListener {
 	}
 
 	windowVisibilityToggle() {
-		this.windowVisibility(!this.isVisible);
+		this.windowVisibility(!this.#isVisible);
 	}
 
 	windowVisibility(visible) {
-		if (visible != this.isVisible) {
-			this.isVisible = visible;
+		if (visible != this.#isVisible) {
+			this.#isVisible = visible;
 
-			if (!this.container) return;
+			if (!this.#container) return;
 
-			if (this.isVisible) {
-				this.container.style.display = ''
+			if (this.#isVisible) {
+				this.#container.style.display = ''
 				this.#initialiseWindowPosition()
 				this.fire(WindowWidget_EVENT.SHOW);
 			} else {
-				this.container.style.display = 'none'
+				this.#container.style.display = 'none'
 				this.fire(WindowWidget_EVENT.HIDE);
 			}
 		}
@@ -67,15 +67,15 @@ export class WindowWidget extends EventListener {
 	}
 
 	setTitle(title) {
-		this.container.querySelector('.window__title').textContent = title
+		this.#container.querySelector('.window__title').textContent = title
 	}
 
 	getContentDiv() {
-		return this.contentWindow
+		return this.#contentWindow
 	}
 
 	getContainer() {
-		return this.container
+		return this.#container
 	}
 
 
@@ -87,6 +87,10 @@ export class WindowWidget extends EventListener {
 	#menuItems
 	#os
 	#log
+	#container
+	#contentWindow
+	#explorerWindow
+	#isVisible
 
 	#left
 	#top
@@ -102,11 +106,11 @@ export class WindowWidget extends EventListener {
 
 
 	#initialiseWindow(id) {
-		this.container = this.#createWindow(id)
+		this.#container = this.#createWindow(id)
 		/** @type {HTMLElement} */
-		this.explorerWindow = this.container.querySelector('.window')
+		this.#explorerWindow = this.#container.querySelector('.window')
 		/** @type {HTMLElement} */
-		this.contentWindow = this.container.querySelector('.window__content')
+		this.#contentWindow = this.#container.querySelector('.window__content')
 	}
 
 	#createWindow(id) {
@@ -170,10 +174,14 @@ export class WindowWidget extends EventListener {
 			this.fire(WindowWidget_EVENT.CLOSE);
 		})
 		element.querySelector('.window__toolbar').addEventListener('mousedown', this.#boundBeginGrabbing)
+		element.querySelector('.window__toolbar').addEventListener('mousedown', () => {
+			WindowWidget.stealFocusHandler()
+			this.#explorerWindow.classList.add(DOM_CONSTANTS.windowFocusedClass)
+		})
 		element.querySelector('.window').addEventListener('click', (e) => {
 			e.stopPropagation()
 			WindowWidget.stealFocusHandler()
-			this.explorerWindow.classList.add(DOM_CONSTANTS.windowFocusedClass)
+			this.#explorerWindow.classList.add(DOM_CONSTANTS.windowFocusedClass)
 		})
 
 		if (!globalThis.hasBoundWindowFocusListener) {
@@ -200,28 +208,28 @@ export class WindowWidget extends EventListener {
 	}
 
 	#initialiseWindowPosition() {
-		this.container.classList.add(DOM_CONSTANTS.hiddenClass)
+		this.#container.classList.add(DOM_CONSTANTS.hiddenClass)
 
 		setTimeout(() => {
-			this.#left = globalThis.innerWidth / 2 - this.explorerWindow.offsetWidth / 2
-			this.#top = globalThis.innerHeight / 2 - this.explorerWindow.offsetHeight / 2
+			this.#left = globalThis.innerWidth / 2 - this.#explorerWindow.offsetWidth / 2
+			this.#top = globalThis.innerHeight / 2 - this.#explorerWindow.offsetHeight / 2
 
 			this.#updateWindowPosition()
 
-			this.container.classList.remove(DOM_CONSTANTS.hiddenClass)
+			this.#container.classList.remove(DOM_CONSTANTS.hiddenClass)
 		}, 50)
 	}
 
 	#updateWindowPosition() {
-		this.explorerWindow.style.transform = `translate(${this.#left}px, ${this.#top}px)`
+		this.#explorerWindow.style.transform = `translate(${this.#left}px, ${this.#top}px)`
 	}
 
 	#beginGrabbing({ x, y, button }) {
 		if (!button) {
 			const win = globalThis['window']
 			this.#grabStart = { x, y }
-			this.#elementWidth = this.explorerWindow.offsetWidth
-			this.#elementHeight = this.explorerWindow.offsetHeight
+			this.#elementWidth = this.#explorerWindow.offsetWidth
+			this.#elementHeight = this.#explorerWindow.offsetHeight
 			this.#modalStart = { x: this.#left, y: this.#top }
 			this.#windowWidth = win.innerWidth
 			this.#windowHeight = win.innerHeight
@@ -281,9 +289,9 @@ export class WindowWidget extends EventListener {
 	}
 
 	#dispose() {
-		if (!this.container) return;
-		this.container.remove()
-		this.container = null;
+		if (!this.#container) return;
+		this.#container.remove()
+		this.#container = null;
 	}
 
 	static stealFocusHandler() {

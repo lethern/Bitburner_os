@@ -3,6 +3,7 @@ export class EventListener{
 	/** @param {object} [parent] - only in case this class was not derivered */
 	constructor(parent){
 		this.#parent = parent || this;
+		this.#parentName = this.#parent.constructor.name
 		this.#listeners = {};
 	}
 
@@ -14,7 +15,8 @@ export class EventListener{
 	}
 
 	listen(event, func){
-		if(!event) console.log('empty event for listen', func);
+		if (!event) console.log('empty event for listen', this.#parentName, func);
+		if (!func) console.log('empty func for listen', this.#parentName, event);
 		if(!this.#listeners[event]) this.#listeners[event] = [];
 		this.#listeners[event].push(func);
 	}
@@ -28,13 +30,14 @@ export class EventListener{
 			}
 			this.#listeners[event].forEach(listener => listener.call(this.#parent, ...args));
 		} catch (e) {
-			this.#log.error(`Event listener for ${this.#parent.constructor.name} - error for event ${event}`, e.message, e);
+			this.#log.error(`Event listener for ${this.#parentName} - error for event ${event}`, e.message, e);
 		}
 	}
 
 	// private fields, methods
 
 	#parent
+	#parentName
 	#listeners
 	/** @type {import('/os/logger').Logger} */
 	#log

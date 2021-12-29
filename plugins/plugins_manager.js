@@ -64,22 +64,32 @@ export class PluginsManager {
 		const fileList = windowDiv.querySelector('.plugins-list')
 
 		fileList.innerHTML = plugins.map(plugin => {
+			// <button class="file-list__button" data-file-name="${name}" data-file-type="${type}">
 			return `
-<div class=".plugins-list__row">
-	<div>
+<div class="plugins-list__row">
+	<div><button class="plugins-list__button" data-plugin-name="${plugin}"/></div>
 	<div>${plugin}</div>
 </div>
 `
 		}).join('');
 
 		// Add btn listeners
-		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
-			button.addEventListener('dblclick', () => this.fileListedOnClick)
+		Array.from(windowDiv.querySelectorAll('.plugins-list__button')).forEach((button) => {
+			button.addEventListener('click', () => this.#pluginInstallOnClick)
 		});
 	}
 
-	#on_exit() {
 
+	#pluginInstallOnClick(event) {
+		let button = event.currentTarget;
+
+		event.stopPropagation()
+		const pluginName = button.dataset.pluginName
+
+	}
+
+
+	#on_exit() {
 	}
 }
 
@@ -94,6 +104,16 @@ const plugins_manager_css = `
 	padding: 0;
 }
 .plugins-list__row{
+}
+
+plugins-list__button{
+	border-left: 1px solid white;
+	border-top: 1px solid white;
+	border-right: 1px solid rgb(128,128,128);
+	border-bottom: 1px solid rgb(128,128,128);
+	background: rgb(192, 192, 192);
+	margin: 0;
+	padding: 1px 2px;
 }
 .plugins-list__row div{
 	display: inline-block;
