@@ -35,8 +35,11 @@ export class ServersExplorer {
 		if (this.#isRendered) return;
 		this.#isRendered = true;
 
-		let serverObjs = await this.#getServers();
-		this.#winRenderer.renderServers(serverObjs);
+		while (true) {
+			let serverObjs = await this.#getServers();
+			this.#winRenderer.renderServers(serverObjs);
+			await Utils.sleep(5000);
+		}
 	}
 
 	async svConnect(svName) {
@@ -45,7 +48,7 @@ export class ServersExplorer {
 		await Utils.sleep(250);
 		command = 'run /os/plugins/servers_explorer/connect.js'
 		this.#os.terminal.inputToTerminal(`${command} ${svName}`);
-		this.#winRenderer.hide();
+		//this.#winRenderer.hide();
 	}
 
 	async svBackdoor(svName) {
@@ -57,7 +60,7 @@ export class ServersExplorer {
 		await Utils.sleep(250);
 		command = 'backdoor'
 		this.#os.terminal.inputToTerminal(`${command}`);
-		this.#winRenderer.hide();
+		//this.#winRenderer.hide();
 	}
 
 	async svHack(svName) {
@@ -67,9 +70,9 @@ export class ServersExplorer {
 		command = 'run /os/plugins/servers_explorer/connect.js '
 		this.#os.terminal.inputToTerminal(`${command}` + svName);
 		await Utils.sleep(250);
-		command = 'run NUKE.exe'
+		command = 'run BruteSSH.exe;run FTPCrack.exe;run HTTPWorm.exe;run SQLInject.exe;run relaySMTP.exe;run NUKE.exe'
 		this.#os.terminal.inputToTerminal(`${command}`);
-		this.#winRenderer.hide();
+		//this.#winRenderer.hide();
 	}
 
 	/** @returns {Promise<{name: string, rooty: boolean, backy: boolean}[]>} */
@@ -157,6 +160,12 @@ class ServersExplorerRenderer extends EventListener {
 	renderServers(serverObjs) {
 		this.#windowWidget.setTitle(this.title)
 		let windowDiv = this.#windowWidget.getContainer()
+		serverObjs.unshift({
+			name: 'home',
+			rooty: true,
+			backy: true,
+			svHackReq: 0
+		});
 
 		const serverList = windowDiv.querySelector('.server-list')
 		serverList.innerHTML = serverObjs.map(({ name, rooty, backy }) => this.#renderIcon(name, rooty, backy)).join('');
@@ -252,12 +261,13 @@ class ServersExplorerRenderer extends EventListener {
 		var systemColor = "server-connect__button";
 		let rootStatus = "red";
 		let backdoorStatus = "red";
-		let backdoorSVG = 'doorOpen';
-		let statusSVG = 'check';
+		let backdoorSVG = 'doorClosed';
+		let statusSVG = 'xmark';
+		let canHack = 'black';
 		if (facServers.includes(name)) {
 			type = 'firewall'
 			if (["CSEC", "avmnite-02h", "I.I.I.I", "run4theh111z"].includes(name)) systemColor += " gold";
-			if (name == "The-Cave") systemColor += " orange";
+			if (name == "The-Cave") systemColor += " darkorange";
 			if (name == "w0r1d_d43m0n") systemColor += " red";
 		}
 		if (name == "home") {
@@ -268,9 +278,11 @@ class ServersExplorerRenderer extends EventListener {
 		}
 		if (svhacked) {
 			rootStatus = "green";
+			statusSVG = 'check';
 		}
 		if (svbackdoored) {
 			backdoorStatus = "green";
+			backdoorSVG = 'doorOpen';
 		}
 		return `
 			<li class="server-list__item">
