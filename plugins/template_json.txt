@@ -1,7 +1,13 @@
 {
 	"id": "unique identifier",
-	"name": "Descriptive name",
+	"description": "Descriptive name",
+	"dependencies": [
+		"list of ids of other plugins or libraries"
+	],
+	"authors": [
+		"credits: list of authors"
+	],
 	"links": [
-		"collection of URLs",
+		"collection of related URLs",
 	]
 }

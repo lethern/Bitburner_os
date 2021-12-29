@@ -25,7 +25,6 @@ export class EventListener{
 		try {
 			if (!event) console.log('empty event for fire');
 			if (!this.#listeners[event]) {
-				if (this.#log) this.#log.warn('No listener for event ', event);
 				return;
 			}
 			this.#listeners[event].forEach(listener => listener.call(this.#parent, ...args));
