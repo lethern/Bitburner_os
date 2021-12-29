@@ -3,8 +3,13 @@
 	"filesToDownload": [
 		"constants.js", "logger.js", "event_listener.js", "files_explorer.js", "gui.js", 
 		"main.js", "os.js", "terminal.js", "utils.js", "servers_manager.js", "window_widget.js",
-		"lib/jit-yc.js", "plugins/servers_explorer/connect.js", "plugins/servers_explorer/servers_explorer.js",
+		"logger_render.js",
+
+		"lib/jit-yc.js", 
+
 		"plugins/plugins_manager.js", "plugins/plugins_utils.js", "plugins/api_adapter.js",
-		"logger_render.js"
+		
+		"plugins/servers_explorer/connect.js", "plugins/servers_explorer/servers_explorer.js",
+		"plugins/servers_explorer/server_explorer_css.js",
 	]
 }
