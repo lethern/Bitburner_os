@@ -261,7 +261,6 @@ class ServersExplorerRenderer extends EventListener {
 		var systemColor = "server-connect__button";
 		let rootStatus = "red";
 		let backdoorStatus = "red";
-		let statusSVG = 'check';
 		let backdoorSVG = 'doorClosed';
 		let statusSVG = 'xmark';
 		let canHack = 'black';
