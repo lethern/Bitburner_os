@@ -3,7 +3,7 @@ import { EventListener, OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.
 import { WindowWidget } from '/os/window_widget.js'
 import { Utils } from '/os/utils.js'
 import { Logger } from '/os/logger.js'
-import { servers_explorer_css, server_icons } from '/os/plugins/servers_explorer/server_explorer_css/js'
+import { servers_explorer_css, server_icons } from '/os/plugins/servers_explorer/servers_explorer_css.js'
 
 // |-----------------------------------------------------------------------|
 // |				servers_explorer.js
