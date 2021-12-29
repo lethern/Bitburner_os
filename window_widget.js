@@ -19,7 +19,7 @@ export class WindowWidget extends EventListener {
 		this.#log = new Logger(this, os.logRenderer);
 		this.eventListener_initLog(this.#log);
 
-		os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
+		os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 	}
 	
 	init() {
@@ -100,6 +100,15 @@ export class WindowWidget extends EventListener {
 	#boundEndGrabbing = this.#endGrabbing.bind(this)
 	#boundMouseMove = this.#mouseMove.bind(this)
 
+
+	#initialiseWindow(id) {
+		this.container = this.#createWindow(id)
+		/** @type {HTMLElement} */
+		this.explorerWindow = this.container.querySelector('.window')
+		/** @type {HTMLElement} */
+		this.contentWindow = this.container.querySelector('.window__content')
+	}
+
 	#createWindow(id) {
 		const element = this.#createBodyDiv();
 		if(id) element.id = id
@@ -151,48 +160,6 @@ export class WindowWidget extends EventListener {
 		return div;
 	}
 
-	#renderMenu(parentDiv) {
-		this.menuDiv = parentDiv.querySelector('.window__menu')
-
-		for (let item of this.#menuItems) {
-			this.#renderMenuItem(item);
-		}
-	}
-
-	#renderMenuItem(menuItem) {
-		let { label, callback } = menuItem;
-		let div = this.#doc.createElement('span');
-		menuItem.div = div;
-		div.textContent = label
-		div.addEventListener('click', callback);
-		this.menuDiv.appendChild(div)
-	}
-
-	#initialiseWindow(id) {
-		this.container = this.#createWindow(id)
-		/** @type {HTMLElement} */
-		this.explorerWindow = this.container.querySelector('.window')
-		/** @type {HTMLElement} */
-		this.contentWindow = this.container.querySelector('.window__content')
-	}
-
-	#initialiseWindowPosition() {
-		this.container.classList.add(DOM_CONSTANTS.hiddenClass)
-
-		setTimeout(() => {
-			this.#left = globalThis.innerWidth / 2 - this.explorerWindow.offsetWidth / 2
-			this.#top = globalThis.innerHeight / 2 - this.explorerWindow.offsetHeight / 2
-
-			this.#updateWindowPosition()
-
-			this.container.classList.remove(DOM_CONSTANTS.hiddenClass)
-		}, 50)
-	}
-
-	#updateWindowPosition() {
-		this.explorerWindow.style.transform = `translate(${this.#left}px, ${this.#top}px)`
-	}
-
 	/** @param {HTMLElement} element */
 	#addWindowEventListeners(element) {
 		element.querySelector('.window__cta-minimise').addEventListener('click', () => {
@@ -213,6 +180,40 @@ export class WindowWidget extends EventListener {
 			globalThis.hasBoundWindowFocusListener = true
 			this.#doc.body.addEventListener('click', WindowWidget.stealFocusHandler)
 		}
+	}
+
+	#renderMenu(parentDiv) {
+		this.menuDiv = parentDiv.querySelector('.window__menu')
+
+		for (let item of this.#menuItems) {
+			this.#renderMenuItem(item);
+		}
+	}
+
+	#renderMenuItem(menuItem) {
+		let { label, callback } = menuItem;
+		let div = this.#doc.createElement('span');
+		menuItem.div = div;
+		div.textContent = label
+		div.addEventListener('click', callback);
+		this.menuDiv.appendChild(div)
+	}
+
+	#initialiseWindowPosition() {
+		this.container.classList.add(DOM_CONSTANTS.hiddenClass)
+
+		setTimeout(() => {
+			this.#left = globalThis.innerWidth / 2 - this.explorerWindow.offsetWidth / 2
+			this.#top = globalThis.innerHeight / 2 - this.explorerWindow.offsetHeight / 2
+
+			this.#updateWindowPosition()
+
+			this.container.classList.remove(DOM_CONSTANTS.hiddenClass)
+		}, 50)
+	}
+
+	#updateWindowPosition() {
+		this.explorerWindow.style.transform = `translate(${this.#left}px, ${this.#top}px)`
 	}
 
 	#beginGrabbing({ x, y, button }) {

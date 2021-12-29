@@ -6,7 +6,7 @@ export class EventListener{
 		this.#log = log;
 	}
 
-	/** @param {import('/os/debug').Logger} log */
+	/** @param {import('/os/logger').Logger} log */
 	eventListener_initLog(log) {
 		this.#log = log;
 	}
@@ -17,20 +17,24 @@ export class EventListener{
 		this.#listeners[event].push(func);
 	}
 
-	fire(event, ...args){
-		if(!event) console.log('empty event for fire');
-		if(!this.#listeners[event]){
-			if (this.#log) this.#log.warn('No listener for event ', event);
-			return;
+	fire(event, ...args) {
+		try {
+			if (!event) console.log('empty event for fire');
+			if (!this.#listeners[event]) {
+				if (this.#log) this.#log.warn('No listener for event ', event);
+				return;
+			}
+			this.#listeners[event].forEach(listener => listener.call(this.#parent, ...args));
+		} catch (e) {
+			this.#log.error(`Event listener for ${this.#parent.constructor.name} - error for event ${event}`, e.message, e);
 		}
-		this.#listeners[event].forEach(listener => listener.call(this.#parent, ...args));
 	}
 
 	// private fields, methods
 
 	#parent
 	#listeners
-	/** @type {import('/os/debug').Logger} */
+	/** @type {import('/os/logger').Logger} */
 	#log
 }
 

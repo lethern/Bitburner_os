@@ -30,11 +30,12 @@ export class ServersExplorer {
 		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 	}
 
-	render() {
+	async render() {
 		if (this.#isRendered) return;
 		this.#isRendered = true;
 
-		this.#winRenderer.renderServers();
+		let serverObjs = await this.#getServers();
+		this.#winRenderer.renderServers(serverObjs);
 	}
 
 	async svConnect(svName) {
@@ -70,6 +71,39 @@ export class ServersExplorer {
 		this.#winRenderer.hide();
 	}
 
+	/** @returns {Promise<{name: string, rooty: boolean, backy: boolean}[]>} */
+	async #getServers() {
+		let servers = this.#os.serversManager.allServers
+
+		return await this.#os.getNS(ns => {
+			return servers
+				.map(({ name })=>name)
+				.filter(ns.serverExists)
+				.sort()
+				.map(ns.getServer)
+				.map(serverObj => ({
+					name: serverObj.hostname,
+					rooty: serverObj.hasAdminRights,
+					backy: serverObj.backdoorInstalled,
+				}))
+			/*
+			let result = [];
+			for (let server of servers) {
+				let name = server.name;
+				if (!ns.serverExists(name)) continue;
+				let serverObj = ns.getServer(name);
+
+				result.push({
+					name: name,
+					rooty: serverObj.hasAdminRights,
+					backy: serverObj.backdoorInstalled,
+				});
+			}
+			return result;
+			*/
+		})
+		
+	}
 
 	// private
 
@@ -119,47 +153,13 @@ class ServersExplorerRenderer extends EventListener {
 		return `Network Explorer`
 	}
 
-	async #getServers() {
-		let servers = this.#os.serversManager.allServers
-
-		return await this.#os.getNS(ns => {
-			return servers
-				.map(({ name })=>name)
-				.filter(ns.serverExists)
-				.sort()
-				.map(ns.getServer)
-				.map(serverObj => ({
-					name: serverObj.hostname,
-					rooty: serverObj.hasAdminRights,
-					backy: serverObj.backdoorInstalled,
-				}))
-			/*
-			let result = [];
-			for (let server of servers) {
-				let name = server.name;
-				if (!ns.serverExists(name)) continue;
-				let serverObj = ns.getServer(name);
-
-				result.push({
-					name: name,
-					rooty: serverObj.hasAdminRights,
-					backy: serverObj.backdoorInstalled,
-				});
-			}
-			return result;
-			*/
-		})
-		
-	}
-
-	async renderServers() {
+	/** @param {{name: string, rooty: boolean, backy: boolean}[]} serverObjs */
+	renderServers(serverObjs) {
 		this.#windowWidget.setTitle(this.title)
 		let windowDiv = this.#windowWidget.getContainer()
 
-		let serversData = await this.#getServers();
-
 		const fileList = windowDiv.querySelector('.server-list')
-		fileList.innerHTML = serversData.map(({name, rooty, backy}) => this.#renderIcon(name, rooty, backy)).join('');
+		fileList.innerHTML = serverObjs.map(({name, rooty, backy}) => this.#renderIcon(name, rooty, backy)).join('');
 
 		Array.from(windowDiv.querySelectorAll('.server-connect__button')).forEach((button) => {
 			button.addEventListener('dblclick', this.svConnectOnClick.bind(this))
@@ -172,14 +172,14 @@ class ServersExplorerRenderer extends EventListener {
 		});
 	}
 
-
+	/*
 	async rootCheck(svName) {
 		var checkRoot = await this.#os.getNS((ns) => {
 				return ns.hasRootAccess(svName)
 			});
 		return checkRoot;
 	}
-
+	*/
 
 	svConnectOnClick(event) {
 		let button = event.currentTarget;
@@ -234,6 +234,7 @@ class ServersExplorerRenderer extends EventListener {
 	}
 
 	#onShow() {
+		// We allow no-await on async
 		this.#serversExplorer.render();
 	}
 
