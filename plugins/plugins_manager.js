@@ -71,7 +71,7 @@ export class PluginsManager {
 			.map(res => ({
 				path: res[0],
 				pluginDir: res[1],
-				pluginFile: res[2] + '.' + res[3],
+				pluginFile: res[2],
 				pluginExtension: res[3]
 			}))
 	}
@@ -97,12 +97,9 @@ export class PluginsManager {
 				}
 			}
 			if (p.pluginExtension == 'js' || p.pluginExtension == 'ns') {
-				if (!obj.script) {
+				if (p.pluginFile == p.pluginDir) {
 					this.#log.debug(`Plugin ${p.pluginDir}: script found ${p.path}`);
 					obj.script = p.path;
-				} else {
-					this.#log.warn(`Plugin ${p.pluginDir}: Multiple script files ${p.path}`);
-					obj.error.push('Multiple script files')
 				}
 			}
 		});
@@ -180,8 +177,9 @@ export class PluginsManager {
 		let obj = this.#pluginsMap[pluginName];
 		if (!obj) return;
 
-		
-		let res = await runPlugin(this.#os, obj.script)
+		let imports_path = '/os/includes/' + pluginName;
+
+		let res = await runPlugin(this.#os, obj.script, imports_path)
 		obj.executions.push(res);
 		this.#log.debug(JSON.stringify(res));
 	}

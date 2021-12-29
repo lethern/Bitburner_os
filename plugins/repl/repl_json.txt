@@ -1,0 +1,9 @@
+{
+	"id": "repl",
+	"description": "Allows to execute one-liner Javascript code within game, with access to game methods",
+	"links": [
+		"https://github.com/Redmega/bitburner-scripts"
+	],
+	"dependencies": [
+	]
+}
