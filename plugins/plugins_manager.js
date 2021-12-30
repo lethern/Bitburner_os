@@ -177,7 +177,7 @@ export class PluginsManager {
 		let obj = this.#pluginsMap[pluginName];
 		if (!obj) return;
 
-		let imports_path = '/os/includes/' + pluginName;
+		let imports_path = '/os/plugins/' + pluginName;
 
 		let res = await runPlugin(this.#os, obj.script, imports_path)
 		obj.executions.push(res);
@@ -205,7 +205,7 @@ const plugins_manager_css = `
 	background: #ececec;
 }
 .plugin-error{
-	background: #cccccc;
+	background: #cccccc !important;
 }
 
 .plugins-list__button{

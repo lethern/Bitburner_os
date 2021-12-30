@@ -34,8 +34,9 @@ export async function runPlugin(os, filepath, imports_path) {
 						let res = path.match(/^[a-zA-Z0-9_\/\-]*(^|\/)(?<file>[a-zA-Z0-9_\.\-]+)$/)
 						if (!res) return;
 						let file = imports_path+'/'+res.groups.file;
-						console.log("Reading ", file, path)
+
 						let import_js = ns.read(file)
+						console.log(`Read ${file}, length: ${import_js.length}, original name: ${path}`)
 						filesToCheck.push(import_js);
 					});
 

@@ -1,0 +1,6 @@
+{
+	"id": "Ralic_test",
+	"description": "A proof of concept",
+	"dependencies": [
+	]
+}
