@@ -98,17 +98,13 @@ export class OS extends EventListener {
 			}
 
 			for (let { func, def } of q) {
-				let res = await func(ns);
-				def && def.resolve(res);
+				try {
+					let res = await func(ns);
+					def && def.resolve(res);
+				} catch (e) {
+					def && def.reject(e);
+				}
 			}
-//			q.forEach(({ func, def }) => {
-//				let res = await func(ns);
-//				def && def.resolve(res);
-//				//if (res instanceof Promise)
-//				//	def && def.reject('Cannot use async callback with getNS');
-//				//else
-//				//	def && def.resolve(res);
-//			});
 		}
 	}
 
