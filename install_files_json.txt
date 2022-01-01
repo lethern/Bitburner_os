@@ -1,34 +1,34 @@
 {
 	"welcomeLabel": "HackaOS :: Install",
 	"filesToDownload": [
-		"constants.js",
-		"logger.js",
-		"event_listener.js",
-		"gui.js", 
-		"main.js",
-		"os.js",
-		"terminal.js",
-		"utils.js",
-		"window_widget.js",
-		"app/files_explorer.js",
-		"app/servers_manager.js",
-		"app/logger_render.js",
+		"os/constants.js",
+		"os/logger.js",
+		"os/event_listener.js",
+		"os/gui.js", 
+		"os/main.js",
+		"os/os.js",
+		"os/terminal.js",
+		"os/utils.js",
+		"os/window_widget.js",
+		"os/app/files_explorer.js",
+		"os/app/servers_manager.js",
+		"os/app/logger_render.js",
 
-		"app/servers_explorer/connect.js",
-		"app/servers_explorer/servers_explorer.js",
-		"app/servers_explorer/servers_explorer_css.js",
+		"os/app/servers_explorer/connect.js",
+		"os/app/servers_explorer/servers_explorer.js",
+		"os/app/servers_explorer/servers_explorer_css.js",
 
-		"plugins/plugins_manager.js",
-		"plugins/plugins_utils.js",
-		"plugins/api_adapter.js",
-		
-		"plugins/repl/repl.js",
-		"plugins/repl/repl_json.txt",
-		
-		"plugins/rgraph/rgraph.js",
-		"plugins/rgraph/rgraph_json.txt",
-		"plugins/rgraph/jit-yc.js",
-		
-		"plugins/process-list/process-list.js"
+		"os/plugins/plugins_manager.js",
+		"os/plugins/plugins_utils.js",
+		"os/plugins/api_adapter.js",
+
+		"os/plugins/repl/repl.js",
+		"os/plugins/repl/repl_json.txt",
+
+		"os/plugins/rgraph/rgraph.js",
+		"os/plugins/rgraph/rgraph_json.txt",
+		"os/plugins/rgraph/jit-yc.js",
+
+		"os/plugins/process-list/process-list.js"
 	]
 }

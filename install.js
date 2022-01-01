@@ -13,6 +13,8 @@ export async function main(ns) {
 		throw 'Run the script from home'
 	}
 
+	await clean(ns, filesToDownload);
+
 	let count = 0;
 	for (let filename of filesToDownload) {
 		const path = baseUrl + filename
@@ -36,6 +38,26 @@ export async function main(ns) {
 	terminalCommand('alias -g bootOS="run /os/main.js"')
 
 	ns.tprintf("Install complete! To start, type: bootOS")
+}
+
+async function clean(ns, filesToDownload) {
+	let filesRaw = filesToDownload.map(file => file.substr(file.lastIndexOf('/') + 1))
+	let allFiles = ns.ls("home");
+	let toDelete = [];
+	allFiles.forEach(file => {
+		if (file.startsWith('/os/') || file.startsWith('os/')){
+			let file_raw = file.substr(file.lastIndexOf('/') + 1);
+			if (filesRaw.includes(file_raw) && !filesToDownload.includes(file)) {
+				toDelete.push(file);
+			}
+		}
+	})
+
+	if (toDelete.length) {
+		if (await ns.prompt("Files have moved. Installer will clean old files. Confirm? [recommended] " + toDelete.join(", "))) {
+			toDelete.forEach(file => ns.rm(file));
+		}
+	}
 }
 
 async function fetchConfig(ns) {
