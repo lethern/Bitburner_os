@@ -1,78 +1,40 @@
 import 'jit-yc.js'
 
-/** @param {NS} ns **/
+/** @param {import('/os/plugins/api_adapter.js').API_Object} api */
 async function mainPlugin(api){
     let os = api.os;
 	let classes = api.classes;
 
-
-
 	let windowWidget = classes.newWindowWidget(this);
-	//windowWidget.listen("show", onShow);
 	windowWidget.init();
-	//windowWidget.getContentDiv().innerHTML = '<div class="plugins-list" />';
 	windowWidget.getContentDiv().classList.add('greenScrollbar')
 	windowWidget.getContentDiv().classList.add('grayBackground')
 	windowWidget.setTitle('Network Graph')
-	//let windowDiv = windowWidget.getContainer()
 	windowWidget.show();
 
 
+	let doc = globalThis['document'];
+	let infovis_div = doc.getElementById('infovis');
 
-	let style;
-    let doc = globalThis['document'];
-	let scroll_div = doc.createElement('div');
-	//scroll_div.style.position= 'fixed';
-    //scroll_div.style.top= 0;
-    //scroll_div.style.left= 0;
-    scroll_div.style.width= '1200px';
-    scroll_div.style.height= '900px';
-	//scroll_div.style['z-index']= 99999;
-    //scroll_div.style.overflow = 'scroll';
-	scroll_div.id = 'infovis'
-	//scroll_div.style['background-color']= '#1a1a1a';
-	windowWidget.getContentDiv().style['background-color'] = '#1a1a1a';
-	windowWidget.getContentDiv().appendChild(scroll_div);
+	if (!infovis_div) {
+		infovis_div = doc.createElement('div');
+		infovis_div.style.width = '1200px';
+		infovis_div.style.height = '900px';
+		infovis_div.id = 'infovis'
+		windowWidget.getContentDiv().style['background-color'] = '#1a1a1a';
+	}
 	
-//    let wrapper = doc.createElement('div');
-//	scroll_div.style.width= '2000px';
-//    scroll_div.style.height= '2000px';
-//    scroll_div.id = 'infovis'
-//    scroll_div.style['background-color']= '#1a1a1a';
-//    scroll_div.appendChild(wrapper);
-    
+	windowWidget.getContentDiv().appendChild(infovis_div);
+	
+	let style;
+
 
     try{
-		
-		let serversFound = new Set();
-		let serversData = {};
-		let stack = [];
-		let origin = 'home';
-		stack.push(origin);
-		
 
-		await os.getNS( ns=> {
-			while(stack.length > 0) {
-				let server = stack.pop();
-				if (!serversFound.has(server)){
-					serversFound.add(server);
-					let neighbors = ns.scan(server);
-					serversData[server] = { neighbors };
-					for (let serv of neighbors) {
-						if (!serversFound.has(serv))
-							stack.push(serv);
-					}
-				}
-			}
-		});
+		let servers = os.getServersManager().serversObj
 
-		
-            
         style = injectCSS()
         init();
-
-
-        //while(true) await ns.sleep(1000);
 
 
 
@@ -80,8 +42,8 @@ function init(){
     //"$type" or "$dim" will override the "type" and "dim" parameters globally defined
     
 	let json = [];
-	for(let serv of serversFound){
-		let { neighbors } = serversData[serv];
+	for (let serv in servers){
+		let { neighbors } = servers[serv];
 		
 		let adjacencies = neighbors.map(n=>({
 			"nodeTo": n,
@@ -184,14 +146,37 @@ function init(){
     
 }
 
-    function injectCSS(){
-		const stylesheetId = 'window-styles'
+		
+	
+	
+	
+    }catch(e){
+		if(style)style.remove();
+        infovis_div.remove();
+        throw e;
+    }
 
-		const stylesheet = doc.createElement('style')
-		stylesheet.id = stylesheetId
+}
 
-		stylesheet.innerHTML = 
-`
+function injectCSS() {
+	const stylesheetId = 'rgraph-styles'
+
+	if (doc.getElementById(stylesheetId)) {
+		console.log("rgraph css exists");
+		return;
+	}
+
+	const stylesheet = doc.createElement('style')
+	stylesheet.id = stylesheetId
+
+	stylesheet.innerHTML = RGraphCSS
+
+	doc.head.insertAdjacentElement('beforeend', stylesheet)
+	return stylesheet;
+}
+
+
+const RGraphCSS = `
 .node {
 	font-size: 14px;
 	cursor: pointer;
@@ -209,19 +194,4 @@ function init(){
     background: rgb(7 156 7);; 
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
 }
-
-`
-
-		doc.head.insertAdjacentElement('beforeend', stylesheet)
-		return stylesheet;
-	}
-	
-	
-	
-    }catch(e){
-		if(style)style.remove();
-        scroll_div.remove();
-        throw e;
-    }
-
-}
+`;

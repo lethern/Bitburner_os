@@ -1,4 +1,4 @@
-import { OS_EVENT } from '/os/event_listener.js'
+import { OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.js'
 import { WindowWidget } from '/os/window_widget.js'
 
 /** @typedef {{write: function(string, string, any[]):void, showWindow: function}} LoggerRender */
@@ -15,15 +15,13 @@ export class DebugConsoleRender {
 	}
 
 	write(severity, className, args) {
-		let log = this.#storeLog(severity, className, '' + args);
-
-		let text = '[' + log.severity.toUpperCase() + '] ' + (log.className ? log.className + ': ' : '') + log.text;
+		let text = '[' + severity.toUpperCase() + '] ' + (className ? className + ': ' : '') + args;
 		console.log(text);
 
-		if (!this.#visible) {
-			return;
-		}
-		this.#renderLog(text, log.severity);
+		let log = this.#storeLog(severity, className, text);
+
+		this.#renderLog(log);
+		this.#scrollDown()
 	}
 
 	showWindow() {
@@ -31,24 +29,35 @@ export class DebugConsoleRender {
 			this.#injectCSS();
 			this.#renderWindow();
 		}
-		this.#logs.forEach(log => this.#renderLog(log));
 		this.#windowWidget.show();
 		this.#visible = true;
+		this.#logs.forEach(log => this.#renderLog(log));
+		this.#scrollDown()
 	}
 
 
 	// private
 
-	#renderLog(text, severity) {
-		if (!this.#rendered) return;
+	/** @param {{severity, text, className, dom}} log */
+	#renderLog(log) {
+		if (!this.#visible) return;
+		if (log.dom) return;
 
 		let elem = this.#doc.createElement('div');
-		elem.textContent = text
+		elem.textContent = log.text
 
-		let css = this.#severityToCss(severity);
+		let css = this.#severityToCss(log.severity);
 		if (css) { elem.classList.add(css); }
+		if (log.className) { elem.classList.add(log.className); }
 
 		this.#windowWidget.getContentDiv().appendChild(elem);
+		log.dom = elem;
+	}
+
+	#scrollDown() {
+		if (!this.#visible) return;
+		let element = this.#windowWidget.getContentDiv()
+		element.scrollTop = element.scrollHeight
 	}
 
 	#storeLog(severity, className, text) {
@@ -87,7 +96,12 @@ export class DebugConsoleRender {
 		this.#windowWidget.init()
 		this.#windowWidget.getContentDiv().classList.add('debugWindow')
 		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
+		this.#windowWidget.listen(WindowWidget_EVENT.HIDE, ()=>this.#onHide())
 		this.#rendered = true;
+	}
+
+	#onHide() {
+		this.#visible = false;
 	}
 
 	#on_exit() {
@@ -96,6 +110,7 @@ export class DebugConsoleRender {
 	#os
 	#rendered = false
 	#visible = false
+	/** @type {{severity, text, className, dom}[]} */
 	#logs
 	#logsMax = 150
 	#doc
@@ -109,8 +124,7 @@ const console_render_css =
 .debugWindow{
 	display: block;
 	overflow-y: scroll;
-	height: 400px;
-	width: 600px;
+	user-select: text;
 }
 .consoleDebug{
 	color: #828282;

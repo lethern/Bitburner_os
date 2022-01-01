@@ -1,5 +1,9 @@
 import { OS_EVENT } from '/os/event_listener.js'
 
+/**
+ * @typedef {{parent: string, neighbors: string[]}} ServerObject
+ */
+
 export class ServersManager {
 
 	/** @param {import('/os/os.js').OS} os */
@@ -20,16 +24,38 @@ export class ServersManager {
 		return this.#server
 	}
 
-	/** @return {{name: string, parent: string}[]} */
-	get allServers(){
-		return this.#serverObjList ? [...this.#serverObjList] : []
+
+	/** @return {ServerObject[]} */
+	get serversArray() {
+		return this.#serversArray ? [...this.#serversArray] : []
+	}
+
+	/** @returns {Object.<string, ServerObject>} */
+	get serversObj() {
+		if (!this.#serversObj) return {};
+
+		let copy = { ...this.#serversObj };
+		Object.freeze(copy);
+		Object.values(copy).forEach(obj => obj.neighbors = [...obj.neighbors]);
+		return copy;
+	}
+
+	get serversObjFull() {
+		if (!this.#serversObjFull) return {};
+
+		let copy = { ...this.#serversObjFull };
+		Object.freeze(copy);
+		Object.values(copy).forEach(obj => Object.freeze(obj.neighbors));
+		return copy;
 	}
 	
 	
 	// private fields, methods
 	
 	#server
-	#serverObjList
+	#serversArray // array of name
+	#serversObj   // map<name, {parent: string, neighbors: string[]}>
+	#serversObjFull // map<name, NS::Server>
 	#os
 	#lastWatchTime
 
@@ -46,10 +72,10 @@ export class ServersManager {
 	}
 
 	async #getCurrentConnectedServer() {
-		if (!this.#serverObjList) await this.#fetchAllServers()
+		if (!this.#serversObj) await this.#fetchAllServers()
 
 		let connectedServer = await this.#os.getNS(ns => {
-			for (const { name } of this.#serverObjList) {
+			for (const name of this.#serversObj) {
 				if (ns.serverExists(name) && ns.getServer(name).isConnectedTo) {
 					return name
 				}
@@ -70,34 +96,47 @@ export class ServersManager {
 	}
 
 	async #fetchAllServers() {
-		this.#serverObjList = await this.#os.getNS(ns => {
-			let found = {};
-			let targets = getNewNeighbors(ns, "home", found);
-			let servers = [];
-			servers.push(...targets);
+		await this.#os.getNS(ns => {
+			let serversObj = { "home": { parent: null } };
+			let serversArray = ["home"];
 
-			while (targets.length) {
-				let neighbors_sum = [];
-				for (let elem of targets) {
-					let newNeighbors = getNewNeighbors(ns, elem.name, found);
-					neighbors_sum.push(...newNeighbors);
-					servers.push(...newNeighbors);
-				}
+			let scanned = {};
+			let stack = ["home"];
 
-				targets = neighbors_sum;
+			while (stack.length) {
+				let target = stack.pop();
+
+				if (scanned[target]) continue;
+
+				let neighbors = ns.scan(target);
+				serversObj[target].neighbors = neighbors;
+				serversArray.push(target);
+				scanned[target] = 1;
+
+				stack.push(...stack);
+				
+				neighbors.forEach(serv => {
+					if (!serversObj[serv]) {
+						serversObj[serv] = { parent: target };
+					}
+				})
 			}
-			return servers;
+			this.#serversObj = serversObj;
+			this.#serversArray = serversArray;
 		});
+	}
 
-		function getNewNeighbors(ns, target, found) {
-			let neighbors = ns.scan(target);
-			found[target] = 1;
+	async #fetchAllServersFull() {
+		if (!this.#serversArray) await this.#fetchAllServers();
 
-			return neighbors.filter((val) => {
-				let exists = found[val];
-				found[val] = 1;
-				return !exists;
-			}).map((elem) => ({ name: elem, parent: target }));
-		}
+		this.#serversObjFull = await this.#os.getNS(ns => {
+			return this.#serversArray
+				.filter(ns.serverExists)
+				.map(ns.getServer)
+				.map(serverObj => ({
+					name: serverObj.hostname,
+					rooty: serverObj.hasAdminRights,
+					backy: serverObj.backdoorInstalled,
+				}))
 	}
 }

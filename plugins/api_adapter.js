@@ -1,5 +1,6 @@
 import { WindowWidget } from '/os/window_widget.js'
 import { Logger } from '/os/logger.js'
+import { ServersManager } from '../servers_manager';
 
 /**
  * @typedef {Object} API_Object
@@ -21,6 +22,7 @@ import { Logger } from '/os/logger.js'
  * @typedef {Object} OS_API
  * @property { (callback: (ns: NS) => Promise) => Promise} getNS
  * @property { (callback: (ns: NS) => void) => void} getNS_noPromise
+ * @property { () => ServersManager} getServersManager
  */
 
 export class API_Adapter {
@@ -55,6 +57,11 @@ export class API_Adapter {
 			getNS_noPromise: (func) => {
 				if (!this.#active) return;
 				this.#os.getNS_noPromise(func)
+			},
+
+			/** @returns {ServersManager} */
+			getServersManager: () => {
+				return this.#os.serversManager
 			},
 		}
 	}

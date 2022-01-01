@@ -34,9 +34,9 @@ export class FilesExplorer {
 
 		this.#currentDir = dir;
 
-		let currentFiles = FilesExplorer.narrowFilesToGivenDir(this.files, this.#currentDir);
-		if (!currentFiles) currentFiles = { files: [], dirs: {} };
-		this.#winRenderer.renderFiles(currentFiles, this.#currentDir);
+		let currentFiles = FilesExplorer.narrowFilesToGivenDir(this.#files, this.#currentDir) ?? { files: [], dirs: {} };
+		//this.#winRenderer.renderFiles(currentFiles, this.#currentDir);
+		this.#winRenderer.rerender();
 	}
 
 	openFile(fileName) {
@@ -55,22 +55,6 @@ export class FilesExplorer {
 		this.#winRenderer.hide();
 	}
 
-	render() {
-		if (this.#isRendered) return;
-		this.#isRendered = true;
-
-		if (this.#currentServer != this.#os.serversManager.connectedServer) {
-			this.#setCurrentServer(this.#os.serversManager.connectedServer);
-		}
-
-		this.#readServerFiles().then((files) => {
-			this.files = files;
-			let currentFiles = FilesExplorer.narrowFilesToGivenDir(this.files, this.#currentDir);
-			if (!currentFiles) currentFiles = [];
-			this.#winRenderer.renderFiles(currentFiles, this.#currentDir);
-		});
-	}
-
 	get currentServer() {
 		return this.#currentServer
 	}
@@ -79,13 +63,42 @@ export class FilesExplorer {
 		return this.#currentDir
 	}
 
+	async readServerFiles() {
+		if (this.#currentServer != this.#os.serversManager.connectedServer) {
+			this.#setCurrentServer(this.#os.serversManager.connectedServer);
+		}
+
+		let mainDirs = { files: [], dirs: {} };
+		if (!this.#currentServer) return mainDirs;
+
+		let files = await this.#os.getNS((ns) => {
+			return ns.ls(this.#currentServer);
+		});
+
+		for (let file of files) {
+			let arr = file.split('/');
+			let { files, dirs } = mainDirs;
+			for (let i = 0; i < arr.length - 1; ++i) {
+				let part = arr[i];
+				if (!part) continue;
+
+				if (!dirs[part]) dirs[part] = { files: [], dirs: {} };
+				files = dirs[part].files;
+				dirs = dirs[part].dirs;
+			}
+			files.push(arr[arr.length - 1]);
+		}
+		this.#files = mainDirs;
+		return mainDirs;
+	}
+
 	// private fields, methods
 
 	#os
 	#winRenderer
 	#currentServer = 'home'; // current rendered server
 	#currentDir = ''
-	#isRendered = false
+	#files
 
 	#init() {
 		this.#injectFileExplorerButton();
@@ -110,30 +123,6 @@ export class FilesExplorer {
 	#setCurrentServer(server) {
 		this.#currentDir = '';
 		this.#currentServer = server;
-	}
-
-	async #readServerFiles() {
-		let mainDirs = { files: [], dirs: {} };
-		if (!this.#currentServer) return mainDirs;
-
-		let files = await this.#os.getNS((ns) => {
-			return ns.ls(this.#currentServer);
-		});
-
-		for (let file of files) {
-			let arr = file.split('/');
-			let { files, dirs } = mainDirs;
-			for (let i = 0; i < arr.length - 1; ++i) {
-				let part = arr[i];
-				if (!part) continue;
-
-				if (!dirs[part]) dirs[part] = { files: [], dirs: {} };
-				files = dirs[part].files;
-				dirs = dirs[part].dirs;
-			}
-			files.push(arr[arr.length - 1]);
-		}
-		return mainDirs;
 	}
 
 	#on_exit() {
@@ -172,7 +161,42 @@ class FilesExplorerRenderer extends EventListener {
 		return `${this.#filesExplorer.currentServer}: /${this.#filesExplorer.currentDir}`
 	}
 
-	renderFiles(currentFiles, currentDirName) {
+	hide() {
+		this.#windowWidget.hide();
+	}
+
+	windowVisibilityToggle() {
+		this.#windowWidget.windowVisibilityToggle();
+	}
+
+	rerender() {
+		this.#render(true);
+	}
+
+	// private fields, methods
+
+	#os
+	#filesExplorer
+	#windowWidget
+	#log
+	#isRendered = false
+
+	#onShow() {
+		this.#render();
+	}
+
+	#render(rerender = false) {
+		if (this.#isRendered && !rerender) return;
+
+		this.#isRendered = true;
+
+		this.#filesExplorer.readServerFiles().then((files) => {
+			let currentFiles = FilesExplorer.narrowFilesToGivenDir(files, this.#filesExplorer.currentDir) || [];
+			this.#renderFiles(currentFiles, this.#filesExplorer.currentDir);
+		});
+	}
+
+	#renderFiles(currentFiles, currentDirName) {
 		this.#windowWidget.setTitle(this.title)
 
 		let windowDiv = this.#windowWidget.getContainer()
@@ -187,11 +211,12 @@ class FilesExplorerRenderer extends EventListener {
 
 		// Add icon event listeners
 		Array.from(windowDiv.querySelectorAll('.file-list__button')).forEach((button) => {
-			button.addEventListener('dblclick', (event)=> this.#fileListedOnClick(event))
+			button.addEventListener('dblclick', (event) => this.#fileListedOnClick(event))
 		});
 	}
 
 	#fileListedOnClick(event) {
+		this.#log.debug("file on click", event.target);
 		let button = event.currentTarget;
 
 		event.stopPropagation()
@@ -210,25 +235,6 @@ class FilesExplorerRenderer extends EventListener {
 		}
 	}
 
-	hide() {
-		this.#windowWidget.hide();
-	}
-
-	windowVisibilityToggle() {
-		this.#windowWidget.windowVisibilityToggle();
-	}
-
-
-	// private fields, methods
-
-	#os
-	#filesExplorer
-	#windowWidget
-	#log
-
-	#onShow() {
-		this.#filesExplorer.render();
-	}
 
 	#renderIcon(name, type) {
 		return `

@@ -5,7 +5,7 @@ let json_filename = 'install_files_json.txt';
 export async function main(ns) {
 	let { welcomeLabel, filesToDownload } = await fetchConfig(ns)
 	
-	ns.tprint(welcomeLabel)
+	ns.tprintf("%s", welcomeLabel)
 
 	let hostname = ns.getHostname()
 
@@ -25,7 +25,7 @@ export async function main(ns) {
 			await ns.wget(path + '?ts=' + new Date().getTime(), save_filename)
 			
 			if(++count % 5 ==0){
-				ns.tprint(`Installed [${(count+'').padStart(2)}/${filesToDownload.length}]`);
+				ns.tprintf(`Installing... [${(count+'').padStart(2)}/${filesToDownload.length}]`);
 			}
 		}catch(e){
 			ns.tprint(`ERROR (tried to download  ${path})`)
@@ -33,10 +33,9 @@ export async function main(ns) {
 		}
 	}
 
-	terminalCommand('unalias bootOS')
 	terminalCommand('alias -g bootOS="run /os/main.js"')
 
-	ns.tprint("Install complete! To start, type: bootOS")
+	ns.tprintf("Install complete! To start, type: bootOS")
 }
 
 async function fetchConfig(ns) {

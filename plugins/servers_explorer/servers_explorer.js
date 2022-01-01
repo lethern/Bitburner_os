@@ -77,36 +77,13 @@ export class ServersExplorer {
 
 	/** @returns {Promise<{name: string, rooty: boolean, backy: boolean}[]>} */
 	async #getServers() {
-		let servers = this.#os.serversManager.allServers
-
-		return await this.#os.getNS(ns => {
-			return servers
-				.map(({ name }) => name)
-				.filter(ns.serverExists)
-				.sort()
-				.map(ns.getServer)
-				.map(serverObj => ({
-					name: serverObj.hostname,
-					rooty: serverObj.hasAdminRights,
-					backy: serverObj.backdoorInstalled,
-				}))
-			/*
-			let result = [];
-			for (let server of servers) {
-				let name = server.name;
-				if (!ns.serverExists(name)) continue;
-				let serverObj = ns.getServer(name);
-
-				result.push({
-					name: name,
-					rooty: serverObj.hasAdminRights,
-					backy: serverObj.backdoorInstalled,
-				});
-			}
-			return result;
-			*/
-		})
-
+		return this.#os.serversManager.serversObjFull
+			.map(serverObj => ({
+				name: serverObj.hostname,
+				rooty: serverObj.hasAdminRights,
+				backy: serverObj.backdoorInstalled,
+			}))
+			.sort((a, b) => a.name.localeCompare(b.name))
 	}
 
 	// private
