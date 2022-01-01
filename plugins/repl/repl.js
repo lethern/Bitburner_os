@@ -15,11 +15,11 @@ export async function main(ns) {
     }
 }
 
+/** @param {import('/os/plugins/api_adapter.js').API_Object} api */
 async function mainPlugin(api){
-	let os = api.os;
 	let classes = api.classes;
-	
-	
+
+
 	let windowWidget = classes.newWindowWidget(this);
 	//windowWidget.listen("show", onShow);
 	windowWidget.init();
@@ -30,12 +30,12 @@ async function mainPlugin(api){
 	//let windowDiv = windowWidget.getContainer()
 	windowWidget.show();
 	
-	let repl = new REPL_API(os, windowWidget);
+	let repl = new REPL_API(api, windowWidget);
 	repl.mount();
 }
 
 class REPL_API {
-    constructor(os, windowWidget) {
+    constructor(api, windowWidget) {
         this.version = "v0.0.1";
         this.overrideKeydown = (event) => {
             var _a;
@@ -59,8 +59,9 @@ class REPL_API {
             this.runCommand(command);
             this.input.value = "";
             this.input.focus();
-        };
-        this.os = os;
+		};
+		this.api = api;
+        this.os = api.os;
 		this.windowWidget = windowWidget;
     }
     // FIXME: Probably brittle and will break at any update (possibly even between launches)
@@ -160,8 +161,10 @@ class REPL_API {
     async runCommand(command) {
 		console.log("runCommand");
         try {
-			if (command === "exit")
-                command = "ns.exit()";
+			if (command === "exit") {
+				this.api.exit();
+				return;
+			}
             
 			let result = await this.os.getNS(async ns=> {
 				return await eval(command);

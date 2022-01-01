@@ -1,13 +1,21 @@
 {
-	"id": "unique identifier",
+	"id": "Unique identifier",
 	"description": "Descriptive name",
-	"dependencies": [
-		"list of ids of other plugins or libraries"
-	],
 	"authors": [
-		"credits: list of authors"
+		"Credits: list of authors"
 	],
 	"links": [
-		"collection of related URLs",
-	]
+		"Collection of related URLs, only for description purpose"
+	],
+	"req_ram_plugin": 5.15,
+	"req_ram_standalone": 8.5,
+	"req_size_kb": 700,
+
+	"dependencies": [
+		"List of ids of other plugins or libraries"
+	],
+	"github_repo": "Link to script file OR install.js file",
+	"main_script": "filepath of main script to run",
+	"is_plugin": true,
+	"is_standalone": false
 }

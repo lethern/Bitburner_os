@@ -99,6 +99,7 @@ export class DebugConsoleRender {
 	#logs
 	#logsMax = 150
 	#doc
+	/** @type {WindowWidget} */
 	#windowWidget
 }
 

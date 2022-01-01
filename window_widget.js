@@ -19,7 +19,7 @@ export class WindowWidget extends EventListener {
 		this.#log = new Logger(this, os.logRenderer);
 		this.eventListener_initLog(this.#log);
 
-		os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
+		os.listen(OS_EVENT.ON_EXIT, () => this.on_exit());
 	}
 	
 	init() {
@@ -284,7 +284,7 @@ export class WindowWidget extends EventListener {
 	}
 
 
-	#on_exit() {
+	on_exit() {
 		this.#dispose()
 	}
 
@@ -292,6 +292,11 @@ export class WindowWidget extends EventListener {
 		if (!this.#container) return;
 		this.#container.remove()
 		this.#container = null;
+		this.#contentWindow = null;
+		this.#parent = null;
+		this.#os = null;
+		this.#log = null;
+		this.#explorerWindow = null;
 	}
 
 	static stealFocusHandler() {

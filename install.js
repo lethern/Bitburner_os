@@ -10,9 +10,10 @@ export async function main(ns) {
 	let hostname = ns.getHostname()
 
 	if (hostname !== 'home') {
-		throw new Exception('Run the script from home')
+		throw 'Run the script from home'
 	}
 
+	let count = 0;
 	for (let filename of filesToDownload) {
 		const path = baseUrl + filename
 		const save_filename = '/os/'+filename
@@ -22,6 +23,10 @@ export async function main(ns) {
 			await ns.rm(save_filename)
 			await ns.sleep(20)
 			await ns.wget(path + '?ts=' + new Date().getTime(), save_filename)
+			
+			if(++count % 5 ==0){
+				ns.tprint(`Installed [${(count+'').padStart(2)}/${filesToDownload.length}]`);
+			}
 		}catch(e){
 			ns.tprint(`ERROR (tried to download  ${path})`)
 			throw e;
@@ -29,7 +34,7 @@ export async function main(ns) {
 	}
 
 	terminalCommand('unalias bootOS')
-	terminalCommand('alias -g bootOS="home; kill /os/main.js; run /os/main.js"')
+	terminalCommand('alias -g bootOS="run /os/main.js"')
 
 	ns.tprint("Install complete! To start, type: bootOS")
 }
@@ -48,7 +53,7 @@ async function fetchConfig(ns) {
 
 function terminalCommand(message){
 	const docs = globalThis['document']
-	const terminalInput = docs.getElementById("terminal-input");
+	const terminalInput = /** @type {HTMLInputElement} */ (docs.getElementById("terminal-input"));
 	terminalInput.value=message;
 	const handler = Object.keys(terminalInput)[1];
 	terminalInput[handler].onChange({target:terminalInput});

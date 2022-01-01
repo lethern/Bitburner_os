@@ -1,6 +1,28 @@
 import { WindowWidget } from '/os/window_widget.js'
 import { Logger } from '/os/logger.js'
 
+/**
+ * @typedef {Object} API_Object
+ * @property {OS_API} os
+ * @property {ClassesAPI} classes
+ * @property {function(): void} exit
+ */
+
+
+/**
+ * @typedef {Object} ClassesAPI
+ * @property { (parent: any) => WindowWidget } newWindowWidget
+ */
+
+/**
+ * @typedef {Object} NS
+ * */
+/**
+ * @typedef {Object} OS_API
+ * @property { (callback: (ns: NS) => Promise) => Promise} getNS
+ * @property { (callback: (ns: NS) => void) => void} getNS_noPromise
+ */
+
 export class API_Adapter {
 	/** @param {import('/os/os.js').OS} os @param {string} pluginName */
 	constructor(os, pluginName) {
@@ -10,22 +32,28 @@ export class API_Adapter {
 	}
 
 	getAPI_Object() {
-		return {
-			os: this.#getOS_API(),
-			classes: this.#getClassesAPI(),
-		};
+		if (!this.#apiObject) {
+			this.#apiObject = {
+				os: this.#getOS_API(),
+				classes: this.#getClassesAPI(),
+
+				exit: () => this.#exit(),
+			};
+		}
+		return this.#apiObject;
 	}
 
 	#getOS_API() {
 		return {
-			/** @param {(NS) => void} func @returns Promise */
 			getNS: async (func) => {
+				if (!this.#active) return;
 				this.#log.debug("API.getNS for " + this.#pluginName);
 				return this.#os.getNS(func);
 			},
 
 			/** @param {(NS) => void} func */
 			getNS_noPromise: (func) => {
+				if (!this.#active) return;
 				this.#os.getNS_noPromise(func)
 			},
 		}
@@ -33,13 +61,30 @@ export class API_Adapter {
 
 	#getClassesAPI() {
 		return {
-			/** @param {object} parent @param {import('/os/os.js').OS} os @param {string} [id]  */
-			newWindowWidget: (parent) => { return new WindowWidget(parent, this.#os) }
+			newWindowWidget: (parent) => {
+				if (!this.#active) return;
+				let winWidget = new WindowWidget(parent, this.#os);
+				this.#createdWindows.push(winWidget)
+				return winWidget;
+			}
 		}
+	}
+
+	#exit() {
+		this.#createdWindows.forEach(win => {
+			win.on_exit();
+		})
+
+		this.#active = false;
 	}
 
 	#os
 	#log
 	#pluginName
+	/** @type {WindowWidget[]} */
+	#createdWindows = []
+	#active = true
+
+	#apiObject
 
 }
