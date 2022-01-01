@@ -9,7 +9,7 @@ export class EventListener{
 
 	/**
 	 * this method is needed, because classes extending from EventListener cannot create a Logger object before super()
-	 * @param {import('/os/logger').Logger} log */
+	 * @param {import('/os/logger.js').Logger} log */
 	eventListener_initLog(log) {
 		this.#log = log;
 	}
@@ -38,7 +38,7 @@ export class EventListener{
 	#parent
 	#parentName
 	#listeners
-	/** @type {import('/os/logger').Logger} */
+	/** @type {import('/os/logger.js').Logger} */
 	#log
 }
 

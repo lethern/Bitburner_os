@@ -1,11 +1,13 @@
 import { WindowWidget } from '/os/window_widget.js'
 import { Logger } from '/os/logger.js'
 import { ServersManager } from '/os/servers_manager.js'
+import { Utils } from '/os/utils.js'
 
 /**
  * @typedef {Object} API_Object
  * @property {OS_API} os
  * @property {ClassesAPI} classes
+ * @property {Utils} utils
  * @property {function(): void} exit
  */
 
@@ -20,7 +22,7 @@ import { ServersManager } from '/os/servers_manager.js'
  * */
 /**
  * @typedef {Object} OS_API
- * @property { (callback: (ns: NS) => Promise) => Promise} getNS
+ * @property { (callback: (ns: NS) => Promise<any> | any) => Promise} getNS
  * @property { (callback: (ns: NS) => void) => void} getNS_noPromise
  * @property { () => ServersManager} getServersManager
  */
@@ -35,9 +37,13 @@ export class API_Adapter {
 
 	getAPI_Object() {
 		if (!this.#apiObject) {
+			let utils = { ...Utils };
+			Object.freeze(utils)
+
 			this.#apiObject = {
 				os: this.#getOS_API(),
 				classes: this.#getClassesAPI(),
+				utils: utils,
 
 				exit: () => this.#exit(),
 			};
@@ -49,7 +55,7 @@ export class API_Adapter {
 		return {
 			getNS: async (func) => {
 				if (!this.#active) return;
-				this.#log.debug("API.getNS for " + this.#pluginName);
+				//this.#log.debug("API.getNS for " + this.#pluginName);
 				return this.#os.getNS(func);
 			},
 

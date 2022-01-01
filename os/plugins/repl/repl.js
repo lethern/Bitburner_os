@@ -1,4 +1,5 @@
-// @TODO: Autocomplete
+// based on: https://github.com/Redmega/bitburner-scripts/blob/main/dist/repl.js
+
 const doc = globalThis["document"];
 const win = globalThis["window"];
 

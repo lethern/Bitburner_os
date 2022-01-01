@@ -30,6 +30,9 @@
 		"os/plugins/rgraph/rgraph_json.txt",
 		"os/plugins/rgraph/jit-yc.js",
 
-		"os/plugins/process-list/process-list.js"
+		"os/plugins/process-list/process-list.js",
+		"os/plugins/process-list/process-list_css.js",
+		"os/plugins/process-list/process-list_json.txt",
+		"os/plugins/process-list/process-list.config.example.js"
 	]
 }
