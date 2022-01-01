@@ -83,55 +83,55 @@ class REPL_API {
         this.input.id = "repl-input";
         this.input.className = "repl-input css-1oaunmp";
         this.addStyleSheet("repl", `
-      .repl-wrapper {
-        border-right: 1px solid rgb(68, 68, 68);
-        display: flex;
-        flex-direction: column;
-        max-height: 312px;
-        padding: 0 0.5rem;
-      }
+.repl-wrapper {
+	border-right: 1px solid rgb(68, 68, 68);
+	display: flex;
+	flex-direction: column;
+	max-height: 312px;
+	padding: 0 0.5rem;
+}
 
-      .repl-log {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-		user-select: text;
-      }
+.repl-log {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	user-select: text;
+}
 
-      .repl-line {
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-      }
+.repl-line {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
 
-      .repl-line.error {
-        color: #c00;
-      }
+.repl-line.error {
+	color: #c00;
+}
 
-      .repl-line.info {
-        color: #36c;
-      }
+.repl-line.info {
+	color: #36c;
+}
 
-      .repl-line.success {
-        color: #0c0;
-      }
+.repl-line.success {
+	color: #0c0;
+}
 
-      .repl-line.warn {
-        color: #cc0;
-      }
+.repl-line.warn {
+	color: #cc0;
+}
 
-      .repl-input-wrapper {
-        display: flex;
-        align-items: baseline;
-        gap: 0.5rem;
-      }
+.repl-input-wrapper {
+	display: flex;
+	align-items: baseline;
+	gap: 0.5rem;
+}
 
-      .repl-input-wrapper > span {
-          white-space: nowrap
-      }
+.repl-input-wrapper > span {
+    white-space: nowrap
+}
 
-      .repl-input {
-      }
+.repl-input {
+}
       `);
         inputContainer.appendChild(this.input);
         this.wrapper.appendChild(this.log);

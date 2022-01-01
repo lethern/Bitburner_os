@@ -1,12 +1,12 @@
 import { Logger } from '/os/logger.js'
-import { DebugConsoleRender } from '/os/logger_render.js'
+import { DebugConsoleRender } from '/os/app/logger_render.js'
 import { EventListener, OS_EVENT } from '/os/event_listener.js'
-import { FilesExplorer } from '/os/files_explorer.js'
+import { FilesExplorer } from '/os/app/files_explorer.js'
 import { GUI } from '/os/gui.js'
 import { Utils } from '/os/utils.js'
 import { Terminal } from '/os/terminal.js'
 import { ServersManager } from '/os/servers_manager.js'
-import { ServersExplorer } from '/os/plugins/servers_explorer/servers_explorer.js'
+import { ServersExplorer } from '/os/app/servers_explorer/servers_explorer.js'
 import { PluginsManager } from '/os/plugins/plugins_manager.js'
 
 export class OS extends EventListener {

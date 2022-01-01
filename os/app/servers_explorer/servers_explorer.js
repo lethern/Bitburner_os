@@ -1,9 +1,8 @@
-import { DOM_CONSTANTS } from '/os/constants.js'
 import { EventListener, OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.js'
 import { WindowWidget } from '/os/window_widget.js'
 import { Utils } from '/os/utils.js'
 import { Logger } from '/os/logger.js'
-import { servers_explorer_css, server_icons } from '/os/plugins/servers_explorer/servers_explorer_css.js'
+import { servers_explorer_css, server_icons } from '/os/app/servers_explorer/servers_explorer_css.js'
 
 // |-----------------------------------------------------------------------|
 // |				servers_explorer.js
@@ -46,7 +45,7 @@ export class ServersExplorer {
 		let command = 'home'
 		this.#os.terminal.inputToTerminal(`${command}`);
 		await Utils.sleep(250);
-		command = 'run /os/plugins/servers_explorer/connect.js'
+		command = 'run /os/app/servers_explorer/connect.js'
 		this.#os.terminal.inputToTerminal(`${command} ${svName}`);
 		//this.#winRenderer.hide();
 	}
@@ -55,7 +54,7 @@ export class ServersExplorer {
 		let command = 'home'
 		this.#os.terminal.inputToTerminal(`${command}`);
 		await Utils.sleep(250);
-		command = 'run /os/plugins/servers_explorer/connect.js '
+		command = 'run /os/app/servers_explorer/connect.js '
 		this.#os.terminal.inputToTerminal(`${command}` + svName);
 		await Utils.sleep(250);
 		command = 'backdoor'
@@ -67,7 +66,7 @@ export class ServersExplorer {
 		let command = 'home'
 		this.#os.terminal.inputToTerminal(`${command}`);
 		await Utils.sleep(250);
-		command = 'run /os/plugins/servers_explorer/connect.js '
+		command = 'run /os/app/servers_explorer/connect.js '
 		this.#os.terminal.inputToTerminal(`${command}` + svName);
 		await Utils.sleep(250);
 		command = 'run BruteSSH.exe;run FTPCrack.exe;run HTTPWorm.exe;run SQLInject.exe;run relaySMTP.exe;run NUKE.exe'

@@ -9,7 +9,7 @@ export class Log {
 export class Logger {
 	/**
 	 * @param {object} parent
-	 * @param {import('/os/logger_render.js').LoggerRender} logRenderer
+	 * @param {import('/os/app/logger_render.js').LoggerRender} logRenderer
 	 */
 	constructor(parent, logRenderer) {
 		this.#parentName = (parent.constructor ? parent.constructor.name : '' + parent);
