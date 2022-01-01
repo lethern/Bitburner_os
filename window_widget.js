@@ -100,9 +100,9 @@ export class WindowWidget extends EventListener {
 	#windowHeight
 	#grabStart = {}
 	#modalStart = {}
-	#boundBeginGrabbing = () => this.#beginGrabbing()
-	#boundEndGrabbing = () => this.#endGrabbing()
-	#boundMouseMove = () => this.#mouseMove()
+	#boundBeginGrabbing = (event) => this.#beginGrabbing(event)
+	#boundEndGrabbing = (event) => this.#endGrabbing(event)
+	#boundMouseMove = (event) => this.#mouseMove(event)
 
 
 	#initialiseWindow(id) {
@@ -241,7 +241,7 @@ export class WindowWidget extends EventListener {
 		}
 	}
 
-	#endGrabbing() {
+	#endGrabbing(event) {
 		const body = this.#doc.body
 		body.removeEventListener('mousemove', this.#boundMouseMove)
 		body.removeEventListener('mouseup', this.#boundEndGrabbing)

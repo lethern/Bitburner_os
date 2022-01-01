@@ -148,13 +148,13 @@ class ServersExplorerRenderer extends EventListener {
 		serverList.innerHTML = serverObjs.map(({ name, rooty, backy }) => this.#renderIcon(name, rooty, backy)).join('');
 
 		Array.from(windowDiv.querySelectorAll('.server-connect__button')).forEach((button) => {
-			button.addEventListener('dblclick', () => this.svConnectOnClick())
+			button.addEventListener('dblclick', (event) => this.svConnectOnClick(event))
 		});
 		Array.from(windowDiv.querySelectorAll('.server-run__backdoor')).forEach((button) => {
-			button.addEventListener('dblclick', () => this.svBackdoorOnClick())
+			button.addEventListener('dblclick', (event) => this.svBackdoorOnClick(event))
 		});
 		Array.from(windowDiv.querySelectorAll('.server-run__status')).forEach((button) => {
-			button.addEventListener('dblclick', () => this.svHackOnClick())
+			button.addEventListener('dblclick', (event) => this.svHackOnClick(event))
 		});
 	}
 
