@@ -11,8 +11,8 @@ export class GUI {
 		this.#buttons = [];
 		this.#styles = [];
 		this.#cssUsedMap = {};
-		this.#os.listen(OS_EVENT.INIT, this.#init.bind(this));
-		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
+		this.#os.listen(OS_EVENT.INIT, () => this.#init());
+		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 	}
 	
 	addMenuButton(params) {

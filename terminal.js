@@ -13,7 +13,7 @@ export class Terminal {
 
 			if (terminalButton) {
 				terminalButton.click()
-				return Utils.sleep(300).then(Terminal.executeTerminalCommand.bind(this, terminal, command));
+				return Utils.sleep(300).then(() => Terminal.executeTerminalCommand( terminal, command));
 			}
 		}
 

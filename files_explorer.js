@@ -92,6 +92,10 @@ export class FilesExplorer {
 		return mainDirs;
 	}
 
+	render() {
+		this.#winRenderer.rerender()
+	}
+
 	// private fields, methods
 
 	#os
@@ -253,8 +257,8 @@ class FilesExplorerRenderer extends EventListener {
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<ul class="file-list" />';
 		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
-		this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.#onDebugMenuClick.bind(this) })
-		this.#windowWidget.addMenuItem({ label: 'Test', callback: this.#onTestMenuClick.bind(this) })
+		this.#windowWidget.addMenuItem({ label: 'Debug', callback: () => this.#onDebugMenuClick() })
+		this.#windowWidget.addMenuItem({ label: 'Test', callback: () => this.#onTestMenuClick() })
 		//this.listenForTerminalHidden();
 	}
 

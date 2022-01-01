@@ -1,6 +1,6 @@
 import { WindowWidget } from '/os/window_widget.js'
 import { Logger } from '/os/logger.js'
-import { ServersManager } from '../servers_manager';
+import { ServersManager } from '/os/servers_manager.js'
 
 /**
  * @typedef {Object} API_Object

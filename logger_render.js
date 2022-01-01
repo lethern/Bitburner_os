@@ -11,7 +11,7 @@ export class DebugConsoleRender {
 		this.#logs = [];
 		this.#doc = globalThis['document'];
 
-		this.#os.listen(OS_EVENT.ON_EXIT, this.#on_exit.bind(this));
+		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 	}
 
 	write(severity, className, args) {

@@ -14,7 +14,8 @@ export class ServersManager {
 		//this.#server = this.#getCurrentServer()
 		this.#lastWatchTime = Date.now();
 
-		this.#os.listen(OS_EVENT.LOOP_STEP, this.#run.bind(this));
+		this.#os.listen(OS_EVENT.INIT, () => this.#init());
+		this.#os.listen(OS_EVENT.LOOP_STEP, () => this.#run());
 
 		this.#getCurrentConnectedServer();
 	}
@@ -24,6 +25,9 @@ export class ServersManager {
 		return this.#server
 	}
 
+	#init() {
+		this.#fetchAllServersFull()
+	}
 
 	/** @return {ServerObject[]} */
 	get serversArray() {
@@ -41,11 +45,13 @@ export class ServersManager {
 	}
 
 	get serversObjFull() {
-		if (!this.#serversObjFull) return {};
+		if (!this.#serversObjFull) {
+			this.#fetchAllServersFull()
+			return [];
+		}
 
-		let copy = { ...this.#serversObjFull };
+		let copy = [...this.#serversObjFull ];
 		Object.freeze(copy);
-		Object.values(copy).forEach(obj => Object.freeze(obj.neighbors));
 		return copy;
 	}
 	
@@ -75,7 +81,7 @@ export class ServersManager {
 		if (!this.#serversObj) await this.#fetchAllServers()
 
 		let connectedServer = await this.#os.getNS(ns => {
-			for (const name of this.#serversObj) {
+			for (const name of this.#serversArray) {
 				if (ns.serverExists(name) && ns.getServer(name).isConnectedTo) {
 					return name
 				}
@@ -98,7 +104,7 @@ export class ServersManager {
 	async #fetchAllServers() {
 		await this.#os.getNS(ns => {
 			let serversObj = { "home": { parent: null } };
-			let serversArray = ["home"];
+			let serversArray = [];
 
 			let scanned = {};
 			let stack = ["home"];
@@ -113,7 +119,7 @@ export class ServersManager {
 				serversArray.push(target);
 				scanned[target] = 1;
 
-				stack.push(...stack);
+				stack.push(...neighbors);
 				
 				neighbors.forEach(serv => {
 					if (!serversObj[serv]) {
@@ -133,10 +139,8 @@ export class ServersManager {
 			return this.#serversArray
 				.filter(ns.serverExists)
 				.map(ns.getServer)
-				.map(serverObj => ({
-					name: serverObj.hostname,
-					rooty: serverObj.hasAdminRights,
-					backy: serverObj.backdoorInstalled,
-				}))
+		});
+
+		console.log('this.#serversObjFull ', this.#serversObjFull);
 	}
 }

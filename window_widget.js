@@ -100,9 +100,9 @@ export class WindowWidget extends EventListener {
 	#windowHeight
 	#grabStart = {}
 	#modalStart = {}
-	#boundBeginGrabbing = this.#beginGrabbing.bind(this)
-	#boundEndGrabbing = this.#endGrabbing.bind(this)
-	#boundMouseMove = this.#mouseMove.bind(this)
+	#boundBeginGrabbing = () => this.#beginGrabbing()
+	#boundEndGrabbing = () => this.#endGrabbing()
+	#boundMouseMove = () => this.#mouseMove()
 
 
 	#initialiseWindow(id) {

@@ -31,7 +31,7 @@ export class ServersExplorer {
 		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 	}
 
-	async render() {
+	async loop() {
 		if (this.#isRendered) return;
 		this.#isRendered = true;
 
@@ -135,26 +135,26 @@ class ServersExplorerRenderer extends EventListener {
 
 	/** @param {{name: string, rooty: boolean, backy: boolean}[]} serverObjs */
 	renderServers(serverObjs) {
+		console.log('renderServers')
 		this.#windowWidget.setTitle(this.title)
 		let windowDiv = this.#windowWidget.getContainer()
 		serverObjs.unshift({
 			name: 'home',
 			rooty: true,
 			backy: true,
-			svHackReq: 0
 		});
 
 		const serverList = windowDiv.querySelector('.server-list')
 		serverList.innerHTML = serverObjs.map(({ name, rooty, backy }) => this.#renderIcon(name, rooty, backy)).join('');
 
 		Array.from(windowDiv.querySelectorAll('.server-connect__button')).forEach((button) => {
-			button.addEventListener('dblclick', this.svConnectOnClick.bind(this))
+			button.addEventListener('dblclick', () => this.svConnectOnClick())
 		});
 		Array.from(windowDiv.querySelectorAll('.server-run__backdoor')).forEach((button) => {
-			button.addEventListener('dblclick', this.svBackdoorOnClick.bind(this))
+			button.addEventListener('dblclick', () => this.svBackdoorOnClick())
 		});
 		Array.from(windowDiv.querySelectorAll('.server-run__status')).forEach((button) => {
-			button.addEventListener('dblclick', this.svHackOnClick.bind(this))
+			button.addEventListener('dblclick', () => this.svHackOnClick())
 		});
 	}
 
@@ -213,6 +213,7 @@ class ServersExplorerRenderer extends EventListener {
 	#init() {
 		this.#os.gui.injectCSS(servers_explorer_css);
 
+		console.log('servers_explorer window init')
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<ul class="server-list server-list--layout-icon-row" />';
 		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
@@ -221,7 +222,7 @@ class ServersExplorerRenderer extends EventListener {
 
 	#onShow() {
 		// We allow no-await on async
-		this.#serversExplorer.render();
+		this.#serversExplorer.loop();
 	}
 
 	#renderIcon(name, svhacked, svbackdoored) {
