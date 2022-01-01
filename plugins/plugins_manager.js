@@ -179,7 +179,7 @@ export class PluginsManager {
 
 		let imports_path = '/os/plugins/' + pluginName;
 
-		let res = await runPlugin(this.#os, obj.script, imports_path)
+		let res = await runPlugin(this.#os, this.#log, obj.script, imports_path)
 		obj.executions.push(res);
 		this.#log.debug(JSON.stringify(res));
 	}

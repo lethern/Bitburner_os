@@ -1,5 +1,5 @@
 import { DOM_CONSTANTS } from '/os/constants.js'
-import { EventListener, OS_EVENT, WindowWidget_EVENT } from '/os/event_listener.js'
+import { EventListener, OS_EVENT, WindowWidget_EVENT, ServersManager_EVENT } from '/os/event_listener.js'
 import { WindowWidget } from '/os/window_widget.js'
 import { Logger } from '/os/logger.js'
 
@@ -12,6 +12,8 @@ export class FilesExplorer {
 
 		this.#os.listen(OS_EVENT.INIT, () => this.#init());
 		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
+		//this.#os.filesExplorer.render()
+		this.#os.serversManager.listen(ServersManager_EVENT.CONNECTED_SERV_CHANGED, () => this.#winRenderer.rerender());
 	}
 
 	changeDirectory_oneUp() {
@@ -92,9 +94,6 @@ export class FilesExplorer {
 		return mainDirs;
 	}
 
-	render() {
-		this.#winRenderer.rerender()
-	}
 
 	// private fields, methods
 

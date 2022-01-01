@@ -66,7 +66,6 @@ class REPL_API {
     }
     // FIXME: Probably brittle and will break at any update (possibly even between launches)
     mount() {
-		console.log("mount");
         this.wrapper = doc.createElement("form");
         this.wrapper.className = "MuiCollapse-wrapperInner MuiCollapse-vertical css-8atqhb repl-wrapper";
         this.log = doc.createElement("div");
@@ -90,11 +89,11 @@ class REPL_API {
       }
 
       .repl-log {
-        overflow-y: auto;
         flex: 1;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
+		user-select: text;
       }
 
       .repl-line {
@@ -149,7 +148,6 @@ class REPL_API {
         this.printLine('Type "exit" to quit.');
     }
     unmount() {
-		console.log("unmount");
         this.removeStyleSheet("repl");
         //this.menu.children[0].classList.add("css-8atqhb");
         //this.menu.parentElement.parentElement.style.left = null;

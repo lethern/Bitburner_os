@@ -135,7 +135,6 @@ class ServersExplorerRenderer extends EventListener {
 
 	/** @param {{name: string, rooty: boolean, backy: boolean}[]} serverObjs */
 	renderServers(serverObjs) {
-		console.log('renderServers')
 		this.#windowWidget.setTitle(this.title)
 		let windowDiv = this.#windowWidget.getContainer()
 		serverObjs.unshift({
@@ -213,7 +212,6 @@ class ServersExplorerRenderer extends EventListener {
 	#init() {
 		this.#os.gui.injectCSS(servers_explorer_css);
 
-		console.log('servers_explorer window init')
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<ul class="server-list server-list--layout-icon-row" />';
 		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')

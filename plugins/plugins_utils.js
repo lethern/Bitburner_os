@@ -1,9 +1,9 @@
 import { API_Adapter } from '/os/plugins/api_adapter.js'
 
-/** @param {import('/os/os.js').OS} os @param {string} filepath @param {string} imports_path
+/** @param {import('/os/os.js').OS} os @param {import('/os/logger.js').Logger} log @param {string} filepath @param {string} imports_path
   @returns {Promise<{result?: any, error?: any, stack?: any, time_diff?: number}>} */
-export async function runPlugin(os, filepath, imports_path) {
-	console.log("runPlugin", imports_path, filepath)
+export async function runPlugin(os, log, filepath, imports_path) {
+	log.debug("runPlugin", imports_path, filepath)
 	try {
 		let sources = await os.getNS(ns => {
 			let js = ns.read(filepath)
@@ -36,7 +36,7 @@ export async function runPlugin(os, filepath, imports_path) {
 						let file = imports_path+'/'+res.groups.file;
 
 						let import_js = ns.read(file)
-						console.log(`Read ${file}, length: ${import_js.length}, original name: ${path}`)
+						log.debug(`Read ${file}, length: ${import_js.length}, original name: ${path}`)
 						filesToCheck.push(import_js);
 					});
 
@@ -47,7 +47,7 @@ export async function runPlugin(os, filepath, imports_path) {
 				if (watchdog++ > 50) throw "runPlugin - watchdog - too much recursive imports";
 			}
 
-			console.log("sources: ", sources.length, " importsMap: ", Object.keys(importsMap));
+			log.debug("sources: ", sources.length, " importsMap: ", Object.keys(importsMap));
 			return sources;
 		})
 

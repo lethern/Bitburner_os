@@ -1,16 +1,20 @@
-import { OS_EVENT } from '/os/event_listener.js'
+import { OS_EVENT, EventListener, ServersManager_EVENT } from '/os/event_listener.js'
+import { Logger } from '/os/logger.js'
 
 /**
  * @typedef {{parent: string, neighbors: string[]}} ServerObject
  */
 
-export class ServersManager {
+export class ServersManager extends EventListener {
 
 	/** @param {import('/os/os.js').OS} os */
 	constructor(os) {
+		super();
 		this.#os = os;
-		//this.#cacheServers()
-		this.#server = 'home'
+
+		this.#log = new Logger(this, os.logRenderer);
+		this.eventListener_initLog(this.#log);
+
 		//this.#server = this.#getCurrentServer()
 		this.#lastWatchTime = Date.now();
 
@@ -57,16 +61,17 @@ export class ServersManager {
 	
 	
 	// private fields, methods
-	
-	#server
+
+	#os
+	#log
+	#server = 'home'
 	#serversArray // array of name
 	#serversObj   // map<name, {parent: string, neighbors: string[]}>
 	#serversObjFull // map<name, NS::Server>
-	#os
 	#lastWatchTime
 
 	#run() {
-		const watchDelay = 1000;
+		const watchDelay = 2000;
 
 		let diff = Date.now() - this.#lastWatchTime;
 		if (diff < 0) { this.#lastWatchTime = Date.now() } // OS error
@@ -74,6 +79,8 @@ export class ServersManager {
 		if (diff > watchDelay) {
 			this.#lastWatchTime = Date.now();
 			this.#serverWatch()
+
+			this.#fetchAllServersFull()
 		}
 	}
 
@@ -97,7 +104,7 @@ export class ServersManager {
 
 		if (currentServer !== this.connectedServer) {
 			this.#server = currentServer
-			this.#os.filesExplorer.render()
+			this.fire(ServersManager_EVENT.CONNECTED_SERV_CHANGED)
 		}
 	}
 
@@ -140,7 +147,5 @@ export class ServersManager {
 				.filter(ns.serverExists)
 				.map(ns.getServer)
 		});
-
-		console.log('this.#serversObjFull ', this.#serversObjFull);
 	}
 }

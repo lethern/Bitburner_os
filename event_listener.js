@@ -57,3 +57,8 @@ Object.defineProperties(WindowWidget_EVENT, {
 	CLOSE: { value: 'close' },
 });
 
+export const ServersManager_EVENT = {};
+Object.defineProperties(WindowWidget_EVENT, {
+	CONNECTED_SERV_CHANGED: { value: 'connected_serv_changed' },
+});
+
