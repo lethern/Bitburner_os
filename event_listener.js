@@ -58,7 +58,7 @@ Object.defineProperties(WindowWidget_EVENT, {
 });
 
 export const ServersManager_EVENT = {};
-Object.defineProperties(WindowWidget_EVENT, {
+Object.defineProperties(ServersManager_EVENT, {
 	CONNECTED_SERV_CHANGED: { value: 'connected_serv_changed' },
 });
 

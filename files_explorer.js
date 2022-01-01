@@ -13,7 +13,6 @@ export class FilesExplorer {
 		this.#os.listen(OS_EVENT.INIT, () => this.#init());
 		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 		//this.#os.filesExplorer.render()
-		this.#os.serversManager.listen(ServersManager_EVENT.CONNECTED_SERV_CHANGED, () => this.#winRenderer.rerender());
 	}
 
 	changeDirectory_oneUp() {
@@ -105,6 +104,7 @@ export class FilesExplorer {
 
 	#init() {
 		this.#injectFileExplorerButton();
+		this.#os.serversManager.listen(ServersManager_EVENT.CONNECTED_SERV_CHANGED, () => this.#winRenderer.rerender());
 	}
 
 	#injectFileExplorerButton() {
