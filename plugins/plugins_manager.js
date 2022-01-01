@@ -234,7 +234,7 @@ const plugins_manager_css = `
 	width: 130px;
 }
 .plugins-list__row div:nth-child(3){ /*message/error*/
-	width: 700px;
+	min-width: 200px;
 }
 .plugins-list__row.plugin-error div:nth-child(3){ /*error*/
 	color: #a90000;

@@ -24,8 +24,11 @@ async function mainPlugin(api){
 	//windowWidget.listen("show", onShow);
 	windowWidget.init();
 	//windowWidget.getContentDiv().innerHTML = '<div class="plugins-list" />';
-	windowWidget.getContentDiv().classList.add('whiteScrollbar')
-	windowWidget.getContentDiv().classList.add('grayBackground')
+	let content = windowWidget.getContentDiv();
+	content.classList.add('whiteScrollbar')
+	content.style['background-color'] = 'black';
+	content.style.height = '100%';
+	content.parentNode.style['align-items'] = 'stretch'
 	windowWidget.setTitle('REPL')
 	//let windowDiv = windowWidget.getContainer()
 	windowWidget.show();
