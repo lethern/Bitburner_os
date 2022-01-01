@@ -49,9 +49,13 @@ async function clean(ns, filesToDownload) {
 
 		if (file.startsWith('os/')) {
 			let file_raw = file.substr(file.lastIndexOf('/') + 1);
-			if (filesRaw.includes(file_raw) && !filesToDownload.includes(file)) {
-				toDelete.push(_file);
-			}
+			if (filesRaw.includes(file_raw)) {
+				if (!filesToDownload.includes(file)) {
+					toDelete.push(_file);
+				} else {
+					console.log("Install-clean: unidentified file", _file);
+				}
+			} 
 		}
 	})
 
