@@ -10,8 +10,9 @@
 		"os/terminal.js",
 		"os/utils.js",
 		"os/window_widget.js",
+		"os/servers_manager.js",
+
 		"os/app/files_explorer.js",
-		"os/app/servers_manager.js",
 		"os/app/logger_render.js",
 
 		"os/app/servers_explorer/connect.js",
