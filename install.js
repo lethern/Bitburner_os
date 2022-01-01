@@ -33,7 +33,6 @@ export async function main(ns) {
 		}
 	}
 
-	terminalCommand('unalias bootOS')
 	terminalCommand('alias -g bootOS="run /os/main.js"')
 
 	ns.tprint("Install complete! To start, type: bootOS")
