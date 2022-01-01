@@ -18,7 +18,7 @@ export async function main(ns) {
 	let count = 0;
 	for (let filename of filesToDownload) {
 		const path = baseUrl + filename
-		const save_filename = '/os/'+filename
+		const save_filename = (!filename.startsWith('/') && filename.includes('/'))? '/' + filename : filename;
 		
 		try{
 			await ns.scriptKill(save_filename, 'home')
@@ -45,7 +45,9 @@ async function clean(ns, filesToDownload) {
 	let allFiles = ns.ls("home");
 	let toDelete = [];
 	allFiles.forEach(file => {
-		if (file.startsWith('/os/') || file.startsWith('os/')){
+		if (file.startsWith('/')) file = file.substr(1);
+
+		if (file.startsWith('os/')){
 			let file_raw = file.substr(file.lastIndexOf('/') + 1);
 			if (filesRaw.includes(file_raw) && !filesToDownload.includes(file)) {
 				toDelete.push(file);
