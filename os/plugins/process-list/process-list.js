@@ -82,12 +82,14 @@ export class AttacksMonitor {
 	 * @return {{duration: Number, timeRunning: Number}|null}
 	 */
 	#getProcessExpiryDetails(ns, { filename, hosts, args }) {
+		let empty = { duration: 0, timeRunning: 0 };
+		if (!ns.serverExists(filename)) return empty;
+
 		const logs = ns.getScriptLogs(filename, hosts[0], ...args)
 		let i = logs.length
 		let log
 		let scriptData = ns.getRunningScript(filename, hosts[0], ...args)
-		if (!scriptData)
-			return { duration: 0, timeRunning: 0 };
+		if (!scriptData) return empty;
 
 		const { onlineRunningTime, offlineRunningTime } = scriptData
 		const timeRunning = onlineRunningTime + offlineRunningTime
