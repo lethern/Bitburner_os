@@ -74,7 +74,11 @@ export class AttacksMonitor {
 		const logs = ns.getScriptLogs(filename, hosts[0], ...args)
 		let i = logs.length
 		let log
-		const { onlineRunningTime, offlineRunningTime } = ns.getRunningScript(filename, hosts[0], ...args)
+		let scriptData = ns.getRunningScript(filename, hosts[0], ...args)
+		if (!scriptData)
+			return { duration: 0, timeRunning: 0 };
+
+		const { onlineRunningTime, offlineRunningTime } = scriptData
 		const timeRunning = onlineRunningTime + offlineRunningTime
 		const pattern = new RegExp(/^sleep:.+?([\d.]+)/)
 		const duration = logs.reduce((total, logOutput) => {
