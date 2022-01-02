@@ -1,5 +1,5 @@
 import { css } from "/os/plugins/process-list/process-list_css.js"
-
+import { processListPayloads } from "/os/plugins/process-list/process-list.config.js'
 // based on: https://github.com/PhilipArmstead/BitBurner-Scripts
 
 async function mainPlugin(api) {
@@ -36,7 +36,7 @@ export class AttacksMonitor {
 						target: args[0],
 						threads,
 						filename,
-						// type: Object.keys(processListPayloads).find((key) => processListPayloads[key].includes(filename)),
+						type: Object.keys(processListPayloads).find((key) => processListPayloads[key].includes(filename)),
 					}))
 				// .filter(({ type }) => type)
 			])

@@ -165,8 +165,9 @@ function init(servers, attacksMonitor, handlers) {
 	rgraph.loadJSON(json, 1);
 
 	rgraph._refresh = rgraph.refresh;
-	rgraph.refresh = function (...args) {
+	rgraph.refresh = function (arg) {
 		if (!handlers.windowWidget.getContainer()) {
+			console.log("clearInterval")
 			clearInterval(handlers.loop_handler)
 			handlers.loop_handler = null;
 			return;
@@ -175,7 +176,7 @@ function init(servers, attacksMonitor, handlers) {
 			return;
 		}
 
-		draw_lines(rgraph, attacksMonitor);
+		draw_lines(rgraph, attacksMonitor, arg);
 	}
 	
 	//rgraph.controller.onBeforeCompute(rgraph.graph.getNode(rgraph.root));
@@ -191,12 +192,12 @@ function loop(rgraph, handlers) {
 	}, 1000);
 }
 
-async function draw_lines(rgraph, attacksMonitor) {
+async function draw_lines(rgraph, attacksMonitor, arg) {
 
 	let disableGrouping = true;
 	let attacks = await attacksMonitor.populateProcesses(disableGrouping, { param: "expiry", isDescending: true, });
 
-	rgraph._refresh(...args);
+	rgraph._refresh(arg);
 
 	let ctx = rgraph.canvas.getCtx();
 	ctx.save();

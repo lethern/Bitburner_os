@@ -1,3 +1,4 @@
+import { processListPayloads } from "/os/plugins/rgraph/process-list.config.js'
 
 export class AttacksMonitor {
 	/** @param {import('/os/plugins/api_adapter').API_Object} api */
@@ -24,7 +25,7 @@ export class AttacksMonitor {
 						target: args[0],
 						threads,
 						filename,
-						// type: Object.keys(processListPayloads).find((key) => processListPayloads[key].includes(filename)),
+						type: Object.keys(processListPayloads).find((key) => processListPayloads[key].includes(filename)),
 					}))
 				// .filter(({ type }) => type)
 			])
