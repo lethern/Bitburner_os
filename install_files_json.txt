@@ -27,6 +27,7 @@
 		"os/plugins/repl/repl_json.txt",
 
 		"os/plugins/rgraph/rgraph.js",
+		"os/plugins/rgraph/attacks_monitor.js",
 		"os/plugins/rgraph/rgraph_json.txt",
 		"os/plugins/rgraph/jit-yc.js",
 

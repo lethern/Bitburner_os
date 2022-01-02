@@ -27,6 +27,10 @@ export class WindowWidget extends EventListener {
 		this.#initialiseWindow(this.#windowId)
 	}
 
+	get isVisible() {
+		return this.#isVisible
+	}
+
 	show() {
 		this.windowVisibility(true);
 	}
@@ -297,6 +301,7 @@ export class WindowWidget extends EventListener {
 		this.#os = null;
 		this.#log = null;
 		this.#explorerWindow = null;
+		this.#isVisible = false;
 	}
 
 	static stealFocusHandler() {

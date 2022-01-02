@@ -52,10 +52,10 @@ async function clean(ns, filesToDownload) {
 			if (filesRaw.includes(file_raw)) {
 				if (!filesToDownload.includes(file)) {
 					toDelete.push(_file);
-				} else {
-					console.log("Install-clean: unidentified file", _file);
 				}
-			} 
+			} else {
+				console.log("Install-clean: unidentified file", file);
+			}
 		}
 	})
 

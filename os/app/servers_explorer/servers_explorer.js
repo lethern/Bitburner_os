@@ -34,7 +34,7 @@ export class ServersExplorer {
 		if (this.#isRendered) return;
 		this.#isRendered = true;
 
-		while (true) {
+		while (this.#isRendered) {
 			let serverObjs = await this.#getServers();
 			this.#winRenderer.renderServers(serverObjs);
 			await Utils.sleep(5000);
@@ -107,6 +107,7 @@ export class ServersExplorer {
 	}
 
 	#on_exit() {
+		this.#isRendered = false;
 	}
 }
 
@@ -134,7 +135,7 @@ class ServersExplorerRenderer extends EventListener {
 
 	/** @param {{name: string, rooty: boolean, backy: boolean}[]} serverObjs */
 	renderServers(serverObjs) {
-		this.#windowWidget.setTitle(this.title)
+		
 		let windowDiv = this.#windowWidget.getContainer()
 		serverObjs.unshift({
 			name: 'home',
@@ -219,6 +220,7 @@ class ServersExplorerRenderer extends EventListener {
 
 	#onShow() {
 		// We allow no-await on async
+		this.#windowWidget.setTitle(this.title)
 		this.#serversExplorer.loop();
 	}
 
@@ -282,6 +284,5 @@ class ServersExplorerRenderer extends EventListener {
 	}
 
 	#on_exit() {
-		Object.keys(this).forEach(key => this[key] = null);
 	}
 }
