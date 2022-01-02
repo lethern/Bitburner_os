@@ -78,7 +78,7 @@ function init(servers, attacksMonitor, handlers) {
 			"id": serv,
 			"name": serv,
 			"data": {
-				"$dim": 10.53272740718869,
+				"$dim": (serv == 'home') ? 20 : 10,
 				"$type": (serv == 'home') ? "star" : "circle",
 			},
 			"adjacencies": adjacencies,
@@ -117,26 +117,8 @@ function init(servers, attacksMonitor, handlers) {
 		duration: 10, //3500,
 		fps: 30, //30,
 		//Change father-child distance
-		levelDistance: 55,
-		//This method is called right before plotting an edge
-		onBeforePlotLine: function (adj) {
-			//Add some random lineWidth to each edge.
-			//            if (!adj.data.$lineWidth) 
-			//                adj.data.$lineWidth = Math.random() * 5 + 1;
-		},
+		levelDistance: 60,
 
-		onBeforeCompute: function (node) {
-
-			//Make right column relations list.
-			//var html = "<h4>" + node.name + "</h4><b>Connections:</b>";
-			//html += "<ul>";
-			//node.eachAdjacency(function (adj) {
-			//	var child = adj.nodeTo;
-			//	html += "<li>" + child.name + "</li>";
-			//});
-			//html += "</ul>";
-			//$jit.id('inner-details').innerHTML = html;
-		},
 		//Add node click handler and some styles.
 		//This method is called only once for each node/label crated.
 		onCreateLabel: function (domElement, node) {
@@ -150,7 +132,7 @@ function init(servers, attacksMonitor, handlers) {
 			};
 		},
 		//This method is called when rendering/moving a label.
-		//This is method is useful to make some last minute changes
+		//This method is useful to make some last minute changes
 		//to node labels like adding some position offset.
 		onPlaceLabel: function (domElement, node) {
 			var style = domElement.style;
@@ -160,7 +142,6 @@ function init(servers, attacksMonitor, handlers) {
 		}
 	});
 
-	loadCustomFunctions();
 
 	rgraph.loadJSON(json, 1);
 
@@ -179,17 +160,35 @@ function init(servers, attacksMonitor, handlers) {
 		draw_lines(rgraph, attacksMonitor, arg);
 	}
 	
-	//rgraph.controller.onBeforeCompute(rgraph.graph.getNode(rgraph.root));
-	
-	loop(rgraph, handlers);
+	loop(rgraph, handlers, attacksMonitor);
 
 	rgraph.refresh();
 }
 
-function loop(rgraph, handlers) {
+function loop(rgraph, handlers, attacksMonitor) {
+	let last_time = (Date.now() / 1000);
 	handlers.loop_handler = setInterval(() => {
-		rgraph.refresh(handlers);
-	}, 1000);
+
+		if (!handlers.windowWidget.getContainer()) {
+			console.log("clearInterval")
+			clearInterval(handlers.loop_handler)
+			handlers.loop_handler = null;
+			return;
+		}
+		if (!handlers.windowWidget.isVisible) {
+			return;
+		}
+
+		let curr_time = (Date.now() / 1000);
+		let diff = curr_time - last_time;
+		if (diff < 0) { last_time = curr_time; diff = 0; }
+
+		if (diff > 2000) {
+			rgraph.refresh(handlers);
+		} else {
+			draw_lines(rgraph, attacksMonitor);
+		}
+	}, 40);
 }
 
 async function draw_lines(rgraph, attacksMonitor, arg) {
@@ -201,8 +200,7 @@ async function draw_lines(rgraph, attacksMonitor, arg) {
 
 	let ctx = rgraph.canvas.getCtx();
 	ctx.save();
-
-
+	
 	let min = 100;
 	let max = 0;
 	attacks.forEach(serv => {
@@ -211,250 +209,77 @@ async function draw_lines(rgraph, attacksMonitor, arg) {
 		if (serv._scale && serv._scale < min) min = serv._scale;
 	});
 
+	let div = 2;
+	let time = Date.now()
+	let time_delta = time / 1000;
+	time_delta = time_delta / div; // % (2*Math.PI);
+
+	
 	attacks.forEach(serv => {
 		let target = serv.target;
 
-		ctx.lineWidth = Math.max((serv._scale - min) / (max - min) * 6, 0) + 0.5;
+		ctx.lineWidth = Math.max((serv._scale - min) / (max - min) * 5, 0) + 1;
 		switch (serv.type) {
 			case 'weaken': ctx.strokeStyle = '#f3f330'; break;
 			case 'hack': ctx.strokeStyle = '#33d833'; break;
 			default: ctx.strokeStyle = '#00a5f3'; break;
 		}
 		
-		
 		serv.hosts.forEach(target2 => {
-			arc_line(ctx, rgraph, target, target2);
+			arc_line(ctx, rgraph, target, target2, time); // time_delta, serv.type
 		})
 	})
 
 	ctx.restore();
 }
 
-function arc_line(ctx, rgraph, idfrom, idto) {
+function arc_line(ctx, rgraph, idfrom, idto, time) { // dt, type
 	let nodeFrom = rgraph.graph.getNode(idfrom)
 	let nodeTo = rgraph.graph.getNode(idto)
-	let canvas = rgraph.canvas;
 
 	var from = nodeFrom.pos.getc(),
 		to = nodeTo.pos.getc();
 
-	/*
-	ctx.beginPath();
-	ctx.moveTo(from.x, from.y);
-
-	var c = (from.x + to.x) / 2;
-	var d = (from.y + to.y) / 2;
-	ctx.quadraticCurveTo(to.x, to.y, c, d);
-	*/
-
 	let begin = from;
 	let end = to;
-	var orn = "";
+
 	let dim = (Math.abs(begin.x - end.x) + Math.abs(begin.y - end.y))/2
-	if (Math.abs(begin.x - end.x) > Math.abs(begin.y - end.y)) {
-		orn = (begin.x < end.x) ? "left" : "right";
-	} else {
-		orn = (begin.y < end.y) ? "top" : "bottom";
-	}
+	let d = Math.sqrt((begin.x - end.x) ** 2 + (begin.y - end.y) ** 2);
+
+	let dist = 15+ d / 15;
+	ctx.setLineDash([dist / 2, dist / 2])
+	ctx.lineDashOffset = Math.ceil((time * Math.sqrt(d) / 400 ) % (dist));
+
 	
 	ctx.beginPath();
 	ctx.moveTo(begin.x, begin.y);
 
-	ctx.quadraticCurveTo((begin.x + end.x) / 2, (begin.y + end.y) / 2 - dim, end.x, end.y);
 	/*
-	switch (orn) {
-		case "left":
-			ctx.quadraticCurveTo((begin.x + end.x) + dim, (begin.y + end.y)/2, end.x, end.y);
-			break;
-		case "right":
-			ctx.quadraticCurveTo((begin.x + end.x) - dim, (begin.y + end.y)/2, end.x, end.y);
-			break;
-		case "top":
-			ctx.quadraticCurveTo((begin.x + end.x) / 2, (begin.y + end.y) / 2 + dim, end.x, end.y);
-			break;
-		case "bottom":
-			ctx.quadraticCurveTo((begin.x + end.x) / 2, (begin.y + end.y) / 2 - dim, end.x, end.y);
-			break;
+	var gradient = ctx.createLinearGradient(begin.x, begin.y, end.x, end.y);
+
+	let hue = '';
+	switch (type) {
+		case 'weaken': hue = '60'; break;
+		case 'hack': hue = '120'; break;
+		default: hue = '199'; break;
 	}
+
+	let light = 40;
+	
+
+	[0, 0.5, 1, 1.5, 2, 2.5, 3].forEach(p => {
+		//let x = (Math.sin(Math.PI / 2 * ((p + dt) % 1)) + 1 )/2;
+		let dx = 17 * (Math.sin((p + dt) * Math.PI));
+		let x = Math.ceil(light + dx);
+		gradient.addColorStop(p/3, 'hsl(' + hue + ', 88%, ' + x + '%)');
+	});
+
+	ctx.strokeStyle = gradient;
 	//*/
-	//ctx.lineTo(to.x, to.y);
+
+	ctx.quadraticCurveTo((begin.x + end.x) / 2, (begin.y + end.y) / 2 - dim, end.x, end.y);
 	ctx.stroke();
 	
-	/*
-	ctx.restore()
-	var centerOfCircle = computeArcThroughTwoPoints(from, to);
-	if (centerOfCircle.a > 1000 || centerOfCircle.b > 1000
-		|| centerOfCircle.ratio < 0) {
-		ctx.beginPath();
-		ctx.moveTo(from.x, from.y);
-		ctx.lineTo(to.x, to.y);
-		ctx.stroke();
-	} else {
-		var angleBegin = Math.atan2(to.y - centerOfCircle.y, to.x
-			- centerOfCircle.x);
-		var angleEnd = Math.atan2(from.y - centerOfCircle.y, from.x
-			- centerOfCircle.x);
-		var sense = sense(angleBegin, angleEnd);
-		ctx.beginPath();
-		ctx.arc(centerOfCircle.x, centerOfCircle.y, centerOfCircle.ratio
-			, angleBegin, angleEnd, sense);
-		ctx.stroke();
-	}
-	*/
-
-	function computeArcThroughTwoPoints(p1, p2) {
-		var aDen = (p1.x * p2.y - p1.y * p2.x), bDen = aDen;
-		var sq1 = p1.squaredNorm(), sq2 = p2.squaredNorm();
-		// Fall back to a straight line
-		if (aDen == 0)
-			return {
-				x: 0,
-				y: 0,
-				ratio: -1
-			};
-
-		var a = (p1.y * sq2 - p2.y * sq1 + p1.y - p2.y) / aDen;
-		var b = (p2.x * sq1 - p1.x * sq2 + p2.x - p1.x) / bDen;
-		var x = -a / 2;
-		var y = -b / 2;
-		var squaredRatio = (a * a + b * b) / 4 - 1;
-		// Fall back to a straight line
-		if (squaredRatio < 0)
-			return {
-				x: 0,
-				y: 0,
-				ratio: -1
-			};
-		var ratio = Math.sqrt(squaredRatio);
-		var out = {
-			x: x,
-			y: y,
-			ratio: ratio > 1000 ? -1 : ratio,
-			a: a,
-			b: b
-		};
-
-		return out;
-	}
-
-	function sense(angleBegin, angleEnd) {
-		return (angleBegin < angleEnd) ? ((angleBegin + Math.PI > angleEnd) ? false
-			: true) : ((angleEnd + Math.PI > angleBegin) ? true : false);
-	}
-				//	*/
-}
-
-function loadCustomFunctions() {
-	$jit.RGraph.Plot.EdgeTypes.implement({
-		'curvyArrow': {
-			'render': function (adj, canvas) {
-
-				/*
-				var begin = adj.nodeFrom.pos.getc(),
-					end = adj.nodeTo.pos.getc(),
-					dim = (Math.abs(begin.x - end.x) + Math.abs(begin.y - end.y));
-				dim = dim/20 * Math.log(dim)
-				var ctx = canvas.getCtx();
-
-				var orn = "";
-				if (Math.abs(begin.x - end.x) > Math.abs(begin.y - end.y)) {
-					orn = (begin.x < end.x) ? "left" : "right";
-				} else {
-					orn = (begin.y < end.y) ? "top" : "bottom";
-				}
-
-				ctx.beginPath();
-				ctx.moveTo(begin.x, begin.y);
-
-				switch (orn) {
-					case "left":
-						ctx.bezierCurveTo(begin.x + dim, begin.y, end.x - dim, end.y, end.x, end.y);
-						break;
-					case "right":
-						ctx.bezierCurveTo(begin.x - dim, begin.y, end.x + dim, end.y, end.x, end.y);
-						break;
-					case "top":
-						ctx.bezierCurveTo(begin.x, begin.y + dim, end.x, end.y - dim, end.x, end.y);
-						break;
-					case "bottom":
-						ctx.bezierCurveTo(begin.x, begin.y - dim, end.x, end.y + dim, end.x, end.y);
-						break;
-				}
-				ctx.stroke();
-				*/
-
-				//*
-				var from = adj.nodeFrom.pos.getc(),
-					to = adj.nodeTo.pos.getc(),
-					dim = 123;
-
-				var ctx = canvas.getCtx();
-				var centerOfCircle = computeArcThroughTwoPoints(from, to);
-				if (centerOfCircle.a > 1000 || centerOfCircle.b > 1000
-					|| centerOfCircle.ratio < 0) {
-					ctx.beginPath();
-					ctx.moveTo(from.x, from.y);
-					ctx.lineTo(to.x , to.y);
-					ctx.stroke();
-				} else {
-					var angleBegin = Math.atan2(to.y - centerOfCircle.y, to.x
-						- centerOfCircle.x);
-					var angleEnd = Math.atan2(from.y - centerOfCircle.y, from.x
-						- centerOfCircle.x);
-					var sense = sense(angleBegin, angleEnd);
-					ctx.beginPath();
-					ctx.arc(centerOfCircle.x, centerOfCircle.y, centerOfCircle.ratio
-						, angleBegin, angleEnd, sense);
-					ctx.stroke();
-				}
-
-				function computeArcThroughTwoPoints(p1, p2) {
-					var aDen = (p1.x * p2.y - p1.y * p2.x), bDen = aDen;
-					var sq1 = p1.squaredNorm(), sq2 = p2.squaredNorm();
-					// Fall back to a straight line
-					if (aDen == 0)
-						return {
-							x: 0,
-							y: 0,
-							ratio: -1
-						};
-
-					var a = (p1.y * sq2 - p2.y * sq1 + p1.y - p2.y) / aDen;
-					var b = (p2.x * sq1 - p1.x * sq2 + p2.x - p1.x) / bDen;
-					var x = -a / 2;
-					var y = -b / 2;
-					var squaredRatio = (a * a + b * b) / 4 - 1;
-					// Fall back to a straight line
-					if (squaredRatio < 0)
-						return {
-							x: 0,
-							y: 0,
-							ratio: -1
-						};
-					var ratio = Math.sqrt(squaredRatio);
-					var out = {
-						x: x,
-						y: y,
-						ratio: ratio > 1000 ? -1 : ratio,
-						a: a,
-						b: b
-					};
-
-					return out;
-				}
-
-				function sense(angleBegin, angleEnd) {
-					return (angleBegin < angleEnd) ? ((angleBegin + Math.PI > angleEnd) ? false
-						: true) : ((angleEnd + Math.PI > angleBegin) ? true : false);
-				}
-				//	*/
-			},
-			//optional
-			'contains': function (adj, pos) {
-				//return true if pos is inside the arc or false otherwise
-			}
-		}
-	});
 }
 
 function injectCSS() {
