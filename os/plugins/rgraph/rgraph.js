@@ -174,7 +174,6 @@ function init(servers, attacksMonitor, handlers) {
 		if (!handlers.windowWidget.isVisible) {
 			return;
 		}
-		rgraph._refresh(...args);
 
 		draw_lines(rgraph, attacksMonitor);
 	}
@@ -196,6 +195,8 @@ async function draw_lines(rgraph, attacksMonitor) {
 
 	let disableGrouping = true;
 	let attacks = await attacksMonitor.populateProcesses(disableGrouping, { param: "expiry", isDescending: true, });
+
+	rgraph._refresh(...args);
 
 	let ctx = rgraph.canvas.getCtx();
 	ctx.save();
