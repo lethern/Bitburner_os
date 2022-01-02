@@ -72,7 +72,7 @@ export class AttacksMonitor {
 	 */
 	#getProcessExpiryDetails(ns, { filename, hosts, args }) {
 		let empty = { duration: 0, timeRunning: 0 };
-		if (!ns.serverExists(filename)) return empty;
+		if (!ns.serverExists(hosts[0])) return empty;
 
 		const logs = ns.getScriptLogs(filename, hosts[0], ...args)
 		let i = logs.length
