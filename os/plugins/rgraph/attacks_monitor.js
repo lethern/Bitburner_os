@@ -1,4 +1,4 @@
-import { processListPayloads } from "/os/plugins/rgraph/process-list.config.js'
+import { processListPayloads } from "/os/plugins/rgraph/process-list.config.js"
 
 export class AttacksMonitor {
 	/** @param {import('/os/plugins/api_adapter').API_Object} api */
