@@ -30,6 +30,7 @@
 		"os/plugins/rgraph/attacks_monitor.js",
 		"os/plugins/rgraph/rgraph_json.txt",
 		"os/plugins/rgraph/jit-yc.js",
+		"os/plugins/rgraph/process-list.config.example.js",
 
 		"os/plugins/process-list/process-list.js",
 		"os/plugins/process-list/process-list_css.js",
