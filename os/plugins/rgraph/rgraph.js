@@ -2,7 +2,7 @@ import 'jit-yc.js'
 import { AttacksMonitor } from '/os/plugins/rgraph/attacks_monitor.js'
 
 /** @param {import('/os/plugins/api_adapter.js').API_Object} api */
-async function mainPlugin(api){
+async function mainPlugin(api) {
     let os = api.os;
 	let classes = api.classes;
 
@@ -135,10 +135,12 @@ function init(servers, attacksMonitor, handlers) {
 		//This method is useful to make some last minute changes
 		//to node labels like adding some position offset.
 		onPlaceLabel: function (domElement, node) {
+			/*
 			var style = domElement.style;
 			var left = parseInt(style.left);
 			var w = domElement.offsetWidth;
 			style.left = (left - w / 2) + 'px';
+			*/
 		}
 	});
 
@@ -162,7 +164,8 @@ function init(servers, attacksMonitor, handlers) {
 	
 	loop(rgraph, handlers, attacksMonitor);
 
-	rgraph.refresh();
+	//rgraph.refresh(false);
+	rgraph.plot();
 }
 
 function loop(rgraph, handlers, attacksMonitor) {
