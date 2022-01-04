@@ -160,15 +160,17 @@ class ProcessList {
 	async run() {
 		let resizeOnce = true;
 		while (this.#contentDiv.parentElement) {
-			this.#contentDiv.querySelector(".process-list__body").innerHTML = await this.#renderAttacksHTML();
-			//await ns.sleep(200)
+			if (this.#widget.isVisible) {
+				this.#contentDiv.querySelector(".process-list__body").innerHTML = await this.#renderAttacksHTML();
+				//await ns.sleep(200)
 
-			if (resizeOnce) {
-				let elem = this.#contentDiv.querySelector('.process-list');
-				console.log(elem.getBoundingClientRect().width, elem.getBoundingClientRect().height)
-				elem.parentNode.parentNode.style.width = Math.min(Math.max(elem.getBoundingClientRect().width + 10, 200), 400) + 'px';
-				elem.parentNode.parentNode.style.height = Math.min(Math.max(elem.getBoundingClientRect().height + 10, 200), 700) + 'px';
-				resizeOnce = false;
+				if (resizeOnce) {
+					let elem = this.#contentDiv.querySelector('.process-list');
+					console.log(elem.getBoundingClientRect().width, elem.getBoundingClientRect().height)
+					elem.parentNode.parentNode.style.width = Math.min(Math.max(elem.getBoundingClientRect().width + 10, 200), 400) + 'px';
+					elem.parentNode.parentNode.style.height = Math.min(Math.max(elem.getBoundingClientRect().height + 10, 200), 700) + 'px';
+					resizeOnce = false;
+				}
 			}
 			await this.#utils.sleep(300)
 		}
@@ -272,6 +274,7 @@ class ProcessList {
 	#classes
 	#utils
 
+	/** @type {import('/os/window_widget.js').WindowWidget} */
 	#widget
 	#contentDiv
 	#attacksMonitor

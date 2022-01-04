@@ -135,6 +135,7 @@ class ServersExplorerRenderer extends EventListener {
 
 	/** @param {{name: string, rooty: boolean, backy: boolean}[]} serverObjs */
 	renderServers(serverObjs) {
+		if (!this.#windowWidget.isVisible) return;
 		
 		let windowDiv = this.#windowWidget.getContainer()
 		serverObjs.unshift({
