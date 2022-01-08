@@ -239,6 +239,8 @@ async function draw_lines(rgraph, attacksMonitor, arg) {
 function arc_line(ctx, rgraph, idfrom, idto, time) { // dt, type
 	let nodeFrom = rgraph.graph.getNode(idfrom)
 	let nodeTo = rgraph.graph.getNode(idto)
+	if (!nodeFrom) { return }
+	if (!nodeTo) { return }
 
 	var from = nodeFrom.pos.getc(),
 		to = nodeTo.pos.getc();

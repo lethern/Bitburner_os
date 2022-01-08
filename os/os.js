@@ -80,6 +80,8 @@ export class OS extends EventListener {
 				await this.#runNSQueue();
 
 				_hasAccessToNS = false;
+
+				if (!this.#doLoop) return; // safety check
 				await ns.sleep(delay);
 			}
 		}
@@ -98,10 +100,13 @@ export class OS extends EventListener {
 			}
 
 			for (let { func, def } of q) {
+				if (!this.#doLoop) return; // safety check
+
 				try {
 					let res = await func(ns);
 					def && def.resolve(res);
 				} catch (e) {
+					this.#log.error("Exception in NS promise", e.message, e.stack);
 					def && def.reject(e);
 				}
 			}
@@ -109,8 +114,8 @@ export class OS extends EventListener {
 	}
 
 	on_exit() {
-		this.#log.debug("on_exit");
 		this.#doLoop = false;
+		this.#log.debug("on_exit");
 		this.fire(OS_EVENT.ON_EXIT);
 	}
 }
