@@ -192,13 +192,17 @@ class RGraphWidget {
 
 	#initServersData(servers) {
 		let json = [];
-		let exclude = [];
+		let exclude = (serv) => false;
+		let purchased = this.#api.os.getServersManager().purchasedServers;
 		if (this.#filterServers) {
-			exclude = this.#api.os.getServersManager().purchasedServers;
+			exclude = (serv) => {
+				if (serv.startsWith('hacknet-node-')) return true;
+				return purchased.includes(serv);
+			};
 		}
 
 		for (let serv in servers) {
-			if (exclude.includes(serv)) {
+			if (exclude(serv)) {
 				continue;
 			}
 
@@ -211,7 +215,7 @@ class RGraphWidget {
 					lineWidth: 3,
 					"$alpha": this.nodeAlpha,
 				}
-			})).filter(a => !exclude.includes(a.nodeTo));
+			})).filter(a => !exclude(a.nodeTo));
 
 			json.push({
 				"id": serv,
