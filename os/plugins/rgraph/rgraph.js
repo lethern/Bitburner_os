@@ -13,13 +13,19 @@ class RGraphWidget {
 	constructor(api) {
 		this.#api = api;
 		this.#doc = globalThis['document'];
+		this.renderWorld = false;
+		this.nodeAlpha = 0.4;
 	}
 
 	initAll() {
 		try {
+			this.active = true;
+
 			this.initWindow();
 
 			this.#attacksMonitor = new AttacksMonitor(this.#api);
+
+			this.injectCSS();
 
 			this.initGraph();
 
@@ -80,8 +86,24 @@ class RGraphWidget {
 
 		let gui = this.#api.os.getGUI();
 
-		let btn = gui.createButton({ btnOptions, btnLabel: "+/- Purchased", callback: () => this.#filterServers = !this.#filterServers });
+		let btn = gui.createButton({ btnOptions, btnLabel: "+/- Purchased", callback: () => this.onBtn_purchased() });
 		this.#contentDiv.appendChild(btn);
+
+		btnOptions.top = '80px';
+		btn = gui.createButton({ btnOptions, btnLabel: "Network/World", callback: () => this.onBtn_world() });
+		this.#contentDiv.appendChild(btn);
+	}
+
+	onBtn_purchased() {
+		this.#filterServers = !this.#filterServers
+		this.renderGraph();
+	}
+
+	onBtn_world() {
+		this.#worldRender.toggleActive();
+		this.renderWorld = !this.renderWorld;
+		this.nodeAlpha = (this.renderWorld) ? 0.4 : 0.8;
+		this.renderGraph();
 	}
 
 	injectCSS() {
@@ -102,38 +124,42 @@ class RGraphWidget {
 	}
 
 	initGraph() { // , attacksMonitor, handlers
-		
+
 		this.#createRGraph();
 
-		let rgraph = this.#rgraph;
-
-		this.#worldRender = new WorldRender(rgraph.canvas.getCtx())
-
-
-		this.loadServers();
-
-		this.#worldRender.renderNodes(rgraph);
-
-		rgraph._refresh = rgraph.refresh;
-		rgraph.refresh = function (arg) {
+		this.#rgraph._refresh = this.#rgraph.refresh;
+		this.#rgraph.refresh = (arg) => {
 			if (!this.#windowWidget.getContainer()) {
 				console.log("clearInterval")
 				clearInterval(this.#loop_handler)
 				this.#loop_handler = null;
+				this.active = false;
 				return;
 			}
 			if (!this.#windowWidget.isVisible) {
 				return;
 			}
 
-			this.draw_lines(rgraph, this.#attacksMonitor, arg, this.#worldRender);
+			this.draw_lines(arg);
 		}
 
+		this.#worldRender = new WorldRender(this.#rgraph.canvas.getCtx(), this.renderWorld)
+
+		this.renderGraph();
+
 		this.last_time = (Date.now() / 1000);
-		this.#loop_handler = setTimeout(() => this.loop(), 40);
+		if (this.active) this.#loop_handler = setTimeout(() => this.loop(), 40);
+	}
+
+	renderGraph() {
+		this.loadServers();
+
+		this.#rgraph.canvas.getCtx().clearRect(0, 0, this.#rgraph.canvas.width, this.#rgraph.canvas.height);
+
+		this.#worldRender.renderNodes(this.#rgraph);
 
 		//rgraph.refresh(false);
-		rgraph.plot();
+		this.#rgraph.plot();
 	}
 
 	loadServers() {
@@ -146,6 +172,7 @@ class RGraphWidget {
 
 
 	dispose() {
+		this.active = false;
 		if (this.#stylesheet) this.#stylesheet.remove();
 	}
 
@@ -169,10 +196,11 @@ class RGraphWidget {
 		if (this.#filterServers) {
 			exclude = this.#api.os.getServersManager().purchasedServers;
 		}
-		
-		for (let serv in servers) {
 
-			if (exclude.includes(serv)) continue;
+		for (let serv in servers) {
+			if (exclude.includes(serv)) {
+				continue;
+			}
 
 			let { neighbors } = servers[serv];
 
@@ -181,9 +209,9 @@ class RGraphWidget {
 				"data": {
 					"weight": 3,
 					lineWidth: 3,
-					"$alpha": 0.4,
+					"$alpha": this.nodeAlpha,
 				}
-			}));
+			})).filter(a => !exclude.includes(a.nodeTo));
 
 			json.push({
 				"id": serv,
@@ -231,7 +259,7 @@ class RGraphWidget {
 
 	loop() {
 		this.loop_impl();
-		this.#loop_handler = setTimeout(() => this.loop(), 40);
+		if (this.active) this.#loop_handler = setTimeout(() => this.loop(), 40);
 	}
 
 	loop_impl() {
@@ -300,14 +328,17 @@ class RGraphWidget {
 }
 
 class WorldRender {
-	constructor(ctx) {
+	constructor(ctx, active) {
+		this.active = active;
 		this.ctx = ctx;
 		this.arr = [];
 		this.edges = [];
 		this.cities = {};
 		this.scale = 20;
-		this.x_adjust = -400;
+		this.x_adjust = -600;
 		this.y_adjust = -200;
+
+		this.nodesCache = {};
 
 		let arr = this.arr;
 		let edges = this.edges;
@@ -392,36 +423,53 @@ class WorldRender {
 	}
 
 	renderNodes(rgraph) {
+		console.log("nodes");
+		if (!this.active) return;
 		let scale = this.scale;
 		let x_adjust = this.x_adjust;
 		let y_adjust = this.y_adjust;
 
 		for (let id in rgraph.graph.nodes) {
 			let node = rgraph.graph.nodes[id];
-			if (SERV_DATA[id]) {
-				if (this.cities[SERV_DATA[id]]) {
-					let [col, row] = this.cities[SERV_DATA[id]];
-					let randx = Math.random() * 140 - 70;
-					let randy = Math.random() * 140 - 70;
-					node.pos.setc(x_adjust + col * scale+randx, y_adjust+row * scale*1.9+randy)
+
+			if (!this.nodesCache[id]) {
+				if (SERV_DATA[id]) {
+					if (this.cities[SERV_DATA[id]]) {
+						let [col, row] = this.cities[SERV_DATA[id]];
+						let randx = Math.random() * 140 - 70;
+						let randy = Math.random() * 140 - 70;
+						this.nodesCache[id] = [x_adjust + col * scale + randx, y_adjust + row * scale * 1.9 + randy];
+					}
 				}
-			} else {
-				let x = (12 + Math.random() * 50) * scale
-				let y = (1 + Math.random() * 19) * scale*1.9;
-				node.pos.setc(x_adjust + x, y_adjust + y);
+
+				if (!this.nodesCache[id]) {
+					let x = (12 + Math.random() * 50) * scale
+					let y = (1 + Math.random() * 19) * scale * 1.9;
+					this.nodesCache[id] = [x_adjust + x, y_adjust + y];
+				}
 			}
-			
+
+			let cache = this.nodesCache[id];
+			node.pos.setc(cache[0], cache[1]);
 		}
+
 		if (!this.rgraph) {
 			this.rgraph = rgraph;
 			for (let id in rgraph.graph.nodes) {
-				Object.getPrototypeOf(rgraph.graph.nodes[id]).setPos = () => { };
+				this._node_prototype = Object.getPrototypeOf(rgraph.graph.nodes[id]);
 				break;
 			}
+			this._setPos = this._node_prototype.setPos;
+		}
+
+		for (let id in rgraph.graph.nodes) {
+			this._node_prototype.setPos = () => { };
+			break;
 		}
 	}
 
 	draw() {
+		if (!this.active) return;
 		let ctx = this.ctx;
 		let scale = this.scale;
 		let x_adjust = this.x_adjust;
@@ -436,6 +484,13 @@ class WorldRender {
 			ctx.stroke();
 		}
 		ctx.restore();
+	}
+
+	toggleActive() {
+		this.active = !this.active;
+		if (this._node_prototype) {
+			this._node_prototype.setPos = this._setPos;
+		}
 	}
 }
 
