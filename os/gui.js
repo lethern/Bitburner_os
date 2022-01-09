@@ -14,6 +14,22 @@ export class GUI {
 		this.#os.listen(OS_EVENT.INIT, () => this.#init());
 		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 	}
+
+	createButton(params) {
+		let { btnLabel, callback } = params;
+
+		let btn = this.#doc.createElement('button');
+		btn.type = 'button';
+		btn.style['color'] = 'rgb(0, 204, 0)';
+		btn.style['background-color'] = 'rgb(51, 51, 51)';
+		btn.style['border'] = '1px solid rgb(34, 34, 34)';
+		btn.textContent = btnLabel;
+
+		btn._gui_listener = callback;
+		btn.addEventListener('click', btn._gui_listener)
+
+		this.#buttons.push({ btn });
+	}
 	
 	addMenuButton(params) {
 		let { btnLabel, btnIconPath, btnIconViewBox, btnId, callback } = params;

@@ -2,6 +2,7 @@ import { WindowWidget } from '/os/window_widget.js'
 import { Logger } from '/os/logger.js'
 import { ServersManager } from '/os/servers_manager.js'
 import { Utils } from '/os/utils.js'
+import { GUI } from '../gui';
 
 /**
  * @typedef {Object} API_Object
@@ -25,6 +26,7 @@ import { Utils } from '/os/utils.js'
  * @property { (callback: (ns: NS) => Promise<any> | any) => Promise} getNS
  * @property { (callback: (ns: NS) => void) => void} getNS_noPromise
  * @property { () => ServersManager} getServersManager
+ * @property { () => GUI} getGUI
  */
 
 export class API_Adapter {
@@ -68,6 +70,11 @@ export class API_Adapter {
 			/** @returns {ServersManager} */
 			getServersManager: () => {
 				return this.#os.serversManager
+			},
+
+			/** @returns {GUI} */
+			getGUI: () => {
+				return this.#os.gui;
 			},
 		}
 	}
