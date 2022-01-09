@@ -144,6 +144,7 @@ function init(servers, attacksMonitor, handlers) {
 		}
 	});
 
+	handlers.worldRender = new WorldRender(rgraph.canvas.getCtx())
 
 	rgraph.loadJSON(json, 1);
 
@@ -159,7 +160,7 @@ function init(servers, attacksMonitor, handlers) {
 			return;
 		}
 
-		draw_lines(rgraph, attacksMonitor, arg);
+		draw_lines(rgraph, attacksMonitor, arg, handlers.worldRender);
 	}
 	
 	loop(rgraph, handlers, attacksMonitor);
@@ -189,12 +190,12 @@ function loop(rgraph, handlers, attacksMonitor) {
 		if (diff > 2000) {
 			rgraph.refresh(handlers);
 		} else {
-			draw_lines(rgraph, attacksMonitor);
+			draw_lines(rgraph, attacksMonitor, false, handlers.worldRender);
 		}
 	}, 40);
 }
 
-async function draw_lines(rgraph, attacksMonitor, arg) {
+async function draw_lines(rgraph, attacksMonitor, arg, worldRender) {
 
 	let disableGrouping = true;
 	let attacks = await attacksMonitor.populateProcesses(disableGrouping, { param: "expiry", isDescending: true, });
@@ -203,7 +204,9 @@ async function draw_lines(rgraph, attacksMonitor, arg) {
 
 	let ctx = rgraph.canvas.getCtx();
 	ctx.save();
-	
+
+	worldRender.draw();
+
 	let min = 100;
 	let max = 0;
 	attacks.forEach(serv => {
@@ -216,7 +219,6 @@ async function draw_lines(rgraph, attacksMonitor, arg) {
 	let time = Date.now()
 	let time_delta = time / 1000;
 	time_delta = time_delta / div; // % (2*Math.PI);
-
 	
 	attacks.forEach(serv => {
 		let target = serv.target;
@@ -234,6 +236,102 @@ async function draw_lines(rgraph, attacksMonitor, arg) {
 	})
 
 	ctx.restore();
+}
+
+class WorldRender {
+	constructor(ctx) {
+		this.ctx = ctx;
+		this.arr = [];
+		this.edges = [];
+		this.cities = {};
+
+		let arr = this.arr;
+		let edges = this.edges;
+
+		`               ,_   .  .-.-_.  .
+           , _-\'    \ -     ~/      ;-'_   _       ,;_;_,   .~~-
+    ~-\_/-'~'  ' \~~| ',    ,'      /  / ~|- \_/~/~.     ~~--   ~'- _
+   .                -/~ '\ ,' _  ,.'V ' ~                   .     /~
+    -'~\_,       '-,  '|. '   ~  ,   '~                /    /   /~
+         '|        '' \~|\       _\~.        ,     C         /,.
+          '\     S  /'           |        ~  \ "         ,_ / |
+           |       /            ._-~'\_ _~ ..            \ ) N
+            \   __-\           '/      ~ |   \_          /  ~
+  .,         '\     ~-_      - |          \  ' ~|  /\  \~ ,
+               ~-     ;       '\           '-,   \,' / /  |
+                 '\_ ~'\_       \_ _        /'    '  |,  |'
+                   /     \_       ~ |      /         \   '; -,_.
+                   |       ~         |    |  ,        '-_, ,;   ~\
+                    \,   A  /        \    / /|            , , ,   -,
+                     |    ,/          |  |  |/          ,-   ~ \   '.
+                    ,|   ,/           \ ,/              \   I   |
+                    /    |             ~                 -~~-, /   _
+                    |  -'                                    ~    /
+                    /  '.                                     ~
+                    ',   ~
+                      ~'`;
+`               ++    + ++   +
+           + + +     + +  + +             +       ++++ +   ++  
+     ++++++ + + ++++ +     +      +  ++ ++ +++++++    + +++  +++ +
+    +               +   + +  +  ++ + + +                   + +  +  
+     ++++       +++  +   +   +  +  V++                +     +     
+         ++        +  +++      + +++      +     +  C       +    
+          +     +   +           +   ++   +   +         ++ +    +
+           +++   S +            +++   + + ++             + ++N+
+              +  ++            +   + + +   +              +  + 
+             +  +  +          +     +      + ++  +  ++   +
+              ++              +           + + +    + +    +
+                +++ +++++      ++        +     + ++   +  +
+                   +     ++      + +      +     +      ++ + ++ +
+                   +       +      + ++    +  +        +   +   + +
+                    +  + A+           +   +              + ++    +
+                     +    +           +  +  ++          +    +++   
+                    +    +             ++              +   +I   +
+                    +    +             +                +++ + ++   
+                    +   +                                    + 
+                    +   +
+                    ++  +
+                      ++`
+
+			.split('\n').forEach((s, row) => {
+				let a = arr[row] = [];
+				s.split('').forEach((ch, col) => {
+					if (!ch || ch==' ') return;
+
+					for (let x = -1; x <= 0; ++x)
+						for (let y = -1; y <= 1; ++y) {
+							let ch = (x!=0 || y!=0) && arr[row + x] && arr[row + x][col + y];
+							if (ch) {
+								if (!['A', 'S', 'C', 'I', 'N', 'V'].includes(ch)) {
+									connect(col + y, row + x, col, row);
+								}
+							}	
+						}
+					if (['A', 'S', 'C', 'I', 'N', 'V'].includes(ch)) {
+						arr[row][col] = 2;
+						this.cities[ch] = [col, row];
+					} else {
+						arr[row][col] = 1;
+					}
+				})
+			});
+
+		function connect(x1, y1, x2, y2) {
+			edges.push([x1, y1, x2, y2]);
+		}
+
+		console.log('done', edges);
+	}
+	draw() {
+		let ctx = this.ctx;
+		let scale = 7;
+		for (let edge of this.edges) {
+			ctx.beginPath();
+			ctx.moveTo(edge[0]*scale, edge[1]*scale*2);
+			ctx.lineTo(edge[2]*scale, edge[3]*scale*2);
+			ctx.stroke();
+		}
+	}
 }
 
 function arc_line(ctx, rgraph, idfrom, idto, time) { // dt, type
