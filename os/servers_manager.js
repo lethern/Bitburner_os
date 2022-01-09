@@ -48,6 +48,10 @@ export class ServersManager extends EventListener {
 		return copy;
 	}
 
+	get purchasedServers() {
+		return this.#purchasedServers ? [...this.#purchasedServers] : [];
+	}
+
 	get serversObjFull() {
 		if (!this.#serversObjFull) {
 			this.#fetchAllServersFull()
@@ -68,6 +72,7 @@ export class ServersManager extends EventListener {
 	#serversArray // array of name
 	#serversObj   // map<name, {parent: string, neighbors: string[]}>
 	#serversObjFull // map<name, NS::Server>
+	#purchasedServers
 	#lastWatchTime
 
 	#run() {
@@ -136,6 +141,7 @@ export class ServersManager extends EventListener {
 			}
 			this.#serversObj = serversObj;
 			this.#serversArray = serversArray;
+			this.#purchasedServers = ns.getPurchasedServers();
 		});
 	}
 

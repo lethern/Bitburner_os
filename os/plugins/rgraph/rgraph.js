@@ -3,252 +3,300 @@ import { AttacksMonitor } from '/os/plugins/rgraph/attacks_monitor.js'
 
 /** @param {import('/os/plugins/api_adapter.js').API_Object} api */
 async function mainPlugin(api) {
-    let os = api.os;
-	let classes = api.classes;
 
-	let windowWidget = classes.newWindowWidget(this);
-	windowWidget.init();
-	let contentDiv = windowWidget.getContentDiv();
-	contentDiv.classList.add('greenScrollbar')
-	contentDiv.classList.add('grayBackground')
-	contentDiv.style['background-color'] = '#1a1a1a';
-	windowWidget.setTitle('Network Graph')
-	windowWidget.show();
+	let widget = new RGraphWidget(api);
 
-	let doc = globalThis['document'];
-	let infovis_div = doc.getElementById('infovis');
-
-	if (!infovis_div) {
-		infovis_div = doc.createElement('div');
-		infovis_div.style.width = '1200px';
-		infovis_div.style.height = '900px';
-		infovis_div.id = 'infovis'
-	}
-
-	infovis_div.innerHTML = '';
-
-	let btnOptions = {
-		'position': 'absolute',
-		'top': '50px',
-		'left': '50px',
-		'z-index': '10',
-	}
-	let btn = os.getGUI().createButton({ btnOptions, btnLabel: "Test", callback: () => console.log("OK") });
-	
-	contentDiv.appendChild(btn);
-
-
-	contentDiv.appendChild(infovis_div);
-	
-	let style;
-	let handlers = { windowWidget };
-
-	try {
-		let attacksMonitor = new AttacksMonitor(api);
-
-		style = injectCSS()
-
-		let servers = os.getServersManager().serversObj
-
-		init(servers, attacksMonitor, handlers);
-
-		contentDiv.scrollLeft = 540
-		contentDiv.scrollTop = 540
-
-
-	} catch (e) {
-		if (handlers.loop_handler) {
-			clearInterval(handlers.loop_handler)
-			handlers.loop_handler = null;
-		}
-		if(style)style.remove();
-        infovis_div.remove();
-        throw e;
-    }
-
+	widget.initAll();
 }
 
+class RGraphWidget {
+	constructor(api) {
+		this.#api = api;
+		this.#doc = globalThis['document'];
+	}
 
-function init(servers, attacksMonitor, handlers) {
-	//"$type" or "$dim" will override the "type" and "dim" parameters globally defined
+	initAll() {
+		try {
+			this.initWindow();
 
-	let json = [];
-	for (let serv in servers) {
-		let { neighbors } = servers[serv];
+			this.#attacksMonitor = new AttacksMonitor(this.#api);
 
-		let adjacencies = neighbors.map(n => ({
-			"nodeTo": n,
-			"data": {
-				"weight": 3,
-				lineWidth: 3,
-				"$alpha": 0.4,
+			this.initGraph();
+
+			this.#contentDiv.scrollLeft = 540
+			this.#contentDiv.scrollTop = 540
+		} catch (e) {
+			if (this.#loop_handler) {
+				clearInterval(this.#loop_handler)
+				this.#loop_handler = null;
 			}
-		}));
+			this.dispose();
+			if (this.#infovis_div) this.#infovis_div.remove();
+			throw e;
+		}
+	}
 
-		json.push({
-			"id": serv,
-			"name": serv,
-			"data": {
-				"$dim": (serv == 'home') ? 20 : 10,
-				"$type": (serv == 'home') ? "star" : "circle",
+	initWindow() {
+		let classes = this.#api.classes;
+
+		let windowWidget = classes.newWindowWidget();
+		this.#windowWidget = windowWidget;
+		windowWidget.init();
+
+		let contentDiv = windowWidget.getContentDiv();
+		this.#contentDiv = contentDiv;
+		contentDiv.classList.add('greenScrollbar')
+		contentDiv.classList.add('grayBackground')
+		contentDiv.style['background-color'] = '#1a1a1a';
+
+		windowWidget.setTitle('Network Graph')
+		windowWidget.show();
+
+
+		let infovis_div = this.#doc.getElementById('infovis');
+		this.#infovis_div = infovis_div;
+
+		if (!infovis_div) {
+			infovis_div = this.#doc.createElement('div');
+			infovis_div.style.width = '1200px';
+			infovis_div.style.height = '900px';
+			infovis_div.id = 'infovis'
+		}
+
+		infovis_div.innerHTML = '';
+
+		contentDiv.appendChild(infovis_div);
+
+		this.initButtons();
+	}
+
+	initButtons() {
+		let btnOptions = {
+			'position': 'absolute',
+			'top': '50px',
+			'left': '50px',
+			'z-index': '10',
+		}
+
+		let gui = this.#api.os.getGUI();
+
+		let btn = gui.createButton({ btnOptions, btnLabel: "+/- Purchased", callback: () => this.#filterServers = !this.#filterServers });
+		this.#contentDiv.appendChild(btn);
+	}
+
+	injectCSS() {
+		const stylesheetId = 'rgraph-styles'
+
+		if (this.#doc.getElementById(stylesheetId)) {
+			console.log("rgraph css exists");
+			return;
+		}
+
+		const stylesheet = this.#doc.createElement('style')
+		stylesheet.id = stylesheetId
+
+		stylesheet.innerHTML = RGraphCSS
+
+		this.#doc.head.insertAdjacentElement('beforeend', stylesheet)
+		this.#stylesheet = stylesheet;
+	}
+
+	initGraph() { // , attacksMonitor, handlers
+		
+		this.#createRGraph();
+
+		let rgraph = this.#rgraph;
+
+		this.#worldRender = new WorldRender(rgraph.canvas.getCtx())
+
+
+		this.loadServers();
+
+		this.#worldRender.renderNodes(rgraph);
+
+		rgraph._refresh = rgraph.refresh;
+		rgraph.refresh = function (arg) {
+			if (!this.#windowWidget.getContainer()) {
+				console.log("clearInterval")
+				clearInterval(this.#loop_handler)
+				this.#loop_handler = null;
+				return;
+			}
+			if (!this.#windowWidget.isVisible) {
+				return;
+			}
+
+			this.draw_lines(rgraph, this.#attacksMonitor, arg, this.#worldRender);
+		}
+
+		this.last_time = (Date.now() / 1000);
+		this.#loop_handler = setTimeout(() => this.loop(), 40);
+
+		//rgraph.refresh(false);
+		rgraph.plot();
+	}
+
+	loadServers() {
+		let servers = this.#api.os.getServersManager().serversObj
+
+		let json = this.#initServersData(servers);
+
+		this.#rgraph.loadJSON(json, 1);
+	}
+
+
+	dispose() {
+		if (this.#stylesheet) this.#stylesheet.remove();
+	}
+
+
+	#doc
+	#contentDiv
+	#windowWidget
+	#api
+	#stylesheet
+	#attacksMonitor
+	#rgraph
+	#loop_handler
+	#worldRender
+	#infovis_div
+	#filterServers
+
+
+	#initServersData(servers) {
+		let json = [];
+		let exclude = [];
+		if (this.#filterServers) {
+			exclude = this.#api.os.getServersManager().purchasedServers;
+		}
+		
+		for (let serv in servers) {
+
+			if (exclude.includes(serv)) continue;
+
+			let { neighbors } = servers[serv];
+
+			let adjacencies = neighbors.map(n => ({
+				"nodeTo": n,
+				"data": {
+					"weight": 3,
+					lineWidth: 3,
+					"$alpha": 0.4,
+				}
+			}));
+
+			json.push({
+				"id": serv,
+				"name": serv,
+				"data": {
+					"$dim": (serv == 'home') ? 20 : 10,
+					"$type": (serv == 'home') ? "star" : "circle",
+				},
+				"adjacencies": adjacencies,
+			});
+		}
+		return json;
+	}
+
+	#createRGraph() {
+		this.#rgraph = new $jit.RGraph({
+			'injectInto': 'infovis',
+			width: 2000,
+			height: 2000,
+			Node: {
+				'overridable': true,
+				'color': '#cc0000'
 			},
-			"adjacencies": adjacencies,
+			Edge: {
+				'overridable': true,
+				'color': '#cccc00'
+			},
+			//		interpolation: 'polar',
+			duration: 10, //3500,
+			fps: 30, //30,
+			levelDistance: 60,
+
+			onCreateLabel: function (domElement, node) {
+				domElement.innerHTML = node.name;
+				domElement.onclick = function () {
+					//rgraph.onClick(node.id, {
+					//	hideLabels: false,
+					//	onComplete: function () {
+					//	}
+					//});
+				};
+			},
 		});
-
 	}
 
-
-
-	var rgraph = new $jit.RGraph({
-		'injectInto': 'infovis',
-		//Optional: Add a background canvas
-		//that draws some concentric circles.
-		width: 2000,
-		height: 2000,
-		//'background': {
-		//	'CanvasStyles': {
-		//		'strokeStyle': '#555',
-		//		'shadowBlur': 50,
-		//		'shadowColor': '#ccc'
-		//	}
-		//},
-		//Nodes and Edges parameters, can be overridden if defined in the JSON input data
-		Node: {
-			'overridable': true,
-			'color': '#cc0000'
-		},
-		Edge: {
-			'overridable': true,
-			'color': '#cccc00'
-		},
-		//Set polar interpolation, Default's linear
-//		interpolation: 'polar',
-		//Change the transition effect from linear to elastic
-		//      transition: $jit.Trans.Elastic.easeOut,
-		duration: 10, //3500,
-		fps: 30, //30,
-		//Change father-child distance
-		levelDistance: 60,
-
-		//Add node click handler and some styles.
-		//This method is called only once for each node/label crated.
-		onCreateLabel: function (domElement, node) {
-			domElement.innerHTML = node.name;
-			domElement.onclick = function () {
-				rgraph.onClick(node.id, {
-					hideLabels: false,
-					onComplete: function () {
-					}
-				});
-			};
-		},
-		//This method is called when rendering/moving a label.
-		//This method is useful to make some last minute changes
-		//to node labels like adding some position offset.
-		onPlaceLabel: function (domElement, node) {
-			/*
-			var style = domElement.style;
-			var left = parseInt(style.left);
-			var w = domElement.offsetWidth;
-			style.left = (left - w / 2) + 'px';
-			*/
-		}
-	});
-
-	handlers.worldRender = new WorldRender(rgraph.canvas.getCtx())
-
-	rgraph.loadJSON(json, 1);
-
-	handlers.worldRender.renderNodes(rgraph);
-
-	rgraph._refresh = rgraph.refresh;
-	rgraph.refresh = function (arg) {
-		if (!handlers.windowWidget.getContainer()) {
-			console.log("clearInterval")
-			clearInterval(handlers.loop_handler)
-			handlers.loop_handler = null;
-			return;
-		}
-		if (!handlers.windowWidget.isVisible) {
-			return;
-		}
-
-		draw_lines(rgraph, attacksMonitor, arg, handlers.worldRender);
+	loop() {
+		this.loop_impl();
+		this.#loop_handler = setTimeout(() => this.loop(), 40);
 	}
-	
-	loop(rgraph, handlers, attacksMonitor);
 
-	//rgraph.refresh(false);
-	rgraph.plot();
-}
-
-function loop(rgraph, handlers, attacksMonitor) {
-	let last_time = (Date.now() / 1000);
-	handlers.loop_handler = setInterval(() => {
-
-		if (!handlers.windowWidget.getContainer()) {
+	loop_impl() {
+		if (!this.#windowWidget.getContainer()) {
 			console.log("clearInterval")
-			clearInterval(handlers.loop_handler)
-			handlers.loop_handler = null;
+			clearInterval(this.#loop_handler)
+			this.#loop_handler = null;
 			return;
 		}
-		if (!handlers.windowWidget.isVisible) {
+		if (!this.#windowWidget.isVisible) {
 			return;
 		}
 
 		let curr_time = (Date.now() / 1000);
-		let diff = curr_time - last_time;
-		if (diff < 0) { last_time = curr_time; diff = 0; }
+		let diff = curr_time - this.last_time;
+		if (diff < 0) { this.last_time = curr_time; diff = 0; }
 
 		if (diff > 2000) {
-			rgraph.refresh(handlers);
+			this.#rgraph.refresh();
 		} else {
-			draw_lines(rgraph, attacksMonitor, false, handlers.worldRender);
+			this.draw_lines(false);
 		}
-	}, 40);
-}
+	}
 
-async function draw_lines(rgraph, attacksMonitor, arg, worldRender) {
+	async draw_lines(arg) { // rgraph, attacksMonitor, 
+		let disableGrouping = true;
+		let attacks = await this.#attacksMonitor.populateProcesses(disableGrouping, { param: "expiry", isDescending: true, });
 
-	let disableGrouping = true;
-	let attacks = await attacksMonitor.populateProcesses(disableGrouping, { param: "expiry", isDescending: true, });
+		this.#rgraph._refresh(arg);
 
-	rgraph._refresh(arg);
+		let ctx = this.#rgraph.canvas.getCtx();
+		ctx.save();
 
-	let ctx = rgraph.canvas.getCtx();
-	ctx.save();
+		this.#worldRender.draw();
 
-	worldRender.draw();
+		let min = 100;
+		let max = 0;
+		attacks.forEach(serv => {
+			serv._scale = Math.log10(serv.threads);
+			if (serv._scale > max) max = serv._scale;
+			if (serv._scale && serv._scale < min) min = serv._scale;
+		});
 
-	let min = 100;
-	let max = 0;
-	attacks.forEach(serv => {
-		serv._scale = Math.log10(serv.threads);
-		if (serv._scale > max) max = serv._scale;
-		if (serv._scale && serv._scale < min) min = serv._scale;
-	});
+		let div = 2;
+		let time = Date.now()
+		let time_delta = time / 1000;
+		time_delta = time_delta / div; // % (2*Math.PI);
 
-	let div = 2;
-	let time = Date.now()
-	let time_delta = time / 1000;
-	time_delta = time_delta / div; // % (2*Math.PI);
-	
-	attacks.forEach(serv => {
-		let target = serv.target;
+		attacks.forEach(serv => {
+			let target = serv.target;
 
-		ctx.lineWidth = Math.max((serv._scale - min) / (max - min) * 5, 0) + 1;
-		switch (serv.type) {
-			case 'weaken': ctx.strokeStyle = '#f3f330'; break;
-			case 'hack': ctx.strokeStyle = '#33d833'; break;
-			default: ctx.strokeStyle = '#00a5f3'; break;
-		}
-		
-		serv.hosts.forEach(target2 => {
-			arc_line(ctx, rgraph, target, target2, time); // time_delta, serv.type
+			ctx.lineWidth = Math.max((serv._scale - min) / (max - min) * 5, 0) + 1;
+			switch (serv.type) {
+				case 'weaken': ctx.strokeStyle = '#f3f330'; break;
+				case 'hack': ctx.strokeStyle = '#33d833'; break;
+				default: ctx.strokeStyle = '#00a5f3'; break;
+			}
+
+			serv.hosts.forEach(target2 => {
+				arc_line(ctx, this.#rgraph, target, target2, time); // time_delta, serv.type
+			})
 		})
-	})
 
-	ctx.restore();
+		ctx.restore();
+	}
 }
 
 class WorldRender {
@@ -264,6 +312,8 @@ class WorldRender {
 		let arr = this.arr;
 		let edges = this.edges;
 
+		//#region x
+		/*
 		`               ,_   .  .-.-_.  .
            , _-\'    \ -     ~/      ;-'_   _       ,;_;_,   .~~-
     ~-\_/-'~'  ' \~~| ',    ,'      /  / ~|- \_/~/~.     ~~--   ~'- _
@@ -286,25 +336,27 @@ class WorldRender {
                     /  '.                                     ~
                     ',   ~
                       ~'`;
+		*/
+		//#endregion
 `               ++    + ++   +
-           + + +     + +  + +             +       ++++ +   ++  
+           + + +     + +  + +             +       ++++ +   ++
      ++++++ + + ++++ +     +      +  ++ ++ +++++++    + +++  +++ +
-    +               +   + +  +  ++ + + +                   + +  +  
-     ++++       +++  +   +   +  +  V++                +     +     
-         ++        +  +++      + +++      +     +  C       +    
+    +               +   + +  +  ++ + + +                   + +  +
+     ++++       +++  +   +   +  +  V++                +     +
+         ++        +  +++      + +++      +     +  C       +
           +     +   +           +   ++   +   +         ++ +    +
            +++   S +            +++   + + ++             + ++N+
-              +  ++            +   + + +   +              +  + 
+              +  ++            +   + + +   +              +  +
              +  +  +          +     +      + ++  +  ++   +
               ++              +           + + +    + +    +
                 +++ +++++      ++        +     + ++   +  +
-                   +     ++      + +      +     +      ++ + ++ +
-                   +       +      + ++    +  +        +   +   + +
-                    +  + A+           +   +              + ++    +
-                     +    +           +  +  ++          +    +++   
-                    +    +             ++              +   +I   +
-                    +    +             +                +++ + ++   
-                    +   +                                    + 
+                   +     ++      + +      +     +      ++ + ++  +
+                   +       +      + ++    +  +        +   +   ++ +
+                    +  + A+           +   +              + ++   + +
+                     +    +           +  +  ++          +    +++
+                    +    +             ++              +   +I   +   +
+                    +    +             +                +++ + ++   +
+                    +   +                                    +
                     +   +
                     ++  +
                       ++`
@@ -412,23 +464,6 @@ function arc_line(ctx, rgraph, idfrom, idto, time) { // dt, type
 
 	ctx.quadraticCurveTo((begin.x + end.x) / 2, (begin.y + end.y) / 2 - dim, end.x, end.y);
 	ctx.stroke();
-}
-
-function injectCSS() {
-	const stylesheetId = 'rgraph-styles'
-
-	if (doc.getElementById(stylesheetId)) {
-		console.log("rgraph css exists");
-		return;
-	}
-
-	const stylesheet = doc.createElement('style')
-	stylesheet.id = stylesheetId
-
-	stylesheet.innerHTML = RGraphCSS
-
-	doc.head.insertAdjacentElement('beforeend', stylesheet)
-	return stylesheet;
 }
 
 
