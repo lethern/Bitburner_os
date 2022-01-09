@@ -16,7 +16,7 @@ export class GUI {
 	}
 
 	createButton(params) {
-		let { btnLabel, callback } = params;
+		let { btnOptions, btnLabel, callback } = params;
 
 		let btn = this.#doc.createElement('button');
 		btn.type = 'button';
@@ -25,10 +25,15 @@ export class GUI {
 		btn.style['border'] = '1px solid rgb(34, 34, 34)';
 		btn.textContent = btnLabel;
 
+		for (let it in btnOptions) {
+			btn.style[it] = btnOptions[it];
+		}
+
 		btn._gui_listener = callback;
 		btn.addEventListener('click', btn._gui_listener)
 
 		this.#buttons.push({ btn });
+		return btn;
 	}
 	
 	addMenuButton(params) {

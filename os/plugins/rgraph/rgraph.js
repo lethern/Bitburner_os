@@ -26,7 +26,18 @@ async function mainPlugin(api) {
 	}
 
 	infovis_div.innerHTML = '';
+
+	let btnOptions = {
+		'position': 'absolute',
+		'top': '50px',
+		'left': '50px',
+		'z-index': '10',
+	}
+	let btn = os.getGUI().createButton({ btnOptions, btnLabel: "Test", callback: () => console.log("OK") });
 	
+	contentDiv.appendChild(btn);
+
+
 	contentDiv.appendChild(infovis_div);
 	
 	let style;
@@ -70,7 +81,7 @@ function init(servers, attacksMonitor, handlers) {
 			"data": {
 				"weight": 3,
 				lineWidth: 3,
-				//"$type": "li"
+				"$alpha": 0.4,
 			}
 		}));
 
@@ -111,7 +122,7 @@ function init(servers, attacksMonitor, handlers) {
 			'color': '#cccc00'
 		},
 		//Set polar interpolation, Default's linear
-		interpolation: 'polar',
+//		interpolation: 'polar',
 		//Change the transition effect from linear to elastic
 		//      transition: $jit.Trans.Elastic.easeOut,
 		duration: 10, //3500,
@@ -147,6 +158,8 @@ function init(servers, attacksMonitor, handlers) {
 	handlers.worldRender = new WorldRender(rgraph.canvas.getCtx())
 
 	rgraph.loadJSON(json, 1);
+
+	handlers.worldRender.renderNodes(rgraph);
 
 	rgraph._refresh = rgraph.refresh;
 	rgraph.refresh = function (arg) {
@@ -244,6 +257,9 @@ class WorldRender {
 		this.arr = [];
 		this.edges = [];
 		this.cities = {};
+		this.scale = 20;
+		this.x_adjust = -400;
+		this.y_adjust = -200;
 
 		let arr = this.arr;
 		let edges = this.edges;
@@ -298,19 +314,20 @@ class WorldRender {
 				s.split('').forEach((ch, col) => {
 					if (!ch || ch==' ') return;
 
-					for (let x = -1; x <= 0; ++x)
-						for (let y = -1; y <= 1; ++y) {
-							let ch = (x!=0 || y!=0) && arr[row + x] && arr[row + x][col + y];
-							if (ch) {
-								if (!['A', 'S', 'C', 'I', 'N', 'V'].includes(ch)) {
-									connect(col + y, row + x, col, row);
-								}
-							}	
-						}
 					if (['A', 'S', 'C', 'I', 'N', 'V'].includes(ch)) {
-						arr[row][col] = 2;
+						arr[row][col] = ch;
 						this.cities[ch] = [col, row];
 					} else {
+						for (let x = -1; x <= 0; ++x) {
+							for (let y = -1; y <= 1; ++y) {
+								let neigh = (x != 0 || y != 0) && arr[row + x] && arr[row + x][col + y];
+								if (neigh) {
+									if (!['A', 'S', 'C', 'I', 'N', 'V'].includes(neigh)) {
+										connect(col + y, row + x, col, row);
+									}
+								}
+							}
+						}
 						arr[row][col] = 1;
 					}
 				})
@@ -320,17 +337,53 @@ class WorldRender {
 			edges.push([x1, y1, x2, y2]);
 		}
 
-		console.log('done', edges);
 	}
+
+	renderNodes(rgraph) {
+		let scale = this.scale;
+		let x_adjust = this.x_adjust;
+		let y_adjust = this.y_adjust;
+
+		for (let id in rgraph.graph.nodes) {
+			let node = rgraph.graph.nodes[id];
+			if (SERV_DATA[id]) {
+				if (this.cities[SERV_DATA[id]]) {
+					let [col, row] = this.cities[SERV_DATA[id]];
+					let randx = Math.random() * 140 - 70;
+					let randy = Math.random() * 140 - 70;
+					node.pos.setc(x_adjust + col * scale+randx, y_adjust+row * scale*1.9+randy)
+				}
+			} else {
+				let x = (12 + Math.random() * 50) * scale
+				let y = (1 + Math.random() * 19) * scale*1.9;
+				node.pos.setc(x_adjust + x, y_adjust + y);
+			}
+			
+		}
+		if (!this.rgraph) {
+			this.rgraph = rgraph;
+			for (let id in rgraph.graph.nodes) {
+				Object.getPrototypeOf(rgraph.graph.nodes[id]).setPos = () => { };
+				break;
+			}
+		}
+	}
+
 	draw() {
 		let ctx = this.ctx;
-		let scale = 7;
+		let scale = this.scale;
+		let x_adjust = this.x_adjust;
+		let y_adjust = this.y_adjust;
+		ctx.save();
+		ctx.strokeStyle = 'rgb(173,216,230)';
+		ctx.lineWidth = 2;
 		for (let edge of this.edges) {
 			ctx.beginPath();
-			ctx.moveTo(edge[0]*scale, edge[1]*scale*2);
-			ctx.lineTo(edge[2]*scale, edge[3]*scale*2);
+			ctx.moveTo(x_adjust+edge[0]*scale, y_adjust+edge[1]*scale*2);
+			ctx.lineTo(x_adjust+edge[2]*scale, y_adjust+edge[3]*scale*2);
 			ctx.stroke();
 		}
+		ctx.restore();
 	}
 }
 
@@ -357,32 +410,8 @@ function arc_line(ctx, rgraph, idfrom, idto, time) { // dt, type
 	ctx.beginPath();
 	ctx.moveTo(begin.x, begin.y);
 
-	/*
-	var gradient = ctx.createLinearGradient(begin.x, begin.y, end.x, end.y);
-
-	let hue = '';
-	switch (type) {
-		case 'weaken': hue = '60'; break;
-		case 'hack': hue = '120'; break;
-		default: hue = '199'; break;
-	}
-
-	let light = 40;
-	
-
-	[0, 0.5, 1, 1.5, 2, 2.5, 3].forEach(p => {
-		//let x = (Math.sin(Math.PI / 2 * ((p + dt) % 1)) + 1 )/2;
-		let dx = 17 * (Math.sin((p + dt) * Math.PI));
-		let x = Math.ceil(light + dx);
-		gradient.addColorStop(p/3, 'hsl(' + hue + ', 88%, ' + x + '%)');
-	});
-
-	ctx.strokeStyle = gradient;
-	//*/
-
 	ctx.quadraticCurveTo((begin.x + end.x) / 2, (begin.y + end.y) / 2 - dim, end.x, end.y);
 	ctx.stroke();
-	
 }
 
 function injectCSS() {
@@ -422,3 +451,77 @@ const RGraphCSS = `
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
 }
 `;
+
+const SERV_DATA = {
+	"home": "",
+	"darkweb": "",
+	"iron-gym": "S",
+	"max-hardware": "",
+	"silver-helix": "",
+	"crush-fitness": "A",
+	"harakiri-sushi": "",
+	"CSEC": "",
+	"neo-net": "",
+	"hong-fang-tea": "",
+	"nectar-net": "",
+	"omega-net": "I",
+	"avmnite-02h": "",
+	"catalyst": "",
+	"millenium-fitness": "V",
+	"aerocorp": "A",
+	"unitalife": "",
+	"zeus-med": "",
+	"zb-def": "",
+	"johnson-ortho": "",
+	"zb-institute": "V",
+	"rothman-uni": "S",
+	"joesguns": "S",
+	"sigma-cosmetics": "",
+	"foodnstuff": "S",
+	"n00dles": "N",
+	"zer0": "",
+	"phantasy": "",
+	"netlink": "A",
+	"syscore": "V",
+	"rho-construction": "A",
+	"summit-uni": "A",
+	"alpha-ent": "S",
+	"snap-fitness": "A",
+	"omnia": "V",
+	"defcomm": "N",
+	"nova-med": "I",
+	"lexo-corp": "V",
+	"comptek": "V",
+	"the-hub": "",
+	"I.I.I.I": "",
+	"aevum-police": "A",
+	"global-pharm": "N",
+	"deltaone": "S",
+	"solaris": "C",
+	"infocomm": "",
+	"run4theh111z": "",
+	"helios": "V",
+	"applied-energetics": "",
+	"vitalife": "N",
+	".": "",
+	"nwo": "V",
+	"ecorp": "A",
+	"kuai-gong": "C",
+	"powerhouse-fitness": "S",
+	"The-Cave": "",
+	"4sigma": "S",
+	"clarkinc": "A",
+	"blade": "S",
+	"fulcrumassets": "",
+	"megacorp": "S",
+	"b-and-a": "A",
+	"omnitek": "V",
+	"fulcrumtech": "A",
+	"titan-labs": "",
+	"univ-energy": "S",
+	"icarus": "S",
+	"taiyang-digital": "",
+	"microdyne": "",
+	"stormtech": "I",
+	"galactic-cyber": "A"
+};
