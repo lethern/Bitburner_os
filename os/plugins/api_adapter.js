@@ -2,7 +2,7 @@ import { WindowWidget } from '/os/window_widget.js'
 import { Logger } from '/os/logger.js'
 import { ServersManager } from '/os/servers_manager.js'
 import { Utils } from '/os/utils.js'
-import { GUI } from '../gui';
+import { GUI } from '/os/gui.js';
 
 /**
  * @typedef {Object} API_Object

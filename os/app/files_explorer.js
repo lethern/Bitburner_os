@@ -33,6 +33,8 @@ export class FilesExplorer {
 	changeCurrentDir(dir) {
 		if (this.#currentDir == dir) return;
 
+		if (dir.endsWith('/')) dir = dir.substring(0, dir.length - 1);
+		console.log('changing to ', dir);
 		this.#currentDir = dir;
 
 		let currentFiles = FilesExplorer.narrowFilesToGivenDir(this.#files, this.#currentDir) ?? { files: [], dirs: {} };
