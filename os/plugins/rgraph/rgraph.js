@@ -32,10 +32,6 @@ class RGraphWidget {
 			this.#contentDiv.scrollLeft = 540
 			this.#contentDiv.scrollTop = 540
 		} catch (e) {
-			if (this.#loop_handler) {
-				clearInterval(this.#loop_handler)
-				this.#loop_handler = null;
-			}
 			this.dispose();
 			if (this.#infovis_div) this.#infovis_div.remove();
 			throw e;
@@ -130,8 +126,8 @@ class RGraphWidget {
 		this.#rgraph._refresh = this.#rgraph.refresh;
 		this.#rgraph.refresh = (arg) => {
 			if (!this.#windowWidget.getContainer()) {
-				console.log("clearInterval")
-				clearInterval(this.#loop_handler)
+				console.log("clearTimeout")
+				clearTimeout(this.#loop_handler)
 				this.#loop_handler = null;
 				this.active = false;
 				return;
@@ -173,6 +169,10 @@ class RGraphWidget {
 
 	dispose() {
 		this.active = false;
+		if (this.#loop_handler) {
+			clearTimeout(this.#loop_handler)
+			this.#loop_handler = null;
+		}
 		if (this.#stylesheet) this.#stylesheet.remove();
 	}
 
@@ -268,8 +268,8 @@ class RGraphWidget {
 
 	loop_impl() {
 		if (!this.#windowWidget.getContainer()) {
-			console.log("clearInterval")
-			clearInterval(this.#loop_handler)
+			console.log("clearTimeout")
+			clearTimeout(this.#loop_handler)
 			this.#loop_handler = null;
 			return;
 		}

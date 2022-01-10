@@ -146,7 +146,7 @@ export class ServersManager extends EventListener {
 	}
 
 	async #fetchAllServersFull() {
-		if (!this.#serversArray) await this.#fetchAllServers();
+		await this.#fetchAllServers();
 
 		this.#serversObjFull = await this.#os.getNS(ns => {
 			return this.#serversArray

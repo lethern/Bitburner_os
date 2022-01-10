@@ -40,7 +40,8 @@ async function mainPlugin(api){
 
 class REPL_API {
     constructor(api, windowWidget) {
-        this.version = "v0.0.1";
+		this.version = "v0.0.1";
+		/*
         this.overrideKeydown = (event) => {
             var _a;
             const isReplEvent = event.composedPath().some((e) => e === this.input);
@@ -51,6 +52,7 @@ class REPL_API {
                 this.input.dispatchEvent(clone);
             }
         };
+		*/
         this.focusInput = (event) => {
             // const isReplEvent = event.composedPath().some((e: HTMLElement) => e === this.wrapper);
             // if (isReplEvent) {
@@ -69,20 +71,55 @@ class REPL_API {
 		this.windowWidget = windowWidget;
     }
     // FIXME: Probably brittle and will break at any update (possibly even between launches)
-    mount() {
+	mount() {
+
+		let x = doc.querySelector('.MuiListItem-root.MuiListItem-gutters .MuiTypography-root.MuiTypography-body1');
+		if (!x) {
+			x = doc.querySelector('.MuiTypography-root.MuiTypography-body1')
+		}
         this.wrapper = doc.createElement("form");
-        this.wrapper.className = "MuiCollapse-wrapperInner MuiCollapse-vertical css-8atqhb repl-wrapper";
+		this.wrapper.className = "MuiCollapse-wrapperInner MuiCollapse-vertical repl-wrapper"; // css-8atqhb 
+		this.wrapper.style.width = '100%'
         this.log = doc.createElement("div");
-        this.log.className = "MuiBox-root repl-log MuiTypography-root MuiTypography-body1 css-14bb8ng";
-        const inputContainer = doc.createElement("div");
-        inputContainer.className = "MuiTypography-root MuiTypography-body1 css-14bb8ng repl-input-wrapper";
+		this.log.className = "MuiBox-root repl-log MuiTypography-root MuiTypography-body1"; // css-14bb8ng";
+		const inputContainer = doc.createElement("div");
+		if (x) {
+			x.classList.forEach(cl => {
+				inputContainer.classList.add(cl)
+				this.log.classList.add(cl)
+			})
+			//inputContainer.className
+		} else {
+			inputContainer.style['color'] = 'rgb(0, 204, 0)';
+			inputContainer.style['position'] = 'relative';
+			inputContainer.style['background-color'] = 'rgb(34, 34, 34)';
+			this.log.style['color'] = 'rgb(0, 204, 0)';
+			this.log.style['position'] = 'relative';
+			this.log.style['background-color'] = 'rgb(34, 34, 34)';
+		}
+        //inputContainer.className = "MuiTypography-root MuiTypography-body1 css-14bb8ng repl-input-wrapper";
         const replPreText = doc.createElement("span");
-        replPreText.textContent = "REPL >>";
+		replPreText.textContent = "REPL >>";
+		replPreText.style['white-space'] = 'nowrap';
+		replPreText.style['margin-right'] = '8px';
         inputContainer.appendChild(replPreText);
         this.input = doc.createElement("input");
         this.input.type = "text";
         this.input.id = "repl-input";
-        this.input.className = "repl-input css-1oaunmp";
+        //this.input.className = "repl-input";
+
+		x = doc.querySelector('#terminal-input');
+		if (x) {
+			x.classList.forEach(cl => {
+				this.input.classList.add(cl)
+			})
+		} else {
+			this.input.style['color'] = 'rgb(0, 204, 0)';
+			this.input.style['position'] = 'relative';
+			this.input.style['background-color'] = 'rgb(34, 34, 34)';
+		}
+		
+
         this.addStyleSheet("repl", `
 .repl-wrapper {
 	border-right: 1px solid rgb(68, 68, 68);
@@ -103,6 +140,7 @@ class REPL_API {
 .repl-line {
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
+	margin: 0;
 }
 
 .repl-line.error {
@@ -145,7 +183,8 @@ class REPL_API {
 		
 		this.windowWidget.getContentDiv().appendChild(this.wrapper);
 		
-        doc.addEventListener("keydown", this.overrideKeydown);
+		//doc.addEventListener("keydown", this.overrideKeydown);
+		this.input.addEventListener('keydown', e => e.stopPropagation());
         this.wrapper.addEventListener("click", this.focusInput);
         this.wrapper.addEventListener("submit", this.formSubmit);
         this.printLine(`BitburnerOS REPL ${this.version}`);
@@ -158,7 +197,7 @@ class REPL_API {
         this.wrapper.removeEventListener("click", this.focusInput);
         this.wrapper.removeEventListener("submit", this.formSubmit);
         this.wrapper.remove();
-        doc.removeEventListener("keydown", this.overrideKeydown);
+        //doc.removeEventListener("keydown", this.overrideKeydown);
     }
     async runCommand(command) {
 		console.log("runCommand");
@@ -172,7 +211,8 @@ class REPL_API {
 				return await eval(command);
 			});
             
-            this.printLine(result);
+			this.printLine(result);
+
         }
         catch (error) {
             win.console.error(error);
@@ -192,7 +232,7 @@ class REPL_API {
         line.classList.add(className);
         line.textContent = text;
         this.log.appendChild(line);
-        this.log.scrollTo({ behavior: "smooth", top: this.log.scrollHeight });
+		this.windowWidget.getContentDiv().scrollTo({ top: this.windowWidget.getContentDiv().scrollHeight });
         // @TODO: Clear log when reaching line cap (1000?)
     }
     addStyleSheet(key, content) {
