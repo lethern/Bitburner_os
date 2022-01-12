@@ -185,6 +185,7 @@ class FilesExplorerRenderer extends EventListener {
 	#windowWidget
 	#log
 	#isRendered = false
+	#aboutWindow
 
 	#onShow() {
 		this.#render();
@@ -260,6 +261,7 @@ class FilesExplorerRenderer extends EventListener {
 		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
 		this.#windowWidget.addMenuItem({ label: 'Debug', callback: () => this.#onDebugMenuClick() })
 		this.#windowWidget.addMenuItem({ label: 'Test', callback: () => this.#onTestMenuClick() })
+		this.#windowWidget.addMenuItem({ label: 'About', callback: () => this.#onAboutMenuClick() })
 		//this.listenForTerminalHidden();
 	}
 
@@ -273,6 +275,18 @@ class FilesExplorerRenderer extends EventListener {
 		this.#log.info("test info");
 		this.#log.warn("test warn");
 		this.#log.error("test error");
+	}
+
+	#onAboutMenuClick() {
+		if (!this.#aboutWindow) {
+			this.#aboutWindow = this.#os.gui.createAboutWindow({
+				'Name': 'Files Explorer',
+				'Author': 'Phil#7068',
+				'Contributor': 'lethern',
+				'URL': 'https://github.com/davidsiems/bitpacker',
+			});
+		}
+		this.#aboutWindow.show()
 	}
 
 	#on_exit() {

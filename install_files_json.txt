@@ -14,6 +14,7 @@
 
 		"os/app/files_explorer.js",
 		"os/app/logger_render.js",
+		"os/app/packages_explorer.js",
 
 		"os/app/servers_explorer/connect.js",
 		"os/app/servers_explorer/servers_explorer.js",
@@ -36,5 +37,8 @@
 		"os/plugins/process-list/process-list_css.js",
 		"os/plugins/process-list/process-list_json.txt",
 		"os/plugins/process-list/process-list.config.example.js"
-	]
+	],
+	"filesToClean": [
+	],
+	"installerVersion": 1
 }

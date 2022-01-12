@@ -8,6 +8,7 @@ import { Terminal } from '/os/terminal.js'
 import { ServersManager } from '/os/servers_manager.js'
 import { ServersExplorer } from '/os/app/servers_explorer/servers_explorer.js'
 import { PluginsManager } from '/os/plugins/plugins_manager.js'
+import { PackagesExplorer } from '/os/app/packages_explorer.js'
 
 export class OS extends EventListener {
 
@@ -27,6 +28,7 @@ export class OS extends EventListener {
 		this.terminal = new Terminal();
 		this.serversManager = new ServersManager(this);
 		this.serversExplorer = new ServersExplorer(this);
+		this.packagesExplorer = new PackagesExplorer(this);
 
 		this.plugins = new PluginsManager(this);
 	}

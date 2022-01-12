@@ -209,6 +209,7 @@ class ServersExplorerRenderer extends EventListener {
 	#log
 	#serversExplorer
 	#windowWidget
+	#aboutWindow
 
 	#init() {
 		this.#os.gui.injectCSS(servers_explorer_css);
@@ -216,7 +217,19 @@ class ServersExplorerRenderer extends EventListener {
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<ul class="server-list server-list--layout-icon-row" />';
 		this.#windowWidget.getContentDiv().classList.add('whiteScrollbar')
-		//this.#windowWidget.addMenuItem({ label: 'Debug', callback: this.onDebugMenuClick.bind(this) })
+		this.#windowWidget.addMenuItem({ label: 'About', callback: () => this.#onAboutMenuClick() })
+	}
+
+	#onAboutMenuClick() {
+		if (!this.#aboutWindow) {
+			this.#aboutWindow = this.#os.gui.createAboutWindow({
+				'Name': 'Servers Explorer',
+				'Main author': 'TheDroidUrLookingFor#4655',
+				'Contributor': 'lethern',
+				'URL': 'https://github.com/davidsiems/bitpacker',
+			});
+		}
+		this.#aboutWindow.show()
 	}
 
 	#onShow() {

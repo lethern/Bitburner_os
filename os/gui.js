@@ -1,6 +1,7 @@
 import { DOM_CONSTANTS, GENERAL_CSS } from '/os/constants.js'
 import { OS_EVENT } from '/os/event_listener.js'
 import { Logger } from '/os/logger.js'
+import { WindowWidget } from '/os/window_widget.js'
 
 export class GUI {
 	/** @param {import('/os/os.js').OS} os */
@@ -79,6 +80,21 @@ export class GUI {
 		this.#styles.push(stylesheet);
 		this.#doc.head.insertAdjacentElement('beforeend', stylesheet)
 		this.#cssUsedMap[css_string] = 1;
+	}
+
+	createAboutWindow(data) {
+		let aboutWindow = new WindowWidget(this, this.#os);
+		aboutWindow.init();
+		aboutWindow.getContentDiv().innerHTML =
+			"<div class='packages-main'><table><tbody><tr>" +
+			Object.entries(
+				data).map(([k, v]) => {
+					if (v.startsWith("https")) v = `<a target='_blank' href=${v}>${v}</a>`;
+					return `<td><b>${k}</b></td><td>${v}</td>`
+				}).join('</tr><tr>')
+			+ "</tr></tbody></table></div>";
+		aboutWindow.setTitle('About')
+		return aboutWindow;
 	}
 
 	// private fields, methods
