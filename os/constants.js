@@ -84,12 +84,12 @@ export const WINDOW_WIDGET_CSS = `
 .window {
 	box-shadow: inset -1px -1px #404040,inset 1px 1px #eceae7,inset -2px -2px gray,inset 2px 2px #fff;
 	font-family: Tahoma, "Segoe UI", Geneva, sans-serif;
-	width: 50vw;
 	padding: 2px;
 	pointer-events: auto;
 	background-color: white;
 	user-select: none;
 	overflow: auto;
+	width: 30vw;
 	min-height: 220px;
 	min-width: 220px;
 	max-height: 95vh;

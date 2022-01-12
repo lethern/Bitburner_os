@@ -38,7 +38,7 @@ export class AttacksMonitor {
 						filename,
 						type: Object.keys(processListPayloads).find((key) => processListPayloads[key].includes(filename)),
 					}))
-				// .filter(({ type }) => type)
+				 .filter(({ type }) => type)
 			])
 			.flat();
 

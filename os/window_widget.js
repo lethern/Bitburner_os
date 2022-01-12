@@ -110,6 +110,7 @@ export class WindowWidget extends EventListener {
 
 
 	#initialiseWindow(id) {
+		if (this.#container) throw new Error("Window: already initialised");
 		this.#container = this.#createWindow(id)
 		/** @type {HTMLElement} */
 		this.#explorerWindow = this.#container.querySelector('.window')
