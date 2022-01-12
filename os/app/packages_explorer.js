@@ -87,7 +87,4 @@ export class PackagesExplorer {
 const packages_explorer_css = `
 .packages-list{
 }
-.packages-about table{
-	border: none;
-}
 `;

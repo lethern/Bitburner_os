@@ -86,7 +86,7 @@ export class GUI {
 		let aboutWindow = new WindowWidget(this, this.#os);
 		aboutWindow.init();
 		aboutWindow.getContentDiv().innerHTML =
-			"<div class='packages-main'><table><tbody><tr>" +
+			"<div class='window-about'><table><tbody><tr>" +
 			Object.entries(
 				data).map(([k, v]) => {
 					if (v.startsWith("https")) v = `<a target='_blank' href=${v}>${v}</a>`;
@@ -119,6 +119,7 @@ export class GUI {
 	}
 
 	#injectStartBtn() {
+		
 		return;
 		/*
 		// make sure that our text (that is wider than menu) is visible outside Menu div
@@ -168,7 +169,7 @@ export class GUI {
 
 	#injectDefaultCSS() {
 		this.injectCSS(GENERAL_CSS)
-		
+		this.injectCSS(GUI_CSS);
 	}
 
 	#on_exit() {
@@ -191,3 +192,10 @@ export class GUI {
 
 // class GUI_Injector {
 // };
+
+const GUI_CSS = `
+.window-about table{
+	border: none;
+	user-select: text;
+}
+`

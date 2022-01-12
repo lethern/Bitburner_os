@@ -283,7 +283,6 @@ class FilesExplorerRenderer extends EventListener {
 				'Name': 'Files Explorer',
 				'Author': 'Phil#7068',
 				'Contributor': 'lethern',
-				'URL': 'https://github.com/davidsiems/bitpacker',
 			});
 		}
 		this.#aboutWindow.show()

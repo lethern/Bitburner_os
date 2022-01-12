@@ -226,7 +226,6 @@ class ServersExplorerRenderer extends EventListener {
 				'Name': 'Servers Explorer',
 				'Main author': 'TheDroidUrLookingFor#4655',
 				'Contributor': 'lethern',
-				'URL': 'https://github.com/davidsiems/bitpacker',
 			});
 		}
 		this.#aboutWindow.show()
