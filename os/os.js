@@ -28,7 +28,7 @@ export class OS extends EventListener {
 		this.terminal = new Terminal();
 		this.serversManager = new ServersManager(this);
 		this.serversExplorer = new ServersExplorer(this);
-		this.packagesExplorer = new PackagesExplorer(this);
+		//this.packagesExplorer = new PackagesExplorer(this);
 
 		this.plugins = new PluginsManager(this);
 	}

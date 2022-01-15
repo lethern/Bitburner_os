@@ -35,6 +35,7 @@ class BitpackerPlugin {
 	/** @type {import('/os/window_widget.js').WindowWidget} */
 	#windowWidget
 	#contentDiv
+	#aboutWindow
 
 	#createWidget() {
 		let windowWidget = this.#windowWidget;
@@ -42,6 +43,7 @@ class BitpackerPlugin {
 		windowWidget.getContentDiv().classList.add('whiteScrollbar')
 		windowWidget.getContentDiv().classList.add('grayBackground')
 		windowWidget.setTitle('Bitpacker')
+		windowWidget.addMenuItem({ label: 'About', callback: () => this.#onAboutMenuClick() })
 		/*		windowWidget.getContentDiv().innerHTML = `
 				<div class="process-list">
 					<div class="process-list__head">
@@ -55,6 +57,17 @@ class BitpackerPlugin {
 		windowWidget.show();
 
 		this.#contentDiv = windowWidget.getContentDiv()
+	}
+
+	#onAboutMenuClick() {
+		if (!this.#aboutWindow) {
+			this.#aboutWindow = this.#os.getGUI().createAboutWindow({
+				'Name': 'Packages Manager',
+				'Author': 'degaz#3692',
+				'URL': 'https://github.com/davidsiems/bitpacker',
+			});
+		}
+		this.#aboutWindow.show()
 	}
 
 	async #render() {
@@ -78,10 +91,7 @@ class BitpackerPlugin {
 		});
 	}
 
-
 	#printRow(row, parent) {
-
-
 		let columns = ["uniqueName", "shortDescription", "author"];
 
 		let uniqueName = row.uniqueName;
@@ -142,6 +152,11 @@ class BitpackerPlugin {
 		this.lastShownDetails = data.detailsRow;
 	}
 
+	#renderError(e) {
+		this.#contentDiv.innerHTML = `
+<div>There was an error: ${e.message}</div>`;
+	}
+
 	static createTable(parent, css) {
 		let div = globalThis['document'].createElement('table');
 		if (parent) parent.appendChild(div);
@@ -171,11 +186,6 @@ class BitpackerPlugin {
 		btn.addEventListener('click', callback);
 		cell.appendChild(btn);
 		return btn;
-	}
-
-	#renderError(e) {
-		this.#contentDiv.innerHTML = `
-<div>There was an error: ${e.message}</div>`;
 	}
 }
 

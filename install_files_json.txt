@@ -14,7 +14,6 @@
 
 		"os/app/files_explorer.js",
 		"os/app/logger_render.js",
-		"os/app/packages_explorer.js",
 
 		"os/app/servers_explorer/connect.js",
 		"os/app/servers_explorer/servers_explorer.js",
