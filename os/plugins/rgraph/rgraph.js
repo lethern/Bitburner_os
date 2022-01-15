@@ -25,7 +25,7 @@ class RGraphWidget {
 
 			this.#attacksMonitor = new AttacksMonitor(this.#api);
 
-			this.injectCSS();
+			this.#api.os.getGUI().injectCSS(RGraphCSS, 'RGraphCSS');
 
 			this.initGraph();
 
@@ -102,23 +102,6 @@ class RGraphWidget {
 		this.renderGraph();
 	}
 
-	injectCSS() {
-		const stylesheetId = 'rgraph-styles'
-
-		if (this.#doc.getElementById(stylesheetId)) {
-			console.log("rgraph css exists");
-			return;
-		}
-
-		const stylesheet = this.#doc.createElement('style')
-		stylesheet.id = stylesheetId
-
-		stylesheet.innerHTML = RGraphCSS
-
-		this.#doc.head.insertAdjacentElement('beforeend', stylesheet)
-		this.#stylesheet = stylesheet;
-	}
-
 	initGraph() { // , attacksMonitor, handlers
 
 		this.#createRGraph();
@@ -173,7 +156,6 @@ class RGraphWidget {
 			clearTimeout(this.#loop_handler)
 			this.#loop_handler = null;
 		}
-		if (this.#stylesheet) this.#stylesheet.remove();
 	}
 
 
@@ -181,7 +163,6 @@ class RGraphWidget {
 	#contentDiv
 	#windowWidget
 	#api
-	#stylesheet
 	#attacksMonitor
 	#rgraph
 	#loop_handler

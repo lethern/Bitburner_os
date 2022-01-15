@@ -23,7 +23,7 @@ class BitpackerPlugin {
 	}
 
 	init() {
-		this.#os.getGUI().injectCSS(bitpacker_css);
+		this.#os.getGUI().injectCSS(bitpacker_css, 'bitpacker_css');
 		this.#createWidget()
 	}
 

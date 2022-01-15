@@ -212,7 +212,7 @@ class ServersExplorerRenderer extends EventListener {
 	#aboutWindow
 
 	#init() {
-		this.#os.gui.injectCSS(servers_explorer_css);
+		this.#os.gui.injectCSS(servers_explorer_css, 'servers_explorer_css');
 
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<ul class="server-list server-list--layout-icon-row" />';

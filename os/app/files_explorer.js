@@ -254,7 +254,7 @@ class FilesExplorerRenderer extends EventListener {
 	}
 
 	#init() {
-		this.#os.gui.injectCSS(files_explorer_css);
+		this.#os.gui.injectCSS(files_explorer_css, 'files_explorer_css');
 		
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<ul class="file-list" />';

@@ -88,7 +88,7 @@ export class DebugConsoleRender {
 	}
 
 	#injectCSS() {
-		this.#os.gui.injectCSS(console_render_css);
+		this.#os.gui.injectCSS(console_render_css, 'console_render_css');
 	}
 
 	#renderWindow() {

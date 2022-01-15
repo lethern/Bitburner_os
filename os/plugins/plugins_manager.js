@@ -30,7 +30,7 @@ export class PluginsManager {
 	#init() {
 		this.#injectMenuButton();
 
-		this.#os.gui.injectCSS(plugins_manager_css);
+		this.#os.gui.injectCSS(plugins_manager_css, 'plugins_manager_css');
 
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<div class="plugins-list" />';
@@ -229,12 +229,15 @@ const plugins_manager_css = `
 .plugins-list__row div{
 	display: table-cell;
 	vertical-align: middle;
+	padding-right: 5px;
 }
 .plugins-list__row div:nth-child(1){ /*btn*/
 	width: 45px;
+    white-space: nowrap;
 }
 .plugins-list__row div:nth-child(2){ /*id*/
 	width: 130px;
+    white-space: nowrap;
 }
 .plugins-list__row div:nth-child(3){ /*message/error*/
 	min-width: 200px;
