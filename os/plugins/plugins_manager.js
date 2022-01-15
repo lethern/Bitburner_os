@@ -211,7 +211,7 @@ const plugins_manager_css = `
 .plugins-list__button{
 	border-left: 1px solid white;
 	border-top: 1px solid white;
-	border-right: 1px solid rgb(128,128,128);
+	border-right: 2px solid rgb(128,128,128);
 	border-bottom: 1px solid rgb(128,128,128);
 	background: rgb(192, 192, 192);
 	margin: 0;

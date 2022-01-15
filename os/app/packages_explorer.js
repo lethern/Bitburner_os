@@ -6,12 +6,12 @@ import { Logger } from '/os/logger.js'
 export class PackagesExplorer {
 	/** @param {import('/os/os.js').OS} os */
 	constructor(os) {
-		this.#os = os;
-		this.#log = new Logger(this, os.logRenderer);
-		this.#windowWidget = new WindowWidget(this, os);
-		this.#windowWidget.listen(WindowWidget_EVENT.SHOW, () => this.#onShow());
-		this.#os.listen(OS_EVENT.INIT, () => this.#init());
-		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
+		//this.#os = os;
+		//this.#log = new Logger(this, os.logRenderer);
+		//this.#windowWidget = new WindowWidget(this, os);
+		//this.#windowWidget.listen(WindowWidget_EVENT.SHOW, () => this.#onShow());
+		//this.#os.listen(OS_EVENT.INIT, () => this.#init());
+		//this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 	}
 
 

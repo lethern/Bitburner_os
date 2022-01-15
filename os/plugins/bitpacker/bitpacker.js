@@ -42,16 +42,16 @@ class BitpackerPlugin {
 		windowWidget.getContentDiv().classList.add('whiteScrollbar')
 		windowWidget.getContentDiv().classList.add('grayBackground')
 		windowWidget.setTitle('Bitpacker')
-/*		windowWidget.getContentDiv().innerHTML = `
-		<div class="process-list">
-			<div class="process-list__head">
-				<button class="process-cell" data-sort="target">Target</button>
-				<button class="process-cell" data-sort="threads">Threads</button>
-			</div>
-			<div class="process-list__body"></div>
-		</div>
-	`
-*/
+		/*		windowWidget.getContentDiv().innerHTML = `
+				<div class="process-list">
+					<div class="process-list__head">
+						<button class="process-cell" data-sort="target">Target</button>
+						<button class="process-cell" data-sort="threads">Threads</button>
+					</div>
+					<div class="process-list__body"></div>
+				</div>
+			`
+		*/
 		windowWidget.show();
 
 		this.#contentDiv = windowWidget.getContentDiv()
@@ -69,7 +69,7 @@ class BitpackerPlugin {
 	}
 
 	#renderBitpacks(data) {
-		let list = BitpackerPlugin.createRow(this.#contentDiv, 'bitpacks-list')
+		let list = BitpackerPlugin.createTable(this.#contentDiv, 'bitpacks-list')
 
 		this.listData = {};
 
@@ -78,9 +78,9 @@ class BitpackerPlugin {
 		});
 	}
 
-	
+
 	#printRow(row, parent) {
-		
+
 
 		let columns = ["uniqueName", "shortDescription", "author"];
 
@@ -91,7 +91,7 @@ class BitpackerPlugin {
 		}
 
 		let mainRow = data.mainRow = BitpackerPlugin.createRow(parent);
-		let detailsRow = data.detailsRow = BitpackerPlugin.createRow(parent);
+		let detailsRow = data.detailsRow = BitpackerPlugin.createRow(parent, 'bpDetails');
 		detailsRow.style['display'] = 'none';
 
 		// buttons
@@ -115,9 +115,10 @@ class BitpackerPlugin {
 		}
 
 		// details
-		for (let detail of detailsCells) {
-			BitpackerPlugin.createCell(detail[0] + ": " + detail[1], detailsRow);
-		}
+		let cell = BitpackerPlugin.createCell(
+			detailsCells.map(d => d[0]+": "+d[1]).join("; "),
+			detailsRow);
+		cell.colSpan = 4;
 	}
 
 	addPack(name) {
@@ -141,15 +142,22 @@ class BitpackerPlugin {
 		this.lastShownDetails = data.detailsRow;
 	}
 
+	static createTable(parent, css) {
+		let div = globalThis['document'].createElement('table');
+		if (parent) parent.appendChild(div);
+		if (css) div.classList.add(css);
+		return div;
+	}
+
 	static createRow(parent, css) {
-		let div = globalThis['document'].createElement('div');
+		let div = globalThis['document'].createElement('tr');
 		if (parent) parent.appendChild(div);
 		if (css) div.classList.add(css);
 		return div;
 	}
 
 	static createCell(text, parent) {
-		let div = globalThis['document'].createElement('div');
+		let div = globalThis['document'].createElement('td');
 		div.textContent = text;
 		if (parent) parent.appendChild(div);
 		return div;
@@ -174,31 +182,35 @@ class BitpackerPlugin {
 
 const bitpacker_css = `
 .bitpacks-list {
-    display: table;
+	border-spacing: 0;
+    border-collapse: collapse;
+	border: none;
 }
-.bitpacks-list > div {
-    display: table-row;
+.bitpacks-list tr {
 }
-.bitpacks-list > div > div {
-    display: table-cell;
+.bitpacks-list td {
     padding: 2px 5px;
+	border: none;
 }
-.bitpacks-list > div:nth-child(2n+1){
+.bitpacks-list tr:nth-child(4n+1){
 	background: #ececec;
 }
 .bitpacks-list button{
 	border-left: 1px solid white;
 	border-top: 1px solid white;
-	border-right: 1px solid rgb(128,128,128);
+	border-right: 2px solid rgb(128,128,128);
 	border-bottom: 1px solid rgb(128,128,128);
 	background: rgb(192, 192, 192);
 	margin: 0;
-	padding: 1px 2px;
+	padding: 1px 3px;
 }
 .bitpacks-list button:active {
 	border-left: 2px solid rgb(128,128,128);
 	border-top: 1px solid rgb(128,128,128);
 	border-right: 1px solid white;
 	border-bottom: 1px solid white;
+}
+.bitpacks-list .bpDetails{
+    background: #cbdcda;
 }
 `;
