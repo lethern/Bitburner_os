@@ -36,7 +36,10 @@
 		"os/plugins/process-list/process-list.js",
 		"os/plugins/process-list/process-list_css.js",
 		"os/plugins/process-list/process-list_json.txt",
-		"os/plugins/process-list/process-list.config.example.js"
+		"os/plugins/process-list/process-list.config.example.js",
+		
+		"os/plugins/bitpacker/bp_lib.js",
+		"os/plugins/bitpacker/bitpacker.js"
 	],
 	"filesToClean": [
 	],
