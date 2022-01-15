@@ -512,7 +512,7 @@ const RGraphCSS = `
 	font-size: 14px;
 	cursor: pointer;
 	fontSize: 14px;
-    color: #fff;
+	color: #fff;
 }
 #infovis::-webkit-scrollbar {
 	display: unset;
@@ -520,10 +520,10 @@ const RGraphCSS = `
 	background-color: #4d5d4e;
 }
 #infovis::-webkit-scrollbar-thumb {
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-    background: rgb(7 156 7);; 
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+	background: rgb(7 156 7);; 
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
 }
 `;
 

@@ -233,11 +233,11 @@ const plugins_manager_css = `
 }
 .plugins-list__row div:nth-child(1){ /*btn*/
 	width: 45px;
-    white-space: nowrap;
+	white-space: nowrap;
 }
 .plugins-list__row div:nth-child(2){ /*id*/
 	width: 130px;
-    white-space: nowrap;
+	white-space: nowrap;
 }
 .plugins-list__row div:nth-child(3){ /*message/error*/
 	min-width: 200px;

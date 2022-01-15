@@ -350,17 +350,17 @@ class BitpackerAdapter {
 const bitpacker_css = `
 .bitpacks-list {
 	border-spacing: 0;
-    border-collapse: collapse;
+	border-collapse: collapse;
 	border: none;
 }
 .bitpacks-list tr {
 }
 .bitpacks-list td {
-    padding: 2px 5px;
+	padding: 2px 5px;
 	border: none;
 }
 .bitpacks-list td:nth-child(3){ /*id*/
-    white-space: nowrap;
+	white-space: nowrap;
 }
 .bitpacks-list tr:nth-child(4n+1){
 	background: #ececec;
@@ -381,6 +381,6 @@ const bitpacker_css = `
 	border-bottom: 1px solid white;
 }
 .bitpacks-list .bpDetails{
-    background: #cbdcda;
+	background: #cbdcda;
 }
 `;

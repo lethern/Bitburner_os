@@ -47,7 +47,7 @@ export const OS_EVENT = {};
 Object.defineProperties(OS_EVENT, {
 	INIT: { value: 'init' },
 	LOOP_STEP: { value: 'loop_step' },
-    ON_EXIT: { value: 'on_exit' },
+	ON_EXIT: { value: 'on_exit' },
 });
 
 export const WindowWidget_EVENT = {};
