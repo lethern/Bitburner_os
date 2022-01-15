@@ -73,12 +73,12 @@ export class GUI {
 	injectCSS(css_string, css_id) {
 		if (!css_id) throw "injectCSS: css_id missing";
 
-		if (this.#doc.getElementById(css_id))
-			return;
-
-		const stylesheet = this.#doc.createElement('style')
-		stylesheet.innerHTML = css_string
-		stylesheet.id = css_id;
+		let stylesheet = this.#doc.getElementById(css_id);
+		if (!stylesheet) {
+			stylesheet = this.#doc.createElement('style')
+			stylesheet.innerHTML = css_string
+			stylesheet.id = css_id;
+		}
 
 		this.#styles.push(stylesheet);
 		this.#doc.head.insertAdjacentElement('beforeend', stylesheet)
@@ -169,8 +169,8 @@ export class GUI {
 	}
 
 	#injectDefaultCSS() {
-		this.injectCSS(GENERAL_CSS)
-		this.injectCSS(GUI_CSS);
+		this.injectCSS(GENERAL_CSS, 'GENERAL_CSS')
+		this.injectCSS(GUI_CSS, 'GUI_CSS');
 	}
 
 	#on_exit() {

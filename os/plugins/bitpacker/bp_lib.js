@@ -99,9 +99,10 @@ function GetFirestoreProperty(value) {
 /** @param {import('/os/plugins/api_adapter.js').OS_API} os */
 export async function loadManifest(os) {
 	try {
-		let manifestJSON = await os.getNS(ns => {
-			ns.read('packages.txt');
-		})
+		const path = 'packages.txt';
+		let manifestJSON = await os.getNS(ns => ns.read(path));
+
+		if (!manifestJSON || !manifestJSON.length) throw "Missing or empty file " + path;
 		let manifest = JSON.parse(manifestJSON);
 		return manifest;
 	}

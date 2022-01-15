@@ -105,6 +105,7 @@ class LibraryList {
 	}
 
 	// interface
+	/** @returns {Promise<any>} */
 	async getBitpacks() { }
 	printRow(row, lis) { }
 
@@ -128,19 +129,22 @@ class LibraryList {
 	}
 
 	showMore(rowData) {
+		console.log('showMore', rowData)
 		if (!rowData || !rowData.detailsRow) return;
 
 		if (this.lastShownDetails) {
 			this.lastShownDetails.style['display'] = 'none';
 		}
 
+		console.log('showMore ok');
 		rowData.detailsRow.style['display'] = '';
 		this.lastShownDetails = rowData.detailsRow;
 	}
 
 	renderError(e) {
+		console.error(e);
 		this.contentDiv.innerHTML = `
-<div>There was an error: ${e.message}</div>`;
+<div>There was an error: ${e}</div>`;
 	}
 
 	static separateMainAndDetails(row, mainCells, detailsCells, columns) {
@@ -209,8 +213,8 @@ class BitpackerAvailableLibrary extends LibraryList{
 		detailsRow.style['display'] = 'none';
 
 		// buttons
-		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(this.listData[name]), mainRow);
-		LibraryList.createButton('more', () => this.showMore(this.listData[name]), mainRow);
+		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(data), mainRow);
+		LibraryList.createButton('more', () => this.showMore(data), mainRow);
 
 		// info
 		let mainCells = [];
@@ -239,10 +243,12 @@ class BitpackerInstalledLibrary extends LibraryList {
 		this.#bitpackerPlugin = bitpackerPlugin;
 	}
 
-
 	async getBitpacks() {
 		let manifest = await loadManifest(this.#bitpackerPlugin.os)
-		return manifest.bitpacks;
+		return Object.entries(manifest.bitpacks).map(([v, k]) => ({
+			uniqueName: v,
+			version: k
+		}));
 	}
 
 	printRow(row, parent) {
@@ -352,6 +358,9 @@ const bitpacker_css = `
 .bitpacks-list td {
     padding: 2px 5px;
 	border: none;
+}
+.bitpacks-list td:nth-child(3){ /*id*/
+    white-space: nowrap;
 }
 .bitpacks-list tr:nth-child(4n+1){
 	background: #ececec;
