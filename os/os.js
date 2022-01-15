@@ -94,7 +94,7 @@ export class OS extends EventListener {
 			let q = this.#NSqueue;
 			this.#NSqueue = [];
 
-			if (++stopwatch > 10) {
+			if (++stopwatch > 100) {
 				q.forEach(({ def }) => { def && def.reject('stopwatch (there is too big recursion in getNS calls)'); })
 				break;
 			}

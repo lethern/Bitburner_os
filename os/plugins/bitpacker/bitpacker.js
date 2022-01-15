@@ -1,5 +1,5 @@
 
-import { listBitpacks, loadManifest } from '/os/plugins/bitpacker/bp_lib.js'
+import BP_LIB from '/os/plugins/bitpacker/bp_lib.js'
 
 async function mainPlugin(api) {
 	let bitpacker = new BitpackerPlugin(api);
@@ -198,14 +198,14 @@ class BitpackerAvailableLibrary extends LibraryList{
 	}
 
 	async getBitpacks() {
-		return await listBitpacks();
+		return await BP_LIB.ListBitpacks();
 	}
 
 	printRow(row, parent) {
 		let uniqueName = row.uniqueName;
 		let data = {};
 		if (uniqueName) {
-			data = this.listData[uniqueName] = {};
+			data = this.listData[uniqueName] = { name: uniqueName };
 		}
 
 		let mainRow = data.mainRow = LibraryList.createRow(parent);
@@ -244,7 +244,9 @@ class BitpackerInstalledLibrary extends LibraryList {
 	}
 
 	async getBitpacks() {
-		let manifest = await loadManifest(this.#bitpackerPlugin.os)
+		let manifest = await BP_LIB.LoadManifest(this.#bitpackerPlugin.os)
+		if (!manifest) throw "Missing or empty file packages.txt";
+
 		return Object.entries(manifest.bitpacks).map(([v, k]) => ({
 			uniqueName: v,
 			version: k
@@ -294,7 +296,7 @@ class BitpackerMyPacksLibrary extends LibraryList {
 	}
 
 	async getBitpacks() {
-		return await listBitpacks();
+		return await BP_LIB.ListBitpacks();
 	}
 
 	printRow(row, parent) {
@@ -338,9 +340,17 @@ class BitpackerAdapter {
 		this.#os = api.os;
 	}
 
-	addPack(data) {
+	async addPack(data) {
 		if (!data) return;
 
+		try {
+			let options = {};
+			let bitpack = data.name;
+			let version = "";
+			await BP_LIB.BitpackAdd(this.#os, options, bitpack, version);
+		} catch (e) {
+			console.error(e);
+		}
 	}
 
 	#api
