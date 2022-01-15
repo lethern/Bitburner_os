@@ -1,0 +1,7 @@
+{
+	"id": "bitpacker",
+	"description": "Package manager for Bitburner",
+	"links": ["https://github.com/davidsiems/bitpacker"],
+	"dependencies": [
+	]
+}
