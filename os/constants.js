@@ -68,11 +68,10 @@ export const GENERAL_CSS = `
 
 export const WINDOW_WIDGET_CSS = `
 .window-container {
-	bottom: 0;
+	top: 0;
 	left: 0;
 	pointer-events: none;
 	position: fixed;
-	top: 0;
 	width: 100%;
 	z-index: 9999;
 }

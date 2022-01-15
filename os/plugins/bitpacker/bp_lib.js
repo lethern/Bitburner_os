@@ -95,3 +95,17 @@ function GetFirestoreProperty(value) {
 	};
 	return Object.keys(value).find((k) => props[k]);
 }
+
+/** @param {import('/os/plugins/api_adapter.js').OS_API} os */
+export async function loadManifest(os) {
+	try {
+		let manifestJSON = await os.getNS(ns => {
+			ns.read('packages.txt');
+		})
+		let manifest = JSON.parse(manifestJSON);
+		return manifest;
+	}
+	catch (syntaxError) {
+		throw "Couldn't parse packages.txt: "+syntaxError.message;
+	}
+}

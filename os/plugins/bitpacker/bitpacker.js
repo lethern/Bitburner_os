@@ -1,5 +1,5 @@
 
-import { listBitpacks } from '/os/plugins/bitpacker/bp_lib.js'
+import { listBitpacks, loadManifest } from '/os/plugins/bitpacker/bp_lib.js'
 
 async function mainPlugin(api) {
 	let bitpacker = new BitpackerPlugin(api);
@@ -12,34 +12,43 @@ async function mainPlugin(api) {
 class BitpackerPlugin {
 	/** @param {import('/os/plugins/api_adapter').API_Object} api */
 	constructor(api) {
-		this.#os = api.os;
+		this.os = api.os;
 		this.#classes = api.classes;
 		this.#utils = api.utils
 
 		this.#windowWidget = this.#classes.newWindowWidget(this);
 		//this.#windowWidget.listen(WindowWidget_EVENT.SHOW, () => this.#onShow());
 
-		this.#adapter = new BitpackerAdapter(api);
+		this.adapter = new BitpackerAdapter(api);
 	}
 
 	init() {
-		this.#os.getGUI().injectCSS(bitpacker_css, 'bitpacker_css');
+		this.os.getGUI().injectCSS(bitpacker_css, 'bitpacker_css');
 		this.#createWidget()
+
+		this.#availableLibrary = new BitpackerAvailableLibrary(this.#contentDiv, this);
+		this.#installedLibrary = new BitpackerInstalledLibrary(this.#contentDiv, this);
+		this.#myPacksLibrary = new BitpackerMyPacksLibrary(this.#contentDiv, this);
+		this.#currentVisible = this.#availableLibrary;
 	}
 
 	async run() {
-		await this.#render()
+		await this.#currentVisible.render()
 	}
 
 
-	#os
 	#classes
 	#utils
 	/** @type {import('/os/window_widget.js').WindowWidget} */
 	#windowWidget
 	#contentDiv
 	#aboutWindow
-	#adapter
+	adapter
+	#availableLibrary
+	#installedLibrary
+	#myPacksLibrary
+	/** @type {LibraryList} */
+	#currentVisible
 
 
 	#createWidget() {
@@ -48,74 +57,93 @@ class BitpackerPlugin {
 		windowWidget.getContentDiv().classList.add('whiteScrollbar')
 		windowWidget.getContentDiv().classList.add('grayBackground')
 		windowWidget.setTitle('Bitpacker')
+
+		windowWidget.addMenuItem({ label: 'Available', callback: () => this.#onAvailableClick() })
+		windowWidget.addMenuItem({ label: 'Installed', callback: () => this.#onInstalledClick() })
+		windowWidget.addMenuItem({ label: 'My Packs', callback: () => this.#onMyPacksClick() })
+
 		windowWidget.addMenuItem({ label: 'About', callback: () => this.#onAboutMenuClick() })
-		/*		windowWidget.getContentDiv().innerHTML = `
-				<div class="process-list">
-					<div class="process-list__head">
-						<button class="process-cell" data-sort="target">Target</button>
-						<button class="process-cell" data-sort="threads">Threads</button>
-					</div>
-					<div class="process-list__body"></div>
-				</div>
-			`
-		*/
 		windowWidget.show();
 
 		this.#contentDiv = windowWidget.getContentDiv()
 	}
 
+	#onAvailableClick() {
+		if (this.#currentVisible == this.#availableLibrary) return;
+		this.#currentVisible = this.#availableLibrary;
+		this.#currentVisible.render();
+	}
+
+	#onInstalledClick() {
+		if (this.#currentVisible == this.#installedLibrary) return;
+		this.#currentVisible = this.#installedLibrary;
+		this.#currentVisible.render();
+	}
+
+	#onMyPacksClick() {
+		if (this.#currentVisible == this.#myPacksLibrary) return;
+		this.#currentVisible = this.#myPacksLibrary;
+		this.#currentVisible.render();
+	}
+
 	#onAboutMenuClick() {
 		if (!this.#aboutWindow) {
-			this.#aboutWindow = this.#os.getGUI().createAboutWindow({
+			this.#aboutWindow = this.os.getGUI().createAboutWindow({
 				'Name': 'Packages Manager',
-				'Author': 'degaz#3692',
+				'MyPacks': 'degaz#3692',
 				'URL': 'https://github.com/davidsiems/bitpacker',
 			});
 		}
 		this.#aboutWindow.show()
 	}
+}
 
-	async #render() {
-		let div = this.#contentDiv;
 
+class LibraryList {
+	constructor(contentDiv) {
+		this.contentDiv = contentDiv;
+	}
+
+	// interface
+	async getBitpacks() { }
+	printRow(row, lis) { }
+
+	async render() {
 		try {
-			let data = await listBitpacks();
-			this.#renderBitpacks(data);
+			let data = await this.getBitpacks();
+			this.listData = {};
+			this.renderBitpacks(data);
 		} catch (e) {
-			this.#renderError(e);
+			this.renderError(e);
 		}
 	}
 
-	#renderBitpacks(data) {
-		let list = BitpackerPlugin.createTable(this.#contentDiv, 'bitpacks-list')
-
-		this.listData = {};
+	renderBitpacks(data) {
+		this.contentDiv.innerHTML = '';
+		let list = LibraryList.createTable(this.contentDiv, 'bitpacks-list')
 
 		data.forEach(row => {
-			this.#printRow(row, list);
+			this.printRow(row, list);
 		});
 	}
 
-	#printRow(row, parent) {
-		let columns = ["uniqueName", "shortDescription", "author"];
+	showMore(rowData) {
+		if (!rowData || !rowData.detailsRow) return;
 
-		let uniqueName = row.uniqueName;
-		let data = {};
-		if (uniqueName) {
-			data = this.listData[uniqueName] = {};
+		if (this.lastShownDetails) {
+			this.lastShownDetails.style['display'] = 'none';
 		}
 
-		let mainRow = data.mainRow = BitpackerPlugin.createRow(parent);
-		let detailsRow = data.detailsRow = BitpackerPlugin.createRow(parent, 'bpDetails');
-		detailsRow.style['display'] = 'none';
+		rowData.detailsRow.style['display'] = '';
+		this.lastShownDetails = rowData.detailsRow;
+	}
 
-		// buttons
-		BitpackerPlugin.createButton('add', () => this.#adapter.addPack(this.listData[name]), mainRow);
-		BitpackerPlugin.createButton('more', () => this.showMore(uniqueName), mainRow);
+	renderError(e) {
+		this.contentDiv.innerHTML = `
+<div>There was an error: ${e.message}</div>`;
+	}
 
-		// info
-		let mainCells = [];
-		let detailsCells = [];
+	static separateMainAndDetails(row, mainCells, detailsCells, columns) {
 		Object.entries(row).forEach(([key, val]) => {
 			let indx = columns.findIndex(col => col == key);
 			if (indx != -1) {
@@ -124,35 +152,6 @@ class BitpackerPlugin {
 				detailsCells.push([key, val]);
 			}
 		});
-
-		for (let i = 0; i < columns.length; ++i) {
-			BitpackerPlugin.createCell(mainCells[i] || '', mainRow);
-		}
-
-		// details
-		let cell = BitpackerPlugin.createCell(
-			detailsCells.map(d => d[0]+": "+d[1]).join("; "),
-			detailsRow);
-		cell.colSpan = 4;
-	}
-
-	showMore(name) {
-		let data = this.listData[name];
-		if (!data) return;
-
-		if (this.lastShownDetails) {
-			this.lastShownDetails.style['display'] = 'none';
-		}
-
-		if (!data.detailsRow) return;
-
-		data.detailsRow.style['display'] = '';
-		this.lastShownDetails = data.detailsRow;
-	}
-
-	#renderError(e) {
-		this.#contentDiv.innerHTML = `
-<div>There was an error: ${e.message}</div>`;
 	}
 
 	static createTable(parent, css) {
@@ -177,7 +176,7 @@ class BitpackerPlugin {
 	}
 
 	static createButton(text, callback, parent) {
-		let cell = BitpackerPlugin.createCell('', parent);
+		let cell = LibraryList.createCell('', parent);
 		let btn = globalThis['document'].createElement('button');
 		btn.type = 'button';
 		btn.textContent = text;
@@ -185,6 +184,146 @@ class BitpackerPlugin {
 		cell.appendChild(btn);
 		return btn;
 	}
+}
+
+class BitpackerAvailableLibrary extends LibraryList{
+	/** @param {BitpackerPlugin} bitpackerPlugin */
+	constructor(contentDiv, bitpackerPlugin) {
+		super(contentDiv)
+		this.#bitpackerPlugin = bitpackerPlugin;
+	}
+
+	async getBitpacks() {
+		return await listBitpacks();
+	}
+
+	printRow(row, parent) {
+		let uniqueName = row.uniqueName;
+		let data = {};
+		if (uniqueName) {
+			data = this.listData[uniqueName] = {};
+		}
+
+		let mainRow = data.mainRow = LibraryList.createRow(parent);
+		let detailsRow = data.detailsRow = LibraryList.createRow(parent, 'bpDetails');
+		detailsRow.style['display'] = 'none';
+
+		// buttons
+		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(this.listData[name]), mainRow);
+		LibraryList.createButton('more', () => this.showMore(this.listData[name]), mainRow);
+
+		// info
+		let mainCells = [];
+		let detailsCells = [];
+		let columns = ["uniqueName", "shortDescription", "myPacks"];
+		LibraryList.separateMainAndDetails(row, mainCells, detailsCells, columns)
+
+		for (let i = 0; i < columns.length; ++i) {
+			LibraryList.createCell(mainCells[i] || '', mainRow);
+		}
+
+		// details
+		let cell = LibraryList.createCell(
+			detailsCells.map(d => d[0]+": "+d[1]).join("; "),
+			detailsRow);
+		cell.colSpan = 4;
+	}
+
+	#bitpackerPlugin
+}
+
+class BitpackerInstalledLibrary extends LibraryList {
+	/** @param {BitpackerPlugin} bitpackerPlugin */
+	constructor(contentDiv, bitpackerPlugin) {
+		super(contentDiv)
+		this.#bitpackerPlugin = bitpackerPlugin;
+	}
+
+
+	async getBitpacks() {
+		let manifest = await loadManifest(this.#bitpackerPlugin.os)
+		return manifest.bitpacks;
+	}
+
+	printRow(row, parent) {
+		let uniqueName = row.uniqueName;
+		let data = {};
+		if (uniqueName) {
+			data = this.listData[uniqueName] = {};
+		}
+
+		let mainRow = data.mainRow = LibraryList.createRow(parent);
+		let detailsRow = data.detailsRow = LibraryList.createRow(parent, 'bpDetails');
+		detailsRow.style['display'] = 'none';
+
+		// buttons
+		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(this.listData[name]), mainRow);
+		LibraryList.createButton('more', () => this.showMore(this.listData[name]), mainRow);
+
+		// info
+		let mainCells = [];
+		let detailsCells = [];
+		let columns = ["uniqueName", "shortDescription", "myPacks"];
+		LibraryList.separateMainAndDetails(row, mainCells, detailsCells, columns)
+
+		for (let i = 0; i < columns.length; ++i) {
+			LibraryList.createCell(mainCells[i] || '', mainRow);
+		}
+
+		// details
+		let cell = LibraryList.createCell(
+			detailsCells.map(d => d[0] + ": " + d[1]).join("; "),
+			detailsRow);
+		cell.colSpan = 4;
+	}
+
+	#bitpackerPlugin
+}
+
+class BitpackerMyPacksLibrary extends LibraryList {
+	/** @param {BitpackerPlugin} bitpackerPlugin */
+	constructor(contentDiv, bitpackerPlugin) {
+		super(contentDiv)
+		this.#bitpackerPlugin = bitpackerPlugin;
+	}
+
+	async getBitpacks() {
+		return await listBitpacks();
+	}
+
+	printRow(row, parent) {
+		let uniqueName = row.uniqueName;
+		let data = {};
+		if (uniqueName) {
+			data = this.listData[uniqueName] = {};
+		}
+
+		let mainRow = data.mainRow = LibraryList.createRow(parent);
+		let detailsRow = data.detailsRow = LibraryList.createRow(parent, 'bpDetails');
+		detailsRow.style['display'] = 'none';
+
+		// buttons
+		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(this.listData[name]), mainRow);
+		LibraryList.createButton('more', () => this.showMore(this.listData[name]), mainRow);
+
+		// info
+		let mainCells = [];
+		let detailsCells = [];
+		let columns = ["uniqueName", "shortDescription", "myPacks"];
+		LibraryList.separateMainAndDetails(row, mainCells, detailsCells, columns)
+
+		for (let i = 0; i < columns.length; ++i) {
+			LibraryList.createCell(mainCells[i] || '', mainRow);
+		}
+
+		// details
+		let cell = LibraryList.createCell(
+			detailsCells.map(d => d[0] + ": " + d[1]).join("; "),
+			detailsRow);
+		cell.colSpan = 4;
+	}
+
+	#bitpackerPlugin
 }
 
 class BitpackerAdapter {
