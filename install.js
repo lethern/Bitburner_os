@@ -1,23 +1,44 @@
-let baseUrl = 'https://raw.githubusercontent.com/lethern/Bitburner_os/main/';
+let gitUsername = 'lethern';
+let repoName = 'Bitburner_os';
+let branchName = 'main';
 let json_filename = 'install_files_json.txt';
 
 /** @param {NS} ns */
 export async function main(ns) {
+	let filesToDownload = await init(ns);
+
+	await downloadFiles(ns, filesToDownload);
+
+	terminalCommand('alias -g bootOS="run /os/main.js"')
+
+	ns.tprintf("Install complete! To start, type: bootOS")
+}
+
+async function init(ns){
 	let { welcomeLabel, filesToDownload } = await fetchConfig(ns)
 
 	ns.tprintf("%s", welcomeLabel)
 
-	let hostname = ns.getHostname()
-
-	if (hostname !== 'home') {
+	if (ns.getHostname() !== 'home') {
 		throw 'Run the script from home'
 	}
 
 	await clean(ns, filesToDownload);
 
+	if(ns.args[0] == 'dev'){
+		branchName = 'lethern-dev';
+		ns.tprint("Dev branch");
+	}else{
+		throw 'Invalid argument, expected "dev"';
+	}
+
+	return filesToDownload;
+}
+
+async function downloadFiles(ns, filesToDownload){
 	let count = 0;
 	for (let filename of filesToDownload) {
-		const path = baseUrl + filename
+		const path = getBaseUrl() + filename
 		const save_filename = (!filename.startsWith('/') && filename.includes('/')) ? '/' + filename : filename;
 
 		try {
@@ -34,10 +55,10 @@ export async function main(ns) {
 			throw e;
 		}
 	}
+}
 
-	terminalCommand('alias -g bootOS="run /os/main.js"')
-
-	ns.tprintf("Install complete! To start, type: bootOS")
+function getBaseUrl(){
+	return `https://raw.githubusercontent.com/${gitUsername}/${repoName}/${branchName}/`;
 }
 
 async function clean(ns, filesToDownload) {
@@ -70,7 +91,7 @@ async function fetchConfig(ns) {
 	try {
 		let local_filename = '/os/' + json_filename;
 		await ns.rm(local_filename)
-		await ns.wget(baseUrl + json_filename + '?ts=' + new Date().getTime(), local_filename)
+		await ns.wget(getBaseUrl() + json_filename + '?ts=' + new Date().getTime(), local_filename)
 		return JSON.parse(ns.read(local_filename));
 	} catch (e) {
 		ns.tprint(`ERROR: Downloading and reading config file failed ${json_filename}`);
