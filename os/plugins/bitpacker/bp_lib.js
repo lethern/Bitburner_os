@@ -1,7 +1,7 @@
 // fork: https://github.com/lethern/bitpacker
 // original: https://github.com/davidsiems/bitpacker
 
-export default {
+export const BP_LIB = {
 	ListBitpacks,
 	LoadManifest,
 	BitpackAdd,
@@ -152,8 +152,7 @@ async function DownloadBitpack(os, options, bitpack, version) {
 
 	let downloadResultOp = new Promise((resolve, reject) => {
 		let xhr = new XMLHttpRequest();
-		xhr.setRequestHeader('Content-Type', 'application/json');
-
+		
 		xhr.onreadystatechange = function () {
 			if (xhr.readyState == XMLHttpRequest.DONE) {
 				try {
@@ -174,6 +173,7 @@ async function DownloadBitpack(os, options, bitpack, version) {
 			reject(e);
 		};
 		xhr.open('POST', DownloadPackageURL, true);
+		xhr.setRequestHeader('Content-Type', 'application/json');
 		xhr.send(JSON.stringify(request));
 	});
 

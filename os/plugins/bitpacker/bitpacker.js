@@ -1,5 +1,5 @@
 
-import BP_LIB from '/os/plugins/bitpacker/bp_lib.js'
+import { BP_LIB } from '/os/plugins/bitpacker/bp_lib.js'
 
 async function mainPlugin(api) {
 	let bitpacker = new BitpackerPlugin(api);

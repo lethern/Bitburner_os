@@ -191,9 +191,6 @@ export class GUI {
 	}
 };
 
-// class GUI_Injector {
-// };
-
 const GUI_CSS = `
 .window-about table{
 	border: none;
