@@ -39,6 +39,7 @@
 		
 		"os/plugins/bitpacker/bp_lib.js",
 		"os/plugins/bitpacker/bitpacker.js"
+		"os/plugins/bitpacker/bitpacker_json.txt",
 	],
 	"filesToClean": [
 	],
