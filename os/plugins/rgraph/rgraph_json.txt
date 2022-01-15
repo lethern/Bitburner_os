@@ -1,6 +1,6 @@
 {
 	"id": "rgraph",
-	"description": "Radial Graph Visualisation based on JavaScript InfoVis Toolkit",
+	"description": "Graph visualisation for servers network",
 	"dependencies": [
 		"jit"
 	]

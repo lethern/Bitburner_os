@@ -223,8 +223,11 @@ const plugins_manager_css = `
 	border-right: 1px solid white;
 	border-bottom: 1px solid white;
 }
+.plugins-list__row{
+	display: table-row;
+}
 .plugins-list__row div{
-	display: inline-block;
+	display: table-cell;
 	vertical-align: middle;
 }
 .plugins-list__row div:nth-child(1){ /*btn*/

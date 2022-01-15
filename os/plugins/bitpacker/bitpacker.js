@@ -18,6 +18,8 @@ class BitpackerPlugin {
 
 		this.#windowWidget = this.#classes.newWindowWidget(this);
 		//this.#windowWidget.listen(WindowWidget_EVENT.SHOW, () => this.#onShow());
+
+		this.#adapter = new BitpackerAdapter(api);
 	}
 
 	init() {
@@ -29,6 +31,7 @@ class BitpackerPlugin {
 		await this.#render()
 	}
 
+
 	#os
 	#classes
 	#utils
@@ -36,6 +39,8 @@ class BitpackerPlugin {
 	#windowWidget
 	#contentDiv
 	#aboutWindow
+	#adapter
+
 
 	#createWidget() {
 		let windowWidget = this.#windowWidget;
@@ -105,7 +110,7 @@ class BitpackerPlugin {
 		detailsRow.style['display'] = 'none';
 
 		// buttons
-		BitpackerPlugin.createButton('add', () => this.addPack(uniqueName), mainRow);
+		BitpackerPlugin.createButton('add', () => this.#adapter.addPack(this.listData[name]), mainRow);
 		BitpackerPlugin.createButton('more', () => this.showMore(uniqueName), mainRow);
 
 		// info
@@ -129,13 +134,6 @@ class BitpackerPlugin {
 			detailsCells.map(d => d[0]+": "+d[1]).join("; "),
 			detailsRow);
 		cell.colSpan = 4;
-	}
-
-	addPack(name) {
-		let data = this.listData[name];
-		if (!data) return;
-
-
 	}
 
 	showMore(name) {
@@ -189,6 +187,20 @@ class BitpackerPlugin {
 	}
 }
 
+class BitpackerAdapter {
+	constructor(api) {
+		this.#api = api;
+		this.#os = api.os;
+	}
+
+	addPack(data) {
+		if (!data) return;
+
+	}
+
+	#api
+	#os
+}
 
 const bitpacker_css = `
 .bitpacks-list {

@@ -1,63 +1,16 @@
 // based on: https://github.com/Redmega/bitburner-scripts/blob/main/dist/repl.js
 
-const doc = globalThis["document"];
-const win = globalThis["window"];
-
-/** @param {NS} ns*/
-export async function main(ns) {
-    ns.createProgram; // For the RAM
-    const repl = new REPL(ns);
-    // @ts-ignore
-    win.repl = repl;
-    repl.mount();
-    ns.atExit(() => repl.unmount());
-    while (true) {
-        await ns.asleep(30000);
-    }
-}
-
 /** @param {import('/os/plugins/api_adapter.js').API_Object} api */
 async function mainPlugin(api){
-	let classes = api.classes;
-
-
-	let windowWidget = classes.newWindowWidget(this);
-	//windowWidget.listen("show", onShow);
-	windowWidget.init();
-	//windowWidget.getContentDiv().innerHTML = '<div class="plugins-list" />';
-	let content = windowWidget.getContentDiv();
-	content.classList.add('whiteScrollbar')
-	content.style['background-color'] = 'black';
-	content.style.height = '100%';
-	content.parentNode.style['align-items'] = 'stretch'
-	windowWidget.setTitle('REPL')
-	//let windowDiv = windowWidget.getContainer()
-	windowWidget.show();
-	
-	let repl = new REPL_API(api, windowWidget);
-	repl.mount();
+	let repl = new REPL_API(api);
+	repl.run();
 }
 
 class REPL_API {
-    constructor(api, windowWidget) {
+    constructor(api) {
 		this.version = "v0.0.1";
-		/*
-        this.overrideKeydown = (event) => {
-            var _a;
-            const isReplEvent = event.composedPath().some((e) => e === this.input);
-            if (isReplEvent) {
-                (_a = event.stopImmediatePropagation) === null || _a === void 0 ? void 0 : _a.call(event);
-                const clone = new KeyboardEvent(event.type, event);
-                clone.stopPropagation();
-                this.input.dispatchEvent(clone);
-            }
-        };
-		*/
         this.focusInput = (event) => {
-            // const isReplEvent = event.composedPath().some((e: HTMLElement) => e === this.wrapper);
-            // if (isReplEvent) {
             this.input.focus();
-            // }
         };
         this.formSubmit = (event) => {
             event.preventDefault();
@@ -66,23 +19,45 @@ class REPL_API {
             this.input.value = "";
             this.input.focus();
 		};
-		this.api = api;
-        this.os = api.os;
-		this.windowWidget = windowWidget;
-    }
-    // FIXME: Probably brittle and will break at any update (possibly even between launches)
-	mount() {
+		this.#api = api;
+		this.#os = api.os;
+		this.#doc = globalThis["document"]
+	}
 
-		let x = doc.querySelector('.MuiListItem-root.MuiListItem-gutters .MuiTypography-root.MuiTypography-body1');
+	run() {
+		this.#render();
+		this.#mount();
+	}
+
+	#render() {
+		let classes = this.#api.classes;
+		let windowWidget = classes.newWindowWidget(this);
+		windowWidget.init();
+		let content = windowWidget.getContentDiv();
+		content.classList.add('whiteScrollbar')
+		content.style['background-color'] = 'black';
+		content.style.height = '100%';
+		content.parentNode.style['align-items'] = 'stretch'
+		windowWidget.setTitle('REPL')
+		windowWidget.show();
+		windowWidget.addMenuItem({ label: 'About', callback: () => this.#onAboutMenuClick() })
+
+		this.#windowWidget = windowWidget;
+	}
+
+    // FIXME: Probably brittle and will break at any update (possibly even between launches)
+	#mount() {
+
+		let x = this.#doc.querySelector('.MuiListItem-root.MuiListItem-gutters .MuiTypography-root.MuiTypography-body1');
 		if (!x) {
-			x = doc.querySelector('.MuiTypography-root.MuiTypography-body1')
+			x = this.#doc.querySelector('.MuiTypography-root.MuiTypography-body1')
 		}
-        this.wrapper = doc.createElement("form");
+        this.wrapper = this.#doc.createElement("form");
 		this.wrapper.className = "MuiCollapse-wrapperInner MuiCollapse-vertical repl-wrapper"; // css-8atqhb 
 		this.wrapper.style.width = '100%'
-        this.log = doc.createElement("div");
+        this.log = this.#doc.createElement("div");
 		this.log.className = "MuiBox-root repl-log MuiTypography-root MuiTypography-body1"; // css-14bb8ng";
-		const inputContainer = doc.createElement("div");
+		const inputContainer = this.#doc.createElement("div");
 		if (x) {
 			x.classList.forEach(cl => {
 				inputContainer.classList.add(cl)
@@ -98,17 +73,17 @@ class REPL_API {
 			this.log.style['background-color'] = 'rgb(34, 34, 34)';
 		}
         //inputContainer.className = "MuiTypography-root MuiTypography-body1 css-14bb8ng repl-input-wrapper";
-        const replPreText = doc.createElement("span");
+        const replPreText = this.#doc.createElement("span");
 		replPreText.textContent = "REPL >>";
 		replPreText.style['white-space'] = 'nowrap';
 		replPreText.style['margin-right'] = '8px';
         inputContainer.appendChild(replPreText);
-        this.input = doc.createElement("input");
+        this.input = this.#doc.createElement("input");
         this.input.type = "text";
         this.input.id = "repl-input";
         //this.input.className = "repl-input";
 
-		x = doc.querySelector('#terminal-input');
+		x = this.#doc.querySelector('#terminal-input');
 		if (x) {
 			x.classList.forEach(cl => {
 				this.input.classList.add(cl)
@@ -175,39 +150,41 @@ class REPL_API {
         inputContainer.appendChild(this.input);
         this.wrapper.appendChild(this.log);
         this.wrapper.appendChild(inputContainer);
-        //this.menu = doc.querySelector("div.MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation1 div.MuiCollapse-wrapper.MuiCollapse-vertical.css-hboir5");
+        //this.menu = this.#doc.querySelector("div.MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation1 div.MuiCollapse-wrapper.MuiCollapse-vertical.css-hboir5");
         //this.menu.children[0].classList.remove("css-8atqhb"); // Remove the width: 100%; from the other menu piece
         //this.menu.parentElement.parentElement.style.left = "0";
         //this.menu.prepend(this.wrapper);
 		
 		
-		this.windowWidget.getContentDiv().appendChild(this.wrapper);
+		this.#windowWidget.getContentDiv().appendChild(this.wrapper);
 		
-		//doc.addEventListener("keydown", this.overrideKeydown);
+		//this.#doc.addEventListener("keydown", this.overrideKeydown);
 		this.input.addEventListener('keydown', e => e.stopPropagation());
         this.wrapper.addEventListener("click", this.focusInput);
         this.wrapper.addEventListener("submit", this.formSubmit);
         this.printLine(`BitburnerOS REPL ${this.version}`);
         this.printLine('Type "exit" to quit.');
     }
-    unmount() {
+
+	unmount() {
         this.removeStyleSheet("repl");
         //this.menu.children[0].classList.add("css-8atqhb");
         //this.menu.parentElement.parentElement.style.left = null;
         this.wrapper.removeEventListener("click", this.focusInput);
         this.wrapper.removeEventListener("submit", this.formSubmit);
         this.wrapper.remove();
-        //doc.removeEventListener("keydown", this.overrideKeydown);
+        //this.#doc.removeEventListener("keydown", this.overrideKeydown);
     }
-    async runCommand(command) {
+
+	async runCommand(command) {
 		console.log("runCommand");
         try {
 			if (command === "exit") {
-				this.api.exit();
+				this.#api.exit();
 				return;
 			}
             
-			let result = await this.os.getNS(async ns=> {
+			let result = await this.#os.getNS(async ns=> {
 				return await eval(command);
 			});
             
@@ -215,11 +192,12 @@ class REPL_API {
 
         }
         catch (error) {
-            win.console.error(error);
+			globalThis["window"].console.error(error);
             this.printLine(error.toString(), "error");
         }
     }
-    printLine(value, className) {
+
+	printLine(value, className) {
         let text;
         if (typeof value === "object") {
             text = JSON.stringify(value);
@@ -227,25 +205,44 @@ class REPL_API {
         else {
             text = value;
         }
-        const line = doc.createElement("p");
+        const line = this.#doc.createElement("p");
         line.className = "MuiTypography-root MuiTypography-body1 css-18ubon4 repl-line";
         line.classList.add(className);
         line.textContent = text;
         this.log.appendChild(line);
-		this.windowWidget.getContentDiv().scrollTo({ top: this.windowWidget.getContentDiv().scrollHeight });
+		this.#windowWidget.getContentDiv().scrollTo({ top: this.#windowWidget.getContentDiv().scrollHeight });
         // @TODO: Clear log when reaching line cap (1000?)
     }
-    addStyleSheet(key, content) {
-        let sheet = doc.querySelector(`style[data-key="${key}"]`);
+
+	addStyleSheet(key, content) {
+        let sheet = this.#doc.querySelector(`style[data-key="${key}"]`);
         if (!sheet) {
-            sheet = doc.createElement("style");
+            sheet = this.#doc.createElement("style");
             sheet.dataset.key = key;
-            doc.head.appendChild(sheet);
+            this.#doc.head.appendChild(sheet);
         }
         sheet.textContent = content;
     }
-    removeStyleSheet(key) {
+
+	removeStyleSheet(key) {
         var _a;
-        (_a = doc.querySelector(`style[data-key="${key}"]`)) === null || _a === void 0 ? void 0 : _a.remove();
-    }
+        (_a = this.#doc.querySelector(`style[data-key="${key}"]`)) === null || _a === void 0 ? void 0 : _a.remove();
+	}
+
+	#windowWidget
+	#aboutWindow
+	#doc
+	#os
+	#api
+
+	#onAboutMenuClick() {
+		if (!this.#aboutWindow) {
+			this.#aboutWindow = this.#os.getGUI().createAboutWindow({
+				'Name': 'Bitburner REPL',
+				'Author': 'Redmega#9832',
+				'URL': 'https://github.com/Redmega/bitburner-scripts/blob/main/dist/repl.js'
+			});
+		}
+		this.#aboutWindow.show()
+	}
 }
