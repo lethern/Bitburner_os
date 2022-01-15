@@ -118,6 +118,13 @@ export class OS extends EventListener {
 	on_exit() {
 		this.#doLoop = false;
 		this.#log.debug("on_exit");
+
+		// clear references to make GC life easier with closures
+		this.run = null;
+		this.#internal_NS = null;
+		this.#NSqueue = null;
+		Object.keys(this).forEach(key => this[key] = null);
+
 		this.fire(OS_EVENT.ON_EXIT);
 	}
 }
