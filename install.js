@@ -15,6 +15,13 @@ export async function main(ns) {
 }
 
 async function init(ns){
+	if(ns.args[0] == 'dev'){
+		branchName = 'lethern-dev';
+		ns.tprint("Dev branch");
+	}else if(ns.args.length > 0){
+		throw 'Invalid argument(s), expected "dev"';
+	}
+	
 	let { welcomeLabel, filesToDownload } = await fetchConfig(ns)
 
 	ns.tprintf("%s", welcomeLabel)
@@ -24,13 +31,6 @@ async function init(ns){
 	}
 
 	await clean(ns, filesToDownload);
-
-	if(ns.args[0] == 'dev'){
-		branchName = 'lethern-dev';
-		ns.tprint("Dev branch");
-	}else{
-		throw 'Invalid argument, expected "dev"';
-	}
 
 	return filesToDownload;
 }
@@ -45,6 +45,7 @@ async function downloadFiles(ns, filesToDownload){
 			await ns.scriptKill(save_filename, 'home')
 			await ns.rm(save_filename)
 			await ns.sleep(20)
+			ns.print('wget '+path+' -> '+save_filename);
 			await ns.wget(path + '?ts=' + new Date().getTime(), save_filename)
 
 			if (++count % 5 == 0) {
@@ -89,10 +90,13 @@ async function clean(ns, filesToDownload) {
 
 async function fetchConfig(ns) {
 	try {
-		let local_filename = '/os/' + json_filename;
-		await ns.rm(local_filename)
-		await ns.wget(getBaseUrl() + json_filename + '?ts=' + new Date().getTime(), local_filename)
-		return JSON.parse(ns.read(local_filename));
+		let save_filename = '/os/' + json_filename;
+		await ns.rm(save_filename)
+
+		let path = getBaseUrl() + json_filename;
+		ns.print('wget '+path+' -> '+save_filename);
+		await ns.wget(path + '?ts=' + new Date().getTime(), save_filename)
+		return JSON.parse(ns.read(save_filename));
 	} catch (e) {
 		ns.tprint(`ERROR: Downloading and reading config file failed ${json_filename}`);
 		throw e;
