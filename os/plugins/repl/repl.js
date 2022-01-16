@@ -14,6 +14,9 @@ class REPL_API {
 		this.#api = api;
 		this.#os = api.os;
 		this.#doc = globalThis["document"]
+
+		this.focusInputCallback = (event) => this.focusInput(event);
+		this.formSubmitCallback = (event) => this.formSubmit(event);
 	}
 
 	run() {
@@ -110,15 +113,15 @@ class REPL_API {
 		this.#windowWidget.getContentDiv().appendChild(this.wrapper);
 		
 		this.input.addEventListener('keydown', e => e.stopPropagation());
-		this.wrapper.addEventListener("click", this.focusInput);
-		this.wrapper.addEventListener("submit", this.formSubmit);
+		this.wrapper.addEventListener("click", this.focusInputCallback);
+		this.wrapper.addEventListener("submit", this.formSubmitCallback);
 		this.printLine(`BitburnerOS REPL ${this.version}`);
 		this.printLine('Type "exit" to quit.');
 	}
 
 	unmount() {
-		this.wrapper.removeEventListener("click", this.focusInput);
-		this.wrapper.removeEventListener("submit", this.formSubmit);
+		this.wrapper.removeEventListener("click", this.focusInputCallback);
+		this.wrapper.removeEventListener("submit", this.formSubmitCallback);
 		this.wrapper.remove();
 	}
 

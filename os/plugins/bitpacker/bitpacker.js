@@ -53,6 +53,7 @@ class BitpackerPlugin {
 	#createWidget() {
 		let windowWidget = this.#windowWidget;
 		windowWidget.init();
+		windowWidget.getContentDiv().style.display = 'block';
 		windowWidget.getContentDiv().classList.add('whiteScrollbar')
 		windowWidget.getContentDiv().classList.add('grayBackground')
 		windowWidget.setTitle('Bitpacker')
@@ -107,6 +108,8 @@ class LibraryList {
 	/** @returns {Promise<any>} */
 	async getBitpacks() { }
 	printRow(row, lis) { }
+	/** @returns {string[]} */
+	getHeaders() { }
 
 	async render() {
 		try {
@@ -122,8 +125,26 @@ class LibraryList {
 		this.contentDiv.innerHTML = '';
 		let list = LibraryList.createTable(this.contentDiv, 'bitpacks-list')
 
+		this.renderHeader(list);
+
+		let tbody = globalThis['document'].createElement('tbody');
+		list.appendChild(tbody);
+
 		data.forEach(row => {
-			this.printRow(row, list);
+			this.printRow(row, tbody);
+		});
+	}
+
+	renderHeader(list) {
+		let doc = globalThis['document'];
+		let headers = this.getHeaders();
+		let header_div = doc.createElement('thead');
+
+		list.appendChild(header_div);
+
+		headers.forEach(h => {
+			header_div.appendChild(doc.createElement("th")).
+				appendChild(doc.createTextNode(h));
 		});
 	}
 
@@ -203,7 +224,11 @@ class BitpackerAvailableLibrary extends LibraryList{
 			this.owned = {};
 		}
 		
-		return await BP_LIB.ListBitpacks();
+		return await this.#bitpackerPlugin.adapter.getAvailableBitpacks();
+	}
+
+	getHeaders() {
+		return ["", "", "Name", "Description"]
 	}
 
 	printRow(row, parent) {
@@ -253,11 +278,17 @@ class BitpackerInstalledLibrary extends LibraryList {
 	}
 
 	async getBitpacks() {
+		let all = await this.#bitpackerPlugin.adapter.getAvailableBitpacks();
 		let bitpacks = await this.#bitpackerPlugin.adapter.getInstalledBitpacks();
-		return Object.entries(bitpacks).map(([v, k]) => ({
-			uniqueName: v,
-			version: k
+		return Object.entries(bitpacks).map(([k, v]) => ({
+			uniqueName: k,
+			version: v,
+			description: all[k] ?? '',
 		}));
+	}
+
+	getHeaders() {
+		return ["", "", "Name", "Version"]
 	}
 
 	printRow(row, parent) {
@@ -272,13 +303,13 @@ class BitpackerInstalledLibrary extends LibraryList {
 		detailsRow.style['display'] = 'none';
 
 		// buttons
-		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(this.listData[name]), mainRow);
-		LibraryList.createButton('more', () => this.showMore(this.listData[name]), mainRow);
+		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(this.listData[uniqueName]), mainRow);
+		LibraryList.createButton('more', () => this.showMore(this.listData[uniqueName]), mainRow);
 
 		// info
 		let mainCells = [];
 		let detailsCells = [];
-		let columns = ["uniqueName", "shortDescription", "myPacks"];
+		let columns = ["uniqueName", "version", "description"];
 		LibraryList.separateMainAndDetails(row, mainCells, detailsCells, columns)
 
 		for (let i = 0; i < columns.length; ++i) {
@@ -289,7 +320,7 @@ class BitpackerInstalledLibrary extends LibraryList {
 		let cell = LibraryList.createCell(
 			detailsCells.map(d => d[0] + ": " + d[1]).join("; "),
 			detailsRow);
-		cell.colSpan = 4;
+		cell.colSpan = 2;
 	}
 
 	#bitpackerPlugin
@@ -318,8 +349,8 @@ class BitpackerMyPacksLibrary extends LibraryList {
 		detailsRow.style['display'] = 'none';
 
 		// buttons
-		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(this.listData[name]), mainRow);
-		LibraryList.createButton('more', () => this.showMore(this.listData[name]), mainRow);
+		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(this.listData[uniqueName]), mainRow);
+		LibraryList.createButton('more', () => this.showMore(this.listData[uniqueName]), mainRow);
 
 		// info
 		let mainCells = [];
@@ -366,6 +397,10 @@ class BitpackerAdapter {
 		return manifest.bitpacks;
 	}
 
+	async getAvailableBitpacks() {
+		return await BP_LIB.ListBitpacks();
+	}
+
 	#api
 	#os
 }
@@ -376,17 +411,23 @@ const bitpacker_css = `
 	border-collapse: collapse;
 	border: none;
 }
+.bitpacks-list thead {
+	text-align: left;
+}
 .bitpacks-list tr {
 }
-.bitpacks-list td {
+.bitpacks-list td, .bitpacks-list th {
 	padding: 2px 5px;
 	border: none;
+}
+.bitpacks-list td:nth-child(1){ /*installed*/
+	font-size: 13.5px;
 }
 .bitpacks-list td:nth-child(3){ /*id*/
 	white-space: nowrap;
 }
 .bitpacks-list tr:nth-child(4n+1){
-	background: #ececec;
+	background: #e4e4e4;
 }
 .bitpacks-list button{
 	border-left: 1px solid white;
