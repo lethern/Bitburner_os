@@ -243,7 +243,7 @@ class BitpackerAvailableLibrary extends LibraryList{
 		detailsRow.style['display'] = 'none';
 
 		// buttons
-		if (!this.owned[uniqueName]) {
+		if (this.owned[uniqueName]) {
 			LibraryList.createCell('installed', mainRow);
 		} else {
 			LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(data), mainRow);
