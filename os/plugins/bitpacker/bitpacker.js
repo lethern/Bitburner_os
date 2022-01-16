@@ -36,7 +36,6 @@ class BitpackerPlugin {
 		await this.#currentVisible.render()
 	}
 
-
 	#classes
 	#utils
 	/** @type {import('/os/window_widget.js').WindowWidget} */
@@ -198,6 +197,12 @@ class BitpackerAvailableLibrary extends LibraryList{
 	}
 
 	async getBitpacks() {
+		try {
+			this.owned = await this.#bitpackerPlugin.adapter.getInstalledBitpacks();
+		} catch (e) {
+			this.owned = {};
+		}
+		
 		return await BP_LIB.ListBitpacks();
 	}
 
@@ -213,7 +218,11 @@ class BitpackerAvailableLibrary extends LibraryList{
 		detailsRow.style['display'] = 'none';
 
 		// buttons
-		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(data), mainRow);
+		if (!this.owned[uniqueName]) {
+			LibraryList.createCell('installed', mainRow);
+		} else {
+			LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(data), mainRow);
+		}
 		LibraryList.createButton('more', () => this.showMore(data), mainRow);
 
 		// info
@@ -244,10 +253,8 @@ class BitpackerInstalledLibrary extends LibraryList {
 	}
 
 	async getBitpacks() {
-		let manifest = await BP_LIB.LoadManifest(this.#bitpackerPlugin.os)
-		if (!manifest) throw "Missing or empty file packages.txt";
-
-		return Object.entries(manifest.bitpacks).map(([v, k]) => ({
+		let bitpacks = await this.#bitpackerPlugin.adapter.getInstalledBitpacks();
+		return Object.entries(bitpacks).map(([v, k]) => ({
 			uniqueName: v,
 			version: k
 		}));
@@ -351,6 +358,12 @@ class BitpackerAdapter {
 		} catch (e) {
 			console.error(e);
 		}
+	}
+
+	async getInstalledBitpacks() {
+		let manifest = await BP_LIB.LoadManifest(this.#os)
+		if (!manifest) throw "Missing or empty file packages.txt";
+		return manifest.bitpacks;
 	}
 
 	#api
