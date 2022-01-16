@@ -17,7 +17,7 @@ export const servers_explorer_css = `
 }
 .server-list__item-title{
 	display: flex;
-    align-items: center;
+	align-items: center;
 	justify-content: center;
 }
 .server-list__item-title button{
@@ -25,7 +25,7 @@ export const servers_explorer_css = `
 }
 .server-list__item-title svg {
 	max-width: 25px;
-    max-height: 25px;
+	max-height: 25px;
 }
 .server-list__icon {
 	height: 20px;
@@ -71,12 +71,12 @@ export const servers_explorer_css = `
 }
 .server-list__bs_center {
 	margin-left:-10px;
-  	marin-right:-10px;
+	marin-right:-10px;
 	text-align:center;
-    display: flex;
+	display: flex;
 	flex-direction: row;
-    align-items: center;
-    justify-content: center;
+	align-items: center;
+	justify-content: center;
 }
 .server-run__backdoor {
 	fill: red;

@@ -56,23 +56,22 @@ export const GENERAL_CSS = `
 }
 .whiteScrollbar::-webkit-scrollbar-thumb {
 	-webkit-border-radius: 10px;
-    background: rgb(150 150 150);
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+	background: rgb(150 150 150);
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
 }
 .greenScrollbar::-webkit-scrollbar-thumb {
 	-webkit-border-radius: 10px;
-    background: rgb(7 156 7);
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+	background: rgb(7 156 7);
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
 }
 `;
 
 export const WINDOW_WIDGET_CSS = `
 .window-container {
-	bottom: 0;
+	top: 0;
 	left: 0;
 	pointer-events: none;
 	position: fixed;
-	top: 0;
 	width: 100%;
 	z-index: 9999;
 }

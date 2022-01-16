@@ -153,7 +153,7 @@ class ProcessList {
 			param: "expiry",
 			isDescending: true,
 		}
-		this.#insertStylesheet()
+		this.#os.getGUI().injectCSS(css, "process-list-style");
 		this.#createWidget()
 	}
 
@@ -174,21 +174,6 @@ class ProcessList {
 			}
 			await this.#utils.sleep(300)
 		}
-	}
-
-	#insertStylesheet() {
-		const stylesheetId = "process-list-style"
-		const doc = globalThis["document"]
-		let stylesheet = doc.getElementById(stylesheetId)
-
-		if (stylesheet) {
-			stylesheet.remove()
-		}
-
-		stylesheet = doc.createElement("style")
-		stylesheet.id = stylesheetId
-		stylesheet.innerHTML = css
-		doc.head.insertAdjacentElement("beforeend", stylesheet)
 	}
 
 	#createWidget() {

@@ -30,7 +30,7 @@ export class PluginsManager {
 	#init() {
 		this.#injectMenuButton();
 
-		this.#os.gui.injectCSS(plugins_manager_css);
+		this.#os.gui.injectCSS(plugins_manager_css, 'plugins_manager_css');
 
 		this.#windowWidget.init();
 		this.#windowWidget.getContentDiv().innerHTML = '<div class="plugins-list" />';
@@ -211,7 +211,7 @@ const plugins_manager_css = `
 .plugins-list__button{
 	border-left: 1px solid white;
 	border-top: 1px solid white;
-	border-right: 1px solid rgb(128,128,128);
+	border-right: 2px solid rgb(128,128,128);
 	border-bottom: 1px solid rgb(128,128,128);
 	background: rgb(192, 192, 192);
 	margin: 0;
@@ -223,15 +223,21 @@ const plugins_manager_css = `
 	border-right: 1px solid white;
 	border-bottom: 1px solid white;
 }
+.plugins-list__row{
+	display: table-row;
+}
 .plugins-list__row div{
-	display: inline-block;
+	display: table-cell;
 	vertical-align: middle;
+	padding-right: 5px;
 }
 .plugins-list__row div:nth-child(1){ /*btn*/
 	width: 45px;
+	white-space: nowrap;
 }
 .plugins-list__row div:nth-child(2){ /*id*/
 	width: 130px;
+	white-space: nowrap;
 }
 .plugins-list__row div:nth-child(3){ /*message/error*/
 	min-width: 200px;

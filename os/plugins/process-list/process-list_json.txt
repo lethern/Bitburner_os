@@ -1,6 +1,6 @@
 {
 	"id": "process-list",
-	"description": "",
+	"description": "Attacks monitor",
 	"links": [
 	],
 	"dependencies": [

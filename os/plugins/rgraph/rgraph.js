@@ -25,7 +25,7 @@ class RGraphWidget {
 
 			this.#attacksMonitor = new AttacksMonitor(this.#api);
 
-			this.injectCSS();
+			this.#api.os.getGUI().injectCSS(RGraphCSS, 'RGraphCSS');
 
 			this.initGraph();
 
@@ -102,23 +102,6 @@ class RGraphWidget {
 		this.renderGraph();
 	}
 
-	injectCSS() {
-		const stylesheetId = 'rgraph-styles'
-
-		if (this.#doc.getElementById(stylesheetId)) {
-			console.log("rgraph css exists");
-			return;
-		}
-
-		const stylesheet = this.#doc.createElement('style')
-		stylesheet.id = stylesheetId
-
-		stylesheet.innerHTML = RGraphCSS
-
-		this.#doc.head.insertAdjacentElement('beforeend', stylesheet)
-		this.#stylesheet = stylesheet;
-	}
-
 	initGraph() { // , attacksMonitor, handlers
 
 		this.#createRGraph();
@@ -173,7 +156,6 @@ class RGraphWidget {
 			clearTimeout(this.#loop_handler)
 			this.#loop_handler = null;
 		}
-		if (this.#stylesheet) this.#stylesheet.remove();
 	}
 
 
@@ -181,7 +163,6 @@ class RGraphWidget {
 	#contentDiv
 	#windowWidget
 	#api
-	#stylesheet
 	#attacksMonitor
 	#rgraph
 	#loop_handler
@@ -531,7 +512,7 @@ const RGraphCSS = `
 	font-size: 14px;
 	cursor: pointer;
 	fontSize: 14px;
-    color: #fff;
+	color: #fff;
 }
 #infovis::-webkit-scrollbar {
 	display: unset;
@@ -539,10 +520,10 @@ const RGraphCSS = `
 	background-color: #4d5d4e;
 }
 #infovis::-webkit-scrollbar-thumb {
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-    background: rgb(7 156 7);; 
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+	background: rgb(7 156 7);; 
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
 }
 `;
 

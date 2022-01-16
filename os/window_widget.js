@@ -23,7 +23,7 @@ export class WindowWidget extends EventListener {
 	}
 	
 	init() {
-		this.#os.gui.injectCSS(WINDOW_WIDGET_CSS);
+		this.#os.gui.injectCSS(WINDOW_WIDGET_CSS, 'window_widget_css');
 		this.#initialiseWindow(this.#windowId)
 	}
 

@@ -11,7 +11,6 @@ export class GUI {
 		this.#doc = globalThis['document'];
 		this.#buttons = [];
 		this.#styles = [];
-		this.#cssUsedMap = {};
 		this.#os.listen(OS_EVENT.INIT, () => this.#init());
 		this.#os.listen(OS_EVENT.ON_EXIT, () => this.#on_exit());
 	}
@@ -71,15 +70,18 @@ export class GUI {
 		this.#buttons.push( { btn } );
 	}
 
-	injectCSS(css_string) {
-		if (this.#cssUsedMap[css_string]) return;
+	injectCSS(css_string, css_id) {
+		if (!css_id) throw "injectCSS: css_id missing";
 
-		const stylesheet = this.#doc.createElement('style')
-		stylesheet.innerHTML = css_string
+		let stylesheet = this.#doc.getElementById(css_id);
+		if (!stylesheet) {
+			stylesheet = this.#doc.createElement('style')
+			stylesheet.innerHTML = css_string
+			stylesheet.id = css_id;
+		}
 
 		this.#styles.push(stylesheet);
 		this.#doc.head.insertAdjacentElement('beforeend', stylesheet)
-		this.#cssUsedMap[css_string] = 1;
 	}
 
 	createAboutWindow(data) {
@@ -104,7 +106,6 @@ export class GUI {
 	#buttons
 	#styles
 	#log
-	#cssUsedMap
 
 	#init() {
 		this.#injectStartBtn()
@@ -168,8 +169,8 @@ export class GUI {
 	}
 
 	#injectDefaultCSS() {
-		this.injectCSS(GENERAL_CSS)
-		this.injectCSS(GUI_CSS);
+		this.injectCSS(GENERAL_CSS, 'GENERAL_CSS')
+		this.injectCSS(GUI_CSS, 'GUI_CSS');
 	}
 
 	#on_exit() {
@@ -189,9 +190,6 @@ export class GUI {
 		});
 	}
 };
-
-// class GUI_Injector {
-// };
 
 const GUI_CSS = `
 .window-about table{

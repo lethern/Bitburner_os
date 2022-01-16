@@ -1,15 +1,15 @@
 import {getServers} from "servers.js";
 
 async function mainPlugin(api){
-    let os = api.os;
-    let classes = api.classes;
+	let os = api.os;
+	let classes = api.classes;
 
-    let windowWidget = classes.newWindowWidget(this);
-    windowWidget.init();
-    windowWidget.getContentDiv().classList.add('greenScrollbar')
-    windowWidget.getContentDiv().classList.add('grayBackground')
-    windowWidget.setTitle('Pizza')
-    windowWidget.show();
+	let windowWidget = classes.newWindowWidget(this);
+	windowWidget.init();
+	windowWidget.getContentDiv().classList.add('greenScrollbar')
+	windowWidget.getContentDiv().classList.add('grayBackground')
+	windowWidget.setTitle('Pizza')
+	windowWidget.show();
 
 	// script logic
 	await os.getNS( ns=> {
