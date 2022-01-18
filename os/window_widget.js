@@ -2,6 +2,9 @@ import { DOM_CONSTANTS, windowIcon, WINDOW_WIDGET_CSS } from '/os/constants.js'
 import { EventListener, WindowWidget_EVENT, OS_EVENT  } from '/os/event_listener.js'
 import { Logger } from '/os/logger.js'
 
+export class WindowWidgetFactory extends EventListener {
+}
+
 export class WindowWidget extends EventListener {
 	/**
 	 * @param {object} parent

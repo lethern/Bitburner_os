@@ -244,7 +244,7 @@ class RGraphWidget {
 
 	loop() {
 		this.loop_impl();
-		if (this.active) this.#loop_handler = setTimeout(() => this.loop(), 40);
+		if (this.active && this.#loop_handler) this.#loop_handler = setTimeout(() => this.loop(), 40);
 	}
 
 	loop_impl() {

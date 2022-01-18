@@ -60,7 +60,7 @@ class BitpackerPlugin {
 
 		windowWidget.addMenuItem({ label: 'Available', callback: () => this.#onAvailableClick() })
 		windowWidget.addMenuItem({ label: 'Installed', callback: () => this.#onInstalledClick() })
-		windowWidget.addMenuItem({ label: 'My Packs', callback: () => this.#onMyPacksClick() })
+		//windowWidget.addMenuItem({ label: 'My Packs', callback: () => this.#onMyPacksClick() })
 
 		windowWidget.addMenuItem({ label: 'About', callback: () => this.#onAboutMenuClick() })
 		windowWidget.show();
@@ -303,8 +303,8 @@ class BitpackerInstalledLibrary extends LibraryList {
 		detailsRow.style['display'] = 'none';
 
 		// buttons
-		LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(this.listData[uniqueName]), mainRow);
-		LibraryList.createButton('more', () => this.showMore(this.listData[uniqueName]), mainRow);
+		//LibraryList.createButton('install', () => this.#bitpackerPlugin.adapter.addPack(this.listData[uniqueName]), mainRow);
+		//LibraryList.createButton('more', () => this.showMore(this.listData[uniqueName]), mainRow);
 
 		// info
 		let mainCells = [];
