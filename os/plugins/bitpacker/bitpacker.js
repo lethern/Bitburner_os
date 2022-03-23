@@ -56,7 +56,7 @@ class BitpackerPlugin {
 		windowWidget.getContentDiv().style.display = 'block';
 		windowWidget.getContentDiv().classList.add('whiteScrollbar')
 		windowWidget.getContentDiv().classList.add('grayBackground')
-		windowWidget.setTitle('Bitpacker')
+		windowWidget.setTitle('Bitpacker (Work In Progress)')
 
 		windowWidget.addMenuItem({ label: 'Available', callback: () => this.#onAvailableClick() })
 		windowWidget.addMenuItem({ label: 'Installed', callback: () => this.#onInstalledClick() })

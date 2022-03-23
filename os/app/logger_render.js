@@ -125,6 +125,7 @@ const console_render_css =
 	display: block;
 	overflow-y: scroll;
 	user-select: text;
+	flex-direction: column;
 }
 .consoleDebug{
 	color: #828282;
