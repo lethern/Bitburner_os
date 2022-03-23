@@ -41,37 +41,44 @@ export class ServersExplorer {
 		}
 	}
 
-	async svConnect(svName) {
+	async svConnect(serverName) {
+
+		if (this.#os.serversManager.connectedServer == serverName) return;
+
 		let command = 'home'
 		this.#os.terminal.inputToTerminal(`${command}`);
 		await Utils.sleep(250);
-		command = 'run /os/app/servers_explorer/connect.js'
-		this.#os.terminal.inputToTerminal(`${command} ${svName}`);
+
+		let serversObj = this.#os.serversManager.serversObj;
+		let stack = [];
+		let serverTarget = serversObj[serverName];
+		let watchdog = 0;
+
+		while (serverName != 'home') {
+			stack.push(`connect ${serverName}`);
+
+			serverName = serverTarget.parent;
+			serverTarget = serversObj[serverName];
+			if (watchdog++ > 100) throw "svConnect watchdog";
+		}
+		stack.reverse();
+
+		this.#os.terminal.inputToTerminal(`${stack.join('; ')}`);
+		//command = 'run /os/app/servers_explorer/connect.js'
+		//this.#os.terminal.inputToTerminal(`${command} ${svName}`);
 		//this.#winRenderer.hide();
 	}
 
 	async svBackdoor(svName) {
-		let command = 'home'
-		this.#os.terminal.inputToTerminal(`${command}`);
+		await this.svConnect(svName)
 		await Utils.sleep(250);
-		command = 'run /os/app/servers_explorer/connect.js '
-		this.#os.terminal.inputToTerminal(`${command}` + svName);
-		await Utils.sleep(250);
-		command = 'backdoor'
-		this.#os.terminal.inputToTerminal(`${command}`);
-		//this.#winRenderer.hide();
+		this.#os.terminal.inputToTerminal('backdoor');
 	}
 
 	async svHack(svName) {
-		let command = 'home'
-		this.#os.terminal.inputToTerminal(`${command}`);
+		await this.svConnect(svName)
 		await Utils.sleep(250);
-		command = 'run /os/app/servers_explorer/connect.js '
-		this.#os.terminal.inputToTerminal(`${command}` + svName);
-		await Utils.sleep(250);
-		command = 'run BruteSSH.exe;run FTPCrack.exe;run HTTPWorm.exe;run SQLInject.exe;run relaySMTP.exe;run NUKE.exe'
-		this.#os.terminal.inputToTerminal(`${command}`);
-		//this.#winRenderer.hide();
+		this.#os.terminal.inputToTerminal('run BruteSSH.exe;run FTPCrack.exe;run HTTPWorm.exe;run SQLInject.exe;run relaySMTP.exe;run NUKE.exe');
 	}
 
 	/** @returns {Promise<{name: string, rooty: boolean, backy: boolean}[]>} */

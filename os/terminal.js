@@ -28,7 +28,7 @@ export class Terminal {
 			terminal.value = command
 			const handler = Object.keys(terminal)[1];
 			terminal[handler].onChange({ target: terminal });
-			terminal[handler].onKeyDown({ keyCode: 13, preventDefault: () => null })
+			terminal[handler].onKeyDown({ key: 'Enter', preventDefault: () => null })
 
 			return true
 		}

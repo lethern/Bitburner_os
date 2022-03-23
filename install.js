@@ -109,5 +109,5 @@ function terminalCommand(message) {
 	terminalInput.value = message;
 	const handler = Object.keys(terminalInput)[1];
 	terminalInput[handler].onChange({ target: terminalInput });
-	terminalInput[handler].onKeyDown({ keyCode: 13, preventDefault: () => null });
+	terminalInput[handler].onKeyDown({ key: 'Enter', preventDefault: () => null });
 }
