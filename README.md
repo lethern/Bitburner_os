@@ -1,5 +1,5 @@
 # Bitburner_os
-A collection of graphical tools and widgets, with a few additions that allow to expand it, like NS queue and plugin manager. If you want to help, check out the `#projects-talk` channel on the Bitburner discord!
+A collection of graphical tools and widgets, with a few additions that allow to expand it, like NS queue and plugin manager. 
 
 To install, simply download and run `install.js`
 
